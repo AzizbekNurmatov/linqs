@@ -18,13 +18,22 @@
   }
 }
 
-@keyframes float {
+@keyframes float-rotated {
   0%, 100% {
-    transform: translateY(0px);
+    transform: rotateY(-5deg) rotateX(5deg) translateY(0px);
   }
   50% {
-    transform: translateY(-20px);
+    transform: rotateY(-5deg) rotateX(5deg) translateY(-20px);
   }
+}
+
+.animate-float-delayed {
+  animation: float 5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.animate-float-rotated {
+  animation: float-rotated 5s ease-in-out infinite;
 }
 
 @keyframes infinite-scroll {
@@ -51,4 +60,8 @@
 
 .animate-infinite-scroll-reverse {
   animation: infinite-scroll-reverse 30s linear infinite;
+}
+
+.hover\:paused:hover {
+  animation-play-state: paused;
 }

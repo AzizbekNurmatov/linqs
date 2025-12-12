@@ -59,7 +59,7 @@ function App() {
     }
   ]);
 
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedCategories, setSelectedCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -71,6 +71,21 @@ function App() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedEvent(null);
+  };
+
+  const handleCategoryToggle = (category) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(cat => cat !== category);
+      } else {
+        return [...prev, category];
+      }
+    });
+  };
+
+  const handleCategoryClick = (category) => {
+    // Toggle the category when clicking on priority bar pills
+    handleCategoryToggle(category);
   };
 
   const handleAddEvent = (newEvent) => {
@@ -107,20 +122,25 @@ function App() {
     console.log(`Boosted event: ${events[index].title}`);
   };
 
-  // Filter events based on active filter (simple implementation)
-  const filteredEvents = activeFilter === 'All' 
+  // Filter events based on selected categories
+  const filteredEvents = selectedCategories.length === 0
     ? events 
     : events.filter(event => {
-        // Simple keyword matching - can be enhanced
-        const filterLower = activeFilter.toLowerCase();
-        return event.title.toLowerCase().includes(filterLower) ||
-               event.description.toLowerCase().includes(filterLower);
+        const eventText = `${event.title} ${event.description}`.toLowerCase();
+        return selectedCategories.some(category => {
+          const categoryLower = category.toLowerCase();
+          return eventText.includes(categoryLower);
+        });
       });
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header onAddEvent={handleAddEvent} />
-      <HeroSection activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+      <HeroSection 
+        selectedCategories={selectedCategories}
+        onCategoryToggle={handleCategoryToggle}
+        onCategoryClick={handleCategoryClick}
+      />
       <FeaturesBentoGrid />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 pb-12">
         <EventList 

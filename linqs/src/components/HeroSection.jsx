@@ -1,49 +1,6 @@
-import { useRef, useEffect, useState } from 'react';
+import FilterBar from './FilterBar';
 
-function HeroSection({ activeFilter, onFilterChange }) {
-  const filters = ['All', 'Tech', 'Sports', 'Creative', 'Campus'];
-  const [sliderStyle, setSliderStyle] = useState({});
-  const buttonRefs = useRef({});
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    const activeButton = buttonRefs.current[activeFilter];
-    const container = containerRef.current;
-    
-    if (activeButton && container) {
-      const containerRect = container.getBoundingClientRect();
-      const buttonRect = activeButton.getBoundingClientRect();
-      
-      setSliderStyle({
-        left: `${buttonRect.left - containerRect.left}px`,
-        width: `${buttonRect.width}px`,
-        height: `${buttonRect.height}px`,
-      });
-    }
-  }, [activeFilter]);
-
-  // Sample event cards for the floating collage
-  const floatingCards = [
-    {
-      title: "Music Festival",
-      image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=300&h=400&fit=crop",
-      glow: "from-purple-500/20 to-pink-500/20",
-      delay: "0s"
-    },
-    {
-      title: "Art Gallery",
-      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&h=400&fit=crop",
-      glow: "from-blue-500/20 to-cyan-500/20",
-      delay: "1s"
-    },
-    {
-      title: "Food & Wine",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=300&h=400&fit=crop",
-      glow: "from-orange-500/20 to-red-500/20",
-      delay: "2s"
-    }
-  ];
-
+function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) {
   return (
     <>
       {/* Split Hero Section */}
@@ -80,74 +37,107 @@ function HeroSection({ activeFilter, onFilterChange }) {
             </div>
           </div>
 
-          {/* Right Column: Floating Collage */}
-          <div className="relative h-[400px] lg:h-[500px] w-full flex items-center justify-center">
-            {floatingCards.map((card, index) => (
-              <div
-                key={index}
-                className="absolute rounded-3xl overflow-hidden shadow-2xl backdrop-blur-sm bg-white/80 border border-white/40 w-[200px] h-[260px] lg:w-[280px] lg:h-[360px]"
-                style={{
-                  left: index === 0 ? '10%' : index === 1 ? '35%' : '60%',
-                  top: `${index * 12 + 15}%`,
-                  zIndex: floatingCards.length - index,
-                  animation: `float 6s ease-in-out infinite`,
-                  animationDelay: card.delay,
-                }}
-              >
-                {/* Glow Effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${card.glow} opacity-50 -z-10 blur-2xl`} />
-                
-                {/* Card Image */}
-                <div className="relative h-full w-full">
-                  <img 
-                    src={card.image} 
-                    alt={card.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.innerHTML = `<div class="w-full h-full bg-gradient-to-br ${card.glow}"></div>`;
-                    }}
-                  />
-                  {/* Overlay with title */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
-                    <h3 className="text-white font-bold text-xl">{card.title}</h3>
+          {/* Right Column: Floating Ecosystem */}
+          <div className="relative w-full h-[600px] flex items-center justify-center" style={{ perspective: '1000px' }}>
+            {/* Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/20 to-rose-500/20 blur-3xl rounded-full" />
+            
+            {/* Central Hero Card */}
+            <div 
+              className="relative w-80 bg-white rounded-3xl shadow-2xl z-20 hover:scale-105 transition-transform duration-500 animate-float-rotated"
+            >
+              <div className="relative h-64 overflow-hidden rounded-t-3xl">
+                <img 
+                  src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=300&fit=crop"
+                  alt="Neon Nights Festival"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-indigo-500 to-rose-500"></div>';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+              <div className="p-6">
+                <h3 className="font-bold text-xl text-slate-800 mb-2">Neon Nights Festival</h3>
+                <p className="text-slate-600 text-sm">July 20, 2024 • 8:00 PM</p>
+              </div>
+            </div>
+
+            {/* Satellite 1: Chat Bubble (Top Right) */}
+            <div 
+              className="absolute -right-12 top-20 z-30 bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-white/50 animate-float-delayed"
+            >
+              <div className="flex items-center gap-3">
+                <img 
+                  src="https://i.pravatar.cc/150?img=12"
+                  alt="User"
+                  className="w-10 h-10 rounded-full border-2 border-white"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Are we getting VIP tickets? 🎫</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Satellite 2: Community Pill (Bottom Left) */}
+            <div 
+              className="absolute -left-8 bottom-32 z-30 bg-white py-2 px-4 rounded-full shadow-xl flex items-center gap-2 animate-float-delayed"
+              style={{ animationDelay: '1s' }}
+            >
+              <div className="flex items-center -space-x-2">
+                <img 
+                  src="https://i.pravatar.cc/150?img=1"
+                  alt="Friend 1"
+                  className="w-8 h-8 rounded-full border-2 border-white"
+                />
+                <img 
+                  src="https://i.pravatar.cc/150?img=2"
+                  alt="Friend 2"
+                  className="w-8 h-8 rounded-full border-2 border-white"
+                />
+                <img 
+                  src="https://i.pravatar.cc/150?img=3"
+                  alt="Friend 3"
+                  className="w-8 h-8 rounded-full border-2 border-white"
+                />
+              </div>
+              <span className="text-sm font-semibold text-slate-700">12 friends going</span>
+            </div>
+
+            {/* Satellite 3: Location Map Card (Bottom Right) */}
+            <div 
+              className="absolute right-4 bottom-10 z-10 w-32 h-24 bg-slate-50 rounded-xl shadow-lg border-2 border-white overflow-hidden"
+            >
+              <div className="relative w-full h-full">
+                <img 
+                  src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=200&h=150&fit=crop"
+                  alt="Map location"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.innerHTML = '<div class="w-full h-full bg-slate-200"></div>';
+                  }}
+                />
+                {/* Pulsing Pin */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75" style={{ animationDuration: '2s' }}></div>
+                    <div className="relative w-4 h-4 bg-red-500 rounded-full"></div>
                   </div>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Filter Section */}
-      <section className="text-center py-8 px-4">
-        <div 
-          ref={containerRef}
-          className="relative inline-flex gap-3 px-2 py-2 bg-white/50 backdrop-blur-sm rounded-full shadow-md"
-        >
-          {/* Sliding Background Pill */}
-          <div
-            className="absolute bg-gradient-to-r from-[#6C5CE7] to-[#FF7675] rounded-full transition-all duration-300 ease-out shadow-lg"
-            style={sliderStyle}
-          />
-          
-          {/* Filter Buttons */}
-          {filters.map((filter) => (
-            <button
-              key={filter}
-              ref={(el) => (buttonRefs.current[filter] = el)}
-              onClick={() => onFilterChange(filter)}
-              className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-colors duration-300 ease-out active:scale-95 ${
-                activeFilter === filter
-                  ? 'text-white'
-                  : 'text-[#636E72] hover:text-[#2D3436]'
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* Filter Bar */}
+      <FilterBar
+        selectedCategories={selectedCategories}
+        onCategoryToggle={onCategoryToggle}
+        onCategoryClick={onCategoryClick}
+      />
     </>
   );
 }

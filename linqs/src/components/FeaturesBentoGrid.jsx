@@ -1,6 +1,27 @@
+// Deterministic color assignment for pastel tags
+function getTagColor(tagString) {
+  const colors = [
+    'bg-indigo-100 text-indigo-700',
+    'bg-rose-100 text-rose-700',
+    'bg-emerald-100 text-emerald-700',
+    'bg-amber-100 text-amber-700',
+  ];
+
+  // Simple hash function for deterministic color assignment
+  let hash = 0;
+  for (let i = 0; i < tagString.length; i++) {
+    const char = tagString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+}
+
 function FeaturesBentoGrid() {
-  // Tags for the ticker
-  const tags = ['#NightLife', '#TechTalks', '#Campus', '#RunClub', '#Art', '#Foodies'];
+  // Tags for the ticker - extended list
+  const tags = ['#NightLife', '#TechTalks', '#Campus', '#RunClub', '#Art', '#Foodies', '#StudyGroup', '#LiveMusic', '#Workshops', '#Gaming', '#Startups', '#Volunteering', '#Design', '#Yoga'];
 
   // Avatar URLs for the face pile
   const avatars = [
@@ -14,20 +35,30 @@ function FeaturesBentoGrid() {
   return (
     <section className="w-full py-16">
       {/* Community Ticker - Single Row */}
-      <section className="w-full bg-slate-900 py-12 overflow-hidden">
-        <div className="flex animate-infinite-scroll whitespace-nowrap">
-          {[...tags, ...tags].map((_, duplicateIndex) => (
-            <div key={`wrapper-${duplicateIndex}`} className="flex min-w-full shrink-0 gap-4">
-              {tags.map((tag, index) => (
-                <span
-                  key={`tag-${duplicateIndex}-${index}`}
-                  className="px-6 py-2 rounded-full bg-slate-800 text-white font-bold text-sm border border-slate-700"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ))}
+      <section className="w-full bg-white overflow-hidden py-8">
+        <div className="flex w-max animate-infinite-scroll hover:paused">
+          {/* First group of tags */}
+          <div className="flex shrink-0 gap-4">
+            {tags.map((tag, index) => (
+              <span
+                key={`tag-1-${index}`}
+                className={`px-6 py-2 rounded-full font-bold text-sm ${getTagColor(tag)}`}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          {/* Second group of tags (duplicate for seamless loop) */}
+          <div className="flex shrink-0 gap-4">
+            {tags.map((tag, index) => (
+              <span
+                key={`tag-2-${index}`}
+                className={`px-6 py-2 rounded-full font-bold text-sm ${getTagColor(tag)}`}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
