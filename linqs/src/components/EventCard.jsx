@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function EventCard({ event, onInterested, onBoost }) {
+function EventCard({ event, onInterested, onBoost, onCardClick }) {
   const [isSaved, setIsSaved] = useState(false);
   
   // Generate mock avatars for face pile
@@ -15,8 +15,21 @@ function EventCard({ event, onInterested, onBoost }) {
   const day = dateParts[1]?.replace(',', '') || '';
   const month = dateParts[0]?.substring(0, 3) || '';
 
+  const handleCardClick = (e) => {
+    // Don't trigger if clicking on buttons or their children
+    if (e.target.closest('button')) {
+      return;
+    }
+    if (onCardClick) {
+      onCardClick();
+    }
+  };
+
   return (
-    <div className="bg-white rounded-3xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 ease-out overflow-hidden group">
+    <div 
+      className="bg-white rounded-3xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-200 ease-out overflow-hidden group cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Image Container with Date Badge and Face Pile */}
       <div className="relative aspect-[4/3] overflow-hidden">
         {event.image ? (

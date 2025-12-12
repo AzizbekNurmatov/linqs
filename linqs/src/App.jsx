@@ -3,6 +3,7 @@ import Header from './components/Header';
 import HeroSection from './components/HeroSection';
 import FeaturesBentoGrid from './components/FeaturesBentoGrid';
 import EventList from './components/EventList';
+import EventDetailModal from './components/EventDetailModal';
 import Footer from './components/Footer';
 
 function App() {
@@ -59,6 +60,18 @@ function App() {
   ]);
 
   const [activeFilter, setActiveFilter] = useState('All');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
+  const handleCardClick = (event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+  };
 
   const handleAddEvent = (newEvent) => {
     // Format the date for display
@@ -114,9 +127,15 @@ function App() {
           events={filteredEvents} 
           onInterested={handleInterested}
           onBoost={handleBoost}
+          onCardClick={handleCardClick}
         />
       </main>
       <Footer />
+      <EventDetailModal 
+        isOpen={isModalOpen}
+        event={selectedEvent}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
