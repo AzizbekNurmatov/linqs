@@ -39,16 +39,16 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
 
   return (
     <div 
-      className="relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-lg shadow-slate-200/50 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300 ease-out group cursor-pointer"
+      className="relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer"
       onClick={handleCardClick}
     >
-      {/* Image Container with Date Badge and Category Badge */}
-      <div className="overflow-hidden h-48 relative">
+      {/* Image Container with Date Badge */}
+      <div className="relative aspect-[4/3] overflow-hidden">
         {event.image ? (
           <img 
             src={event.image} 
             alt={event.title}
-            className="object-cover w-full h-full transition-transform duration-700 ease-in-out group-hover:scale-110"
+            className="object-cover w-full h-full transition-transform duration-500 ease-in-out group-hover:scale-105"
             onError={(e) => {
               e.target.style.display = 'none';
             }}
@@ -57,44 +57,41 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
           <div className="w-full h-full bg-gradient-to-br from-[#6C5CE7] to-[#FF7675]"></div>
         )}
         
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-        
-        {/* Date Badge - Top Left */}
-        <div className="absolute top-4 left-4 backdrop-blur-md bg-white/90 rounded-xl px-3 py-2 shadow-sm">
+        {/* Date Badge - Glassmorphism Style */}
+        <div className="absolute top-3 left-3 backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1.5">
           <div className="text-center">
-            <div className="font-bold text-lg leading-none">{day}</div>
-            <div className="text-xs text-slate-600 font-semibold uppercase">{month}</div>
+            <div className="font-semibold text-sm leading-none text-white">{day}</div>
+            <div className="text-[10px] text-white/90 font-medium uppercase tracking-wide">{month}</div>
           </div>
         </div>
 
         {/* Category Badge - Top Right */}
-        <div className="absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-indigo-600 shadow-sm">
+        <div className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md text-white shadow-sm">
           {getCategory()}
         </div>
       </div>
 
       {/* Content Area */}
-      <div className="p-6">
-        <h3 className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors mb-2 line-clamp-2">
+      <div className="p-5">
+        <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
           {event.title}
         </h3>
-        <p className="text-slate-500 text-sm mb-4 line-clamp-2">
+        <p className="text-slate-500 text-sm mb-4 line-clamp-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
           {event.description}
         </p>
 
         {/* Meta Info */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-1 text-slate-500 text-sm">
-            <svg className="w-4 h-4 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        <div className="space-y-1.5 mb-4">
+          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span>{event.location}</span>
           </div>
-          <div className="flex items-center gap-1 text-slate-500 text-sm">
-            <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{event.time}</span>
           </div>
@@ -114,22 +111,23 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
             ))}
           </div>
 
-          {/* Actions - Right */}
-          <div className="flex items-center gap-2">
+          {/* Actions - Right (Ghost Buttons) */}
+          <div className="flex items-center gap-1">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setIsSaved(!isSaved);
                 onInterested();
               }}
-              className={`rounded-full p-2 transition ${
+              className={`rounded-lg p-2 transition-colors ${
                 isSaved
-                  ? 'bg-rose-50 text-rose-500'
-                  : 'text-slate-400 hover:bg-rose-50 hover:text-rose-500'
+                  ? 'text-rose-500 hover:bg-rose-50'
+                  : 'text-slate-400 hover:text-rose-500 hover:bg-rose-50'
               }`}
+              aria-label="Save event"
             >
-              <svg className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <svg className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </button>
             <button
@@ -137,10 +135,11 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
                 e.stopPropagation();
                 onBoost();
               }}
-              className="bg-gradient-to-r from-amber-400 to-orange-500 text-white p-2 rounded-full shadow-md hover:shadow-lg hover:scale-110 transition"
+              className="text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg p-2 transition-colors"
+              aria-label="Boost event"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </button>
           </div>
