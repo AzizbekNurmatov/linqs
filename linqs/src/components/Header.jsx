@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import EventForm from './EventForm';
 
 function Header({ onAddEvent }) {
@@ -13,19 +14,19 @@ function Header({ onAddEvent }) {
           {/* Left: Brand */}
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-indigo-500 to-rose-400"></div>
-            <a href="#" className="font-bold text-2xl tracking-tighter text-slate-800">
+            <Link to="/" className="font-bold text-2xl tracking-tighter text-slate-800">
               Linqs
-            </a>
+            </Link>
           </div>
 
           {/* Center: Navigation Links (Hidden on Mobile) */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
+            <Link to="/" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
               Home
-            </a>
-            <a href="#" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
+            </Link>
+            <Link to="/explore" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
               Explore
-            </a>
+            </Link>
             <a href="#" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
               Community
             </a>
@@ -74,20 +75,20 @@ function Header({ onAddEvent }) {
       {mobileMenuOpen && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white/95 backdrop-blur-lg rounded-3xl border border-white/40 shadow-xl z-40 md:hidden">
           <nav className="flex flex-col p-4 gap-3">
-            <a 
-              href="#" 
+            <Link 
+              to="/" 
               className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
-            </a>
-            <a 
-              href="#" 
+            </Link>
+            <Link 
+              to="/explore" 
               className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Explore
-            </a>
+            </Link>
             <a 
               href="#" 
               className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
