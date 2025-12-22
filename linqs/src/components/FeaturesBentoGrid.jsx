@@ -36,7 +36,7 @@ function FeaturesBentoGrid() {
     <section className="w-full py-16">
       {/* Community Ticker - Single Row */}
       <section className="w-full bg-white overflow-hidden py-8">
-        <div className="flex w-max animate-infinite-scroll hover:paused">
+        <div className="flex w-max animate-infinite-scroll">
           {/* First group of tags */}
           <div className="flex shrink-0 gap-4">
             {tags.map((tag, index) => (
