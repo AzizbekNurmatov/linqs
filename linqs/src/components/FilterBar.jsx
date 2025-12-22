@@ -11,8 +11,8 @@ function FilterBar({ selectedCategories, onCategoryToggle, onCategoryClick }) {
 
   return (
     <>
-      {/* Sticky Filter Bar */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/50 py-4 px-4">
+      {/* Filter Bar */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 py-4 px-4">
         <div className="max-w-7xl mx-auto flex items-center gap-3">
           {/* Left Side - Scrollable Priority Pills */}
           <div className="flex-1 relative">
