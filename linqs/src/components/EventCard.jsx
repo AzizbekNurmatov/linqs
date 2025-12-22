@@ -39,7 +39,7 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
 
   return (
     <div 
-      className="relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer"
+      className="relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer transform-gpu"
       onClick={handleCardClick}
     >
       {/* Image Container with Date Badge */}
