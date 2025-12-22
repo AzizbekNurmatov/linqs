@@ -27,9 +27,9 @@ function Header({ onAddEvent }) {
             <Link to="/explore" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
               Explore
             </Link>
-            <a href="#" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
+            <Link to="/community" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
               Community
-            </a>
+            </Link>
           </div>
 
           {/* Right: Actions */}
@@ -89,13 +89,13 @@ function Header({ onAddEvent }) {
             >
               Explore
             </Link>
-            <a 
-              href="#" 
+            <Link 
+              to="/community" 
               className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
               onClick={() => setMobileMenuOpen(false)}
             >
               Community
-            </a>
+            </Link>
             <a 
               href="#" 
               className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2 border-t border-slate-200 pt-3 mt-1"
