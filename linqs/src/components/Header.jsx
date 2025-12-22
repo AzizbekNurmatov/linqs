@@ -9,7 +9,7 @@ function Header({ onAddEvent }) {
   return (
     <>
       {/* Floating Navbar */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl h-16 rounded-full bg-white/80 backdrop-blur-lg border border-white/40 shadow-sm z-50">
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 max-w-5xl w-[90%] h-16 rounded-full bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl z-50">
         <nav className="flex items-center justify-between px-6 h-full">
           {/* Left: Brand */}
           <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ function Header({ onAddEvent }) {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 w-[90%] max-w-6xl bg-white/95 backdrop-blur-lg rounded-3xl border border-white/40 shadow-xl z-40 md:hidden">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl bg-white/95 backdrop-blur-md rounded-3xl border border-gray-200 shadow-xl z-40 md:hidden">
           <nav className="flex flex-col p-4 gap-3">
             <Link 
               to="/" 
