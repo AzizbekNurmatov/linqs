@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Music, Code, Utensils, Dumbbell, Palette, Moon } from 'lucide-react';
 
 function Explore() {
@@ -81,76 +82,88 @@ function Explore() {
           </div>
 
           {/* Card 2 - Live Music - Spans 2 columns, 1 row */}
-          <div 
-            className="relative bg-gradient-to-br from-rose-600 via-pink-600 to-orange-600 rounded-3xl p-6 shadow-xl hover:scale-110 hover:rotate-3 hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center lg:col-span-2 overflow-hidden"
-          >
-            {/* Live Indicator Badge */}
-            <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 z-10">
-              <div className="w-2 h-2 bg-red-400 rounded-full pulse-dot"></div>
-              <span className="text-white text-xs font-semibold">Happening Now</span>
+          <Link to="/explore/live-music" className="block lg:col-span-2">
+            <div 
+              className="relative bg-gradient-to-br from-rose-600 via-pink-600 to-orange-600 rounded-3xl p-6 shadow-xl hover:scale-110 hover:rotate-3 hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
+              {/* Live Indicator Badge */}
+              <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 z-10">
+                <div className="w-2 h-2 bg-red-400 rounded-full pulse-dot"></div>
+                <span className="text-white text-xs font-semibold">Happening Now</span>
+              </div>
+              
+              {/* Icon Watermark */}
+              <Music className="absolute bottom-4 right-4 w-20 h-20 text-white/20 -rotate-12" strokeWidth={1.5} />
+              
+              <h3 className="text-white font-['Bangers'] text-7xl font-bold -ml-2 -mr-2 leading-none">LIVE MUSIC</h3>
+              <p className="text-white/90 text-sm font-['Caveat'] mt-2">Concerts and performances</p>
             </div>
-            
-            {/* Icon Watermark */}
-            <Music className="absolute bottom-4 right-4 w-20 h-20 text-white/20 -rotate-12" strokeWidth={1.5} />
-            
-            <h3 className="text-white font-['Bangers'] text-7xl font-bold -ml-2 -mr-2 leading-none">LIVE MUSIC</h3>
-            <p className="text-white/90 text-sm font-['Caveat'] mt-2">Concerts and performances</p>
-          </div>
+          </Link>
 
           {/* Card 3 - Tech - Spans 1 column, 1 row */}
-          <div 
-            className="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-6 shadow-xl hover:translate-x-2 hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden"
-          >
-            {/* Icon Watermark */}
-            <Code className="absolute bottom-4 right-4 w-16 h-16 text-white/20 -rotate-12" strokeWidth={1.5} />
-            
-            <h3 className="text-white font-['Righteous'] text-6xl font-bold -ml-2 -mr-2 leading-none glitch-hover">TECH</h3>
-            <p className="text-white/90 text-xs font-['Caveat'] mt-1">Innovation & startups</p>
-          </div>
+          <Link to="/explore/tech" className="block">
+            <div 
+              className="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 rounded-3xl p-6 shadow-xl hover:translate-x-2 hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
+              {/* Icon Watermark */}
+              <Code className="absolute bottom-4 right-4 w-16 h-16 text-white/20 -rotate-12" strokeWidth={1.5} />
+              
+              <h3 className="text-white font-['Righteous'] text-6xl font-bold -ml-2 -mr-2 leading-none glitch-hover">TECH</h3>
+              <p className="text-white/90 text-xs font-['Caveat'] mt-1">Innovation & startups</p>
+            </div>
+          </Link>
 
           {/* Card 4 - Food - Spans 1 column, 1 row */}
-          <div 
-            className="relative bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 rounded-3xl p-6 shadow-xl hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden"
-          >
-            {/* Icon Watermark */}
-            <Utensils className="absolute bottom-4 right-4 w-16 h-16 text-white/20 -rotate-12" strokeWidth={1.5} />
-            
-            <h3 className="text-white font-['Caveat'] text-6xl font-bold -ml-2 -mr-2 leading-none">FOOD</h3>
-            <p className="text-white/90 text-xs font-['Caveat'] mt-1">Culinary experiences</p>
-          </div>
+          <Link to="/explore/food" className="block">
+            <div 
+              className="relative bg-gradient-to-br from-amber-600 via-orange-600 to-red-600 rounded-3xl p-6 shadow-xl hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
+              {/* Icon Watermark */}
+              <Utensils className="absolute bottom-4 right-4 w-16 h-16 text-white/20 -rotate-12" strokeWidth={1.5} />
+              
+              <h3 className="text-white font-['Caveat'] text-6xl font-bold -ml-2 -mr-2 leading-none">FOOD</h3>
+              <p className="text-white/90 text-xs font-['Caveat'] mt-1">Culinary experiences</p>
+            </div>
+          </Link>
 
           {/* Card 5 - Sports - Spans 1 column, 2 rows */}
-          <div 
-            className="relative bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600 rounded-3xl p-6 shadow-xl hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center lg:row-span-2 overflow-hidden"
-          >
-            {/* Icon Watermark */}
-            <Dumbbell className="absolute bottom-4 right-4 w-20 h-20 text-white/20 -rotate-12" strokeWidth={1.5} />
-            
-            <h3 className="text-white font-['Bangers'] text-7xl font-bold -ml-2 -mr-2 leading-none">SPORTS</h3>
-            <p className="text-white/90 text-sm font-['Caveat'] mt-2">Active events & fitness</p>
-          </div>
+          <Link to="/explore/sports" className="block lg:row-span-2">
+            <div 
+              className="relative bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600 rounded-3xl p-6 shadow-xl hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
+              {/* Icon Watermark */}
+              <Dumbbell className="absolute bottom-4 right-4 w-20 h-20 text-white/20 -rotate-12" strokeWidth={1.5} />
+              
+              <h3 className="text-white font-['Bangers'] text-7xl font-bold -ml-2 -mr-2 leading-none">SPORTS</h3>
+              <p className="text-white/90 text-sm font-['Caveat'] mt-2">Active events & fitness</p>
+            </div>
+          </Link>
 
           {/* Card 6 - Arts & Culture - Spans 2 columns, 1 row */}
-          <div 
-            className="relative bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 rounded-3xl p-6 shadow-xl hover:italic hover:tracking-widest hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center lg:col-span-2 overflow-hidden"
-          >
-            {/* Icon Watermark */}
-            <Palette className="absolute bottom-4 right-4 w-20 h-20 text-white/20 -rotate-12" strokeWidth={1.5} />
-            
-            <h3 className="text-white font-['Abril Fatface'] text-7xl font-bold -ml-2 -mr-2 leading-none">ARTS</h3>
-            <p className="text-white/90 text-sm font-['Caveat'] mt-2">Galleries, museums, exhibitions</p>
-          </div>
+          <Link to="/explore/arts" className="block lg:col-span-2">
+            <div 
+              className="relative bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 rounded-3xl p-6 shadow-xl hover:italic hover:tracking-widest hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
+              {/* Icon Watermark */}
+              <Palette className="absolute bottom-4 right-4 w-20 h-20 text-white/20 -rotate-12" strokeWidth={1.5} />
+              
+              <h3 className="text-white font-['Abril Fatface'] text-7xl font-bold -ml-2 -mr-2 leading-none">ARTS</h3>
+              <p className="text-white/90 text-sm font-['Caveat'] mt-2">Galleries, museums, exhibitions</p>
+            </div>
+          </Link>
 
           {/* Card 7 - Nightlife - Spans 1 column, 1 row */}
-          <div 
-            className="relative bg-gradient-to-br from-red-600 via-rose-600 to-pink-600 rounded-3xl p-6 shadow-xl hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden"
-          >
-            {/* Icon Watermark */}
-            <Moon className="absolute bottom-4 right-4 w-16 h-16 text-white/20 -rotate-12" strokeWidth={1.5} />
-            
-            <h3 className="text-white font-['Bangers'] text-6xl font-bold -ml-2 -mr-2 leading-none">NIGHT</h3>
-            <p className="text-white/90 text-xs font-['Caveat'] mt-1">Bars & clubs</p>
-          </div>
+          <Link to="/explore/nightlife" className="block">
+            <div 
+              className="relative bg-gradient-to-br from-red-600 via-rose-600 to-pink-600 rounded-3xl p-6 shadow-xl hover:scale-[1.02] hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-center overflow-hidden cursor-pointer"
+            >
+              {/* Icon Watermark */}
+              <Moon className="absolute bottom-4 right-4 w-16 h-16 text-white/20 -rotate-12" strokeWidth={1.5} />
+              
+              <h3 className="text-white font-['Bangers'] text-6xl font-bold -ml-2 -mr-2 leading-none">NIGHT</h3>
+              <p className="text-white/90 text-xs font-['Caveat'] mt-1">Bars & clubs</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

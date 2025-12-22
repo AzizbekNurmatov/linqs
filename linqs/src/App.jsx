@@ -3,6 +3,7 @@ import { EventsProvider } from './context/EventsContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
+import GenreDetail from './pages/GenreDetail';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="explore" element={<Explore />} />
+            <Route path="explore/:genre" element={<GenreDetail />} />
           </Route>
         </Routes>
       </BrowserRouter>
