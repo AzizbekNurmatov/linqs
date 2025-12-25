@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import EventForm from './EventForm';
+import Logout from './Logout';
 
 function Header({ onAddEvent }) {
   const [showForm, setShowForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, loading } = useAuth();
 
   return (
     <>
@@ -34,10 +37,26 @@ function Header({ onAddEvent }) {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-4">
-            {/* Login Link (Hidden on Mobile) */}
-            <a href="#" className="hidden md:block text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200">
-              Login
-            </a>
+            {/* Auth Links (Hidden on Mobile) */}
+            {!loading && (
+              <>
+                {user ? (
+                  <div className="hidden md:flex items-center gap-4">
+                    <span className="text-sm text-slate-600">
+                      {user.email?.split('@')[0]}
+                    </span>
+                    <Logout />
+                  </div>
+                ) : (
+                  <Link 
+                    to="/login" 
+                    className="hidden md:block text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200"
+                  >
+                    Login
+                  </Link>
+                )}
+              </>
+            )}
 
             {/* Create Event Button */}
             <button
@@ -96,13 +115,31 @@ function Header({ onAddEvent }) {
             >
               Community
             </Link>
-            <a 
-              href="#" 
-              className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2 border-t border-slate-200 pt-3 mt-1"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Login
-            </a>
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    <div className="text-sm text-slate-600 py-2 border-t border-slate-200 pt-3 mt-1">
+                      {user.email?.split('@')[0]}
+                    </div>
+                    <div 
+                      className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Logout />
+                    </div>
+                  </>
+                ) : (
+                  <Link 
+                    to="/login" 
+                    className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2 border-t border-slate-200 pt-3 mt-1"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                )}
+              </>
+            )}
           </nav>
         </div>
       )}
