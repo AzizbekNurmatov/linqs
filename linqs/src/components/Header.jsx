@@ -43,7 +43,7 @@ function Header({ onAddEvent }) {
                 {user ? (
                   <div className="hidden md:flex items-center gap-4">
                     <span className="text-sm text-slate-600">
-                      {user.email?.split('@')[0]}
+                      {user.user_metadata?.username || user.email?.split('@')[0] || user.email}
                     </span>
                     <Logout />
                   </div>
@@ -120,7 +120,7 @@ function Header({ onAddEvent }) {
                 {user ? (
                   <>
                     <div className="text-sm text-slate-600 py-2 border-t border-slate-200 pt-3 mt-1">
-                      {user.email?.split('@')[0]}
+                      {user.user_metadata?.username || user.email?.split('@')[0] || user.email}
                     </div>
                     <div 
                       className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2"
