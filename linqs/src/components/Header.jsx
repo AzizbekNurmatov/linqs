@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import EventForm from './EventForm';
 import Logout from './Logout';
@@ -8,6 +9,22 @@ function Header({ onAddEvent }) {
   const [showForm, setShowForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCreateEventClick = () => {
+    // Check if user is logged in
+    if (!user) {
+      // Show toast notification
+      toast.error('Please log in to create an event');
+      // Redirect to register page after a short delay
+      setTimeout(() => {
+        navigate('/register');
+      }, 1000);
+      return;
+    }
+    // User is logged in, proceed with showing the form
+    setShowForm(true);
+  };
 
   return (
     <>
@@ -60,7 +77,7 @@ function Header({ onAddEvent }) {
 
             {/* Create Event Button */}
             <button
-              onClick={() => setShowForm(true)}
+              onClick={handleCreateEventClick}
               className="bg-gradient-to-r from-indigo-500 to-rose-400 text-white rounded-full px-6 py-2.5 font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all duration-200 ease-out shadow-lg hover:shadow-xl"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
