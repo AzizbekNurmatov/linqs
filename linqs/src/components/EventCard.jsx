@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 function EventCard({ event, onInterested, onBoost, onCardClick }) {
   const [isSaved, setIsSaved] = useState(false);
+  const [isBoosted, setIsBoosted] = useState(false);
   
   // Generate mock avatars for face pile
   const avatars = [
@@ -121,24 +122,29 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
               }}
               className={`rounded-lg p-2 transition-colors ${
                 isSaved
-                  ? 'text-rose-500 hover:bg-rose-50'
-                  : 'text-slate-400 hover:text-rose-500 hover:bg-rose-50'
+                  ? 'text-black hover:bg-slate-50'
+                  : 'text-slate-400 hover:text-black hover:bg-slate-50'
               }`}
-              aria-label="Save event"
+              aria-label="Bookmark event"
             >
-              <svg className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <svg className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isSaved ? "0" : "2"}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
             </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                setIsBoosted(!isBoosted);
                 onBoost();
               }}
-              className="text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg p-2 transition-colors"
+              className={`rounded-lg p-2 transition-colors ${
+                isBoosted
+                  ? 'text-yellow-500 hover:bg-yellow-50'
+                  : 'text-slate-400 hover:text-yellow-500 hover:bg-yellow-50'
+              }`}
               aria-label="Boost event"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <svg className="w-5 h-5" fill={isBoosted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isBoosted ? "0" : "2"}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </button>
