@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Calendar, MapPin, X } from 'lucide-react';
 
 // Tag color function matching FeaturesBentoGrid
 function getTagColor(tagString) {
@@ -20,17 +21,15 @@ function getTagColor(tagString) {
   return colors[index];
 }
 
-// Genre configuration with colors matching Explore page
+// Genre configuration
 const genres = [
-  { value: 'live-music', label: 'Music', gradient: 'from-rose-600 via-pink-600 to-orange-600' },
-  { value: 'tech', label: 'Tech', gradient: 'from-emerald-600 via-teal-600 to-cyan-600' },
-  { value: 'food', label: 'Food', gradient: 'from-amber-600 via-orange-600 to-red-600' },
-  { value: 'sports', label: 'Sports', gradient: 'from-blue-600 via-cyan-600 to-teal-600' },
-  { value: 'arts', label: 'Arts', gradient: 'from-violet-600 via-indigo-600 to-purple-600' },
-  { value: 'nightlife', label: 'Nightlife', gradient: 'from-red-600 via-rose-600 to-pink-600' },
+  { value: 'live-music', label: 'Music' },
+  { value: 'tech', label: 'Tech' },
+  { value: 'food', label: 'Food' },
+  { value: 'sports', label: 'Sports' },
+  { value: 'arts', label: 'Arts' },
+  { value: 'nightlife', label: 'Nightlife' },
 ];
-
-const suggestedTags = ['#Party', '#Networking', '#Free', '#Workshop', '#Outdoor', '#Family-Friendly'];
 
 function EventForm({ onAddEvent, onClose }) {
   const [formData, setFormData] = useState({
@@ -45,6 +44,8 @@ function EventForm({ onAddEvent, onClose }) {
   });
   
   const [tagInput, setTagInput] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
+  const textareaRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,6 +53,32 @@ function EventForm({ onAddEvent, onClose }) {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Auto-expand textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [formData.description]);
+
+  const handleImageChange = (e) => {
+    const { value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      image: value
+    }));
+    setImagePreview(value);
+  };
+
+  const handleImageClick = () => {
+    // Focus on image input (we'll use a hidden input)
+    const imageInput = document.getElementById('image-input');
+    if (imageInput) {
+      imageInput.focus();
+      imageInput.select();
+    }
   };
 
   const handleGenreSelect = (genreValue) => {
@@ -106,6 +133,7 @@ function EventForm({ onAddEvent, onClose }) {
         tags: []
       });
       setTagInput('');
+      setImagePreview('');
       onClose();
     }
   };
@@ -113,22 +141,80 @@ function EventForm({ onAddEvent, onClose }) {
   const isFormValid = formData.title && formData.description && formData.location && formData.date && formData.time && formData.genre;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="font-heading font-bold text-2xl text-[#2D3436]">Create New Event</h3>
+    <form onSubmit={handleSubmit} className="bg-white relative">
+      {/* Cover Image Section */}
+      <div 
+        className="relative w-full h-[200px] mb-6 rounded-t-2xl overflow-hidden cursor-pointer group"
+        onClick={handleImageClick}
+      >
+        {imagePreview ? (
+          <>
+            <img 
+              src={imagePreview} 
+              alt="Cover preview" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+              <button
+                type="button"
+                className="opacity-0 group-hover:opacity-100 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-semibold text-gray-900 transition-opacity duration-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleImageClick();
+                }}
+              >
+                Change
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+            <div 
+              className="w-full h-full opacity-30"
+              style={{
+                backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px)`,
+              }}
+            />
+            <button
+              type="button"
+              className="absolute px-6 py-3 bg-white rounded-lg text-sm font-semibold text-gray-700 shadow-md hover:bg-gray-50 transition-colors duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleImageClick();
+              }}
+            >
+              Add Cover Image
+            </button>
+          </div>
+        )}
+        {/* Hidden image input */}
+        <input
+          type="url"
+          id="image-input"
+          name="image"
+          value={formData.image}
+          onChange={handleImageChange}
+          placeholder="https://example.com/image.jpg"
+          className="absolute opacity-0 pointer-events-none"
+        />
+      </div>
+
+      {/* Close Button */}
+      <div className="absolute top-4 right-4">
         <button 
           type="button" 
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-[#FAFAFA] hover:bg-gray-100 flex items-center justify-center text-[#636E72] transition-all duration-200 ease-out active:scale-95"
+          className="w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-gray-600 transition-all duration-200 ease-out active:scale-95 shadow-sm"
         >
-          ×
+          <X className="w-5 h-5" />
         </button>
       </div>
       
-      <div>
-        <label htmlFor="title" className="block text-sm font-semibold text-[#2D3436] mb-2">
-          Event Title *
-        </label>
+      {/* Title Section - Huge Header */}
+      <div className="mb-8">
         <input
           type="text"
           id="title"
@@ -136,97 +222,67 @@ function EventForm({ onAddEvent, onClose }) {
           value={formData.title}
           onChange={handleChange}
           required
-          placeholder="Enter event title"
-          className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200"
+          placeholder="Event Name"
+          className="w-full text-3xl font-bold bg-transparent border-none outline-none text-gray-900 placeholder:text-gray-400 focus:placeholder:text-gray-300"
         />
       </div>
 
-      <div>
-        <label htmlFor="description" className="block text-sm font-semibold text-[#2D3436] mb-2">
-          Description *
-        </label>
+      {/* Metadata Grid */}
+      <div className="grid grid-cols-2 gap-6 mb-8">
+        {/* Date & Time Combined */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-transparent hover:bg-gray-50 transition-colors duration-200 group">
+          <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <div className="flex-1 flex gap-2">
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+              className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
+            />
+            <input
+              type="time"
+              name="time"
+              value={formData.time}
+              onChange={handleChange}
+              required
+              className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-transparent hover:bg-gray-50 transition-colors duration-200 group">
+          <MapPin className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+            placeholder="Location"
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Description Section - Auto-expanding */}
+      <div className="mb-8">
         <textarea
+          ref={textareaRef}
           id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
           required
-          rows="3"
-          placeholder="Enter event description (1-2 sentences)"
-          className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200 resize-none"
+          placeholder="Describe your event..."
+          className="w-full bg-transparent border-none outline-none text-gray-600 placeholder:text-gray-400 resize-none overflow-hidden min-h-[100px]"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="location" className="block text-sm font-semibold text-[#2D3436] mb-2">
-            Location *
-          </label>
-          <input
-            type="text"
-            id="location"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required
-            placeholder="Enter location"
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="date" className="block text-sm font-semibold text-[#2D3436] mb-2">
-            Date *
-          </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="time" className="block text-sm font-semibold text-[#2D3436] mb-2">
-            Time *
-          </label>
-          <input
-            type="time"
-            id="time"
-            name="time"
-            value={formData.time}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="image" className="block text-sm font-semibold text-[#2D3436] mb-2">
-            Image URL (Optional)
-          </label>
-          <input
-            type="url"
-            id="image"
-            name="image"
-            value={formData.image}
-            onChange={handleChange}
-            placeholder="https://example.com/image.jpg"
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200"
-          />
-        </div>
-      </div>
-
-      {/* Genre Selection */}
-      <div>
-        <label className="block text-sm font-semibold text-[#2D3436] mb-3">
-          Select Genre *
-        </label>
+      {/* Genre Selection - Pills */}
+      <div className="mb-8">
         <div className="flex flex-wrap gap-2">
           {genres.map((genre) => (
             <button
@@ -235,7 +291,7 @@ function EventForm({ onAddEvent, onClose }) {
               onClick={() => handleGenreSelect(genre.value)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
                 formData.genre === genre.value
-                  ? `bg-gradient-to-r ${genre.gradient} text-white shadow-lg scale-105`
+                  ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -245,92 +301,47 @@ function EventForm({ onAddEvent, onClose }) {
         </div>
       </div>
 
-      {/* Tags Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="tags" className="block text-sm font-semibold text-[#2D3436] mb-2">
-            Add Tags
-          </label>
+      {/* Tags Section - Inline Badges */}
+      <div className="mb-8">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-lg bg-transparent hover:bg-gray-50 transition-colors duration-200 min-h-[48px]">
+          {/* Display existing tags */}
+          {formData.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(tag)}
+                className="hover:text-gray-900 transition-colors"
+                aria-label={`Remove ${tag}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+          {/* Tag Input */}
           <input
             type="text"
-            id="tags"
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagInputKeyDown}
-            placeholder="Type and press Enter to add"
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#6C5CE7] focus:ring-2 focus:ring-[#6C5CE7]/20 outline-none transition-all duration-200"
+            placeholder={formData.tags.length === 0 ? "Add tags..." : ""}
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm min-w-[120px]"
           />
-          
-          {/* Suggested Tags */}
-          <div className="mt-3">
-            <p className="text-xs text-gray-500 mb-2">Suggested:</p>
-            <div className="flex flex-wrap gap-2">
-              {suggestedTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleAddSuggestedTag(tag)}
-                  disabled={formData.tags.includes(tag)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
-                    formData.tags.includes(tag)
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : `${getTagColor(tag)} hover:scale-105 cursor-pointer`
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Tag Display */}
-        <div>
-          <label className="block text-sm font-semibold text-[#2D3436] mb-2">
-            Selected Tags
-          </label>
-          <div className="min-h-[60px] p-3 rounded-2xl border border-gray-200 bg-gray-50">
-            {formData.tags.length === 0 ? (
-              <p className="text-sm text-gray-400 italic">No tags added yet</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {formData.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getTagColor(tag)}`}
-                  >
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 hover:scale-110 transition-transform duration-200"
-                      aria-label={`Remove ${tag}`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <button 
-          type="button" 
-          onClick={onClose}
-          className="flex-1 px-6 py-3 rounded-full bg-[#FAFAFA] text-[#2D3436] font-semibold hover:bg-gray-100 transition-all duration-200 ease-out active:scale-95"
-        >
-          Cancel
-        </button>
+      {/* Footer - Full Width Button */}
+      <div className="pt-6 border-t border-gray-200">
         <button 
           type="submit"
           disabled={!isFormValid}
-          className={`flex-1 px-6 py-3 rounded-full font-semibold transition-all duration-200 ease-out shadow-lg ${
+          className={`w-full px-6 py-4 rounded-lg font-semibold text-lg transition-all duration-200 ${
             isFormValid
-              ? 'bg-gradient-to-r from-[#6C5CE7] to-[#FF7675] text-white hover:scale-105 active:scale-95'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
           Create Event
