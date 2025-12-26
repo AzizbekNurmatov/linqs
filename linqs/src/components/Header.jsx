@@ -1,30 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import EventForm from './EventForm';
 import Logout from './Logout';
 
-function Header({ onAddEvent }) {
+function Header({ onAddEvent, onOpenSavedEvents }) {
   const [showForm, setShowForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
-
-  const handleCreateEventClick = () => {
-    // Check if user is logged in
-    if (!user) {
-      // Show toast notification
-      toast.error('Please log in to create an event');
-      // Redirect to register page after a short delay
-      setTimeout(() => {
-        navigate('/register');
-      }, 1000);
-      return;
-    }
-    // User is logged in, proceed with showing the form
-    setShowForm(true);
-  };
 
   return (
     <>
@@ -60,7 +43,7 @@ function Header({ onAddEvent }) {
                 {user ? (
                   <div className="hidden md:flex items-center gap-4">
                     <span className="text-sm text-slate-600">
-                      {user.user_metadata?.username || user.email?.split('@')[0] || user.email}
+                      {user.email?.split('@')[0]}
                     </span>
                     <Logout />
                   </div>
@@ -75,9 +58,22 @@ function Header({ onAddEvent }) {
               </>
             )}
 
+            {/* Saved Events Button */}
+            {onOpenSavedEvents && (
+              <button
+                onClick={onOpenSavedEvents}
+                className="text-slate-600 hover:text-indigo-600 transition-colors duration-200 p-2 rounded-full hover:bg-slate-100 relative"
+                aria-label="View saved events"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" strokeWidth="0">
+                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </button>
+            )}
+
             {/* Create Event Button */}
             <button
-              onClick={handleCreateEventClick}
+              onClick={() => setShowForm(true)}
               className="bg-gradient-to-r from-indigo-500 to-rose-400 text-white rounded-full px-6 py-2.5 font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all duration-200 ease-out shadow-lg hover:shadow-xl"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,12 +128,26 @@ function Header({ onAddEvent }) {
             >
               Community
             </Link>
+            {onOpenSavedEvents && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenSavedEvents();
+                }}
+                className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" strokeWidth="0">
+                  <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                <span>Saved Events</span>
+              </button>
+            )}
             {!loading && (
               <>
                 {user ? (
                   <>
                     <div className="text-sm text-slate-600 py-2 border-t border-slate-200 pt-3 mt-1">
-                      {user.user_metadata?.username || user.email?.split('@')[0] || user.email}
+                      {user.email?.split('@')[0]}
                     </div>
                     <div 
                       className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2"
