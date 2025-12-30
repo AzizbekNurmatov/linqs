@@ -1,195 +1,213 @@
-import { Link } from 'react-router-dom';
-import { Music, Code, Utensils, Dumbbell, Palette, Moon } from 'lucide-react';
+import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown } from 'lucide-react';
 
 function Explore() {
-  // Genre card data with image URLs
-  const genreCards = [
+  // Dummy events data
+  const events = [
     {
-      id: 'featured',
-      title: 'FEATURED',
-      subtitle: 'Discover the most popular events',
-      imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&h=600&fit=crop',
-      icon: Music,
-      link: null,
-      isFeatured: true,
-      gridClass: 'lg:col-span-2 lg:row-span-2',
-      socialProof: '120+ going',
-      hasLiveBadge: true,
+      id: 1,
+      date: 'WED, JAN 7 • 6:00 PM EST',
+      title: 'Charleston Tech Social',
+      hostGroup: 'by Charleston Tech Meetup',
+      imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=225&fit=crop',
+      attendees: 35,
+      price: 'Free',
     },
     {
-      id: 'live-music',
-      title: 'LIVE MUSIC',
-      subtitle: 'Concerts and performances',
-      imageUrl: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=400&fit=crop',
-      icon: Music,
-      link: '/explore/live-music',
-      gridClass: 'lg:col-span-2',
-      hasLiveBadge: true,
+      id: 2,
+      date: 'THU, JAN 8 • 7:30 PM EST',
+      title: 'Brooklyn Foodie Walk',
+      hostGroup: 'by NYC Foodies',
+      imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=225&fit=crop',
+      attendees: 42,
+      price: '$15',
     },
     {
-      id: 'tech',
-      title: 'TECH',
-      subtitle: 'Innovation & startups',
-      imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=400&fit=crop',
-      icon: Code,
-      link: '/explore/tech',
-      gridClass: '',
+      id: 3,
+      date: 'FRI, JAN 9 • 8:00 PM EST',
+      title: 'Manhattan Photography Workshop',
+      hostGroup: 'by NYC Photographers',
+      imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&h=225&fit=crop',
+      attendees: 18,
+      price: 'Free',
     },
     {
-      id: 'food',
-      title: 'FOOD',
-      subtitle: 'Culinary experiences',
-      imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=400&fit=crop',
-      icon: Utensils,
-      link: '/explore/food',
-      gridClass: '',
+      id: 4,
+      date: 'SAT, JAN 10 • 10:00 AM EST',
+      title: 'Central Park Running Club',
+      hostGroup: 'by Brooklyn Hikers',
+      imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=225&fit=crop',
+      attendees: 67,
+      price: 'Free',
     },
     {
-      id: 'sports',
-      title: 'SPORTS',
-      subtitle: 'Active events & fitness',
-      imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=600&fit=crop',
-      icon: Dumbbell,
-      link: '/explore/sports',
-      gridClass: 'lg:row-span-2',
+      id: 5,
+      date: 'SUN, JAN 11 • 2:00 PM EST',
+      title: 'Startup Pitch Night',
+      hostGroup: 'by Tech Meetup',
+      imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=225&fit=crop',
+      attendees: 89,
+      price: '$25',
     },
     {
-      id: 'arts',
-      title: 'ARTS',
-      subtitle: 'Galleries, museums, exhibitions',
-      imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=400&fit=crop',
-      icon: Palette,
-      link: '/explore/arts',
-      gridClass: 'lg:col-span-2',
+      id: 6,
+      date: 'MON, JAN 12 • 6:30 PM EST',
+      title: 'Art Gallery Opening',
+      hostGroup: 'by NYC Arts Collective',
+      imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=225&fit=crop',
+      attendees: 124,
+      price: 'Free',
     },
     {
-      id: 'nightlife',
-      title: 'NIGHT',
-      subtitle: 'Bars & clubs',
-      imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop',
-      icon: Moon,
-      link: '/explore/nightlife',
-      gridClass: '',
+      id: 7,
+      date: 'TUE, JAN 13 • 7:00 PM EST',
+      title: 'Jazz Night at Blue Note',
+      hostGroup: 'by Live Music Enthusiasts',
+      imageUrl: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=225&fit=crop',
+      attendees: 56,
+      price: '$30',
+    },
+    {
+      id: 8,
+      date: 'WED, JAN 14 • 5:00 PM EST',
+      title: 'Networking Happy Hour',
+      hostGroup: 'by Business Professionals',
+      imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=225&fit=crop',
+      attendees: 93,
+      price: 'Free',
     },
   ];
 
+  // Category icons
+  const categories = [
+    { name: 'All events', icon: Calendar, active: true },
+    { name: 'New Groups', icon: Users, active: false },
+    { name: 'Social Activities', icon: Coffee, active: false },
+    { name: 'Hobbies', icon: Sparkles, active: false },
+    { name: 'Tech', icon: Code, active: false },
+    { name: 'Business', icon: Briefcase, active: false },
+  ];
+
   return (
-    <div className="pt-24 pb-16 px-6">
-      <style>{`
-        @keyframes pulse-dot {
-          0%, 100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.5;
-            transform: scale(1.2);
-          }
-        }
-        .pulse-dot {
-          animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        @keyframes glow-green {
-          0%, 100% {
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5), 0 0 20px rgba(34, 197, 94, 0.3);
-          }
-          50% {
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 30px rgba(34, 197, 94, 0.5);
-          }
-        }
-        .live-pulse-badge {
-          animation: glow-green 2s ease-in-out infinite;
-        }
-      `}</style>
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-slate-800 mb-8">Explore Events</h1>
-        
-        {/* Bento Box Grid */}
-        <div 
-          className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-          style={{
-            gridAutoRows: '200px',
-          }}
-        >
-          {genreCards.map((card) => {
-            const IconComponent = card.icon;
-            const CardContent = (
-              <div 
-                className="group relative rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out flex flex-col justify-end overflow-hidden cursor-pointer"
-                style={{ minHeight: '200px' }}
-              >
-                {/* Background Image */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105"
-                  style={{
-                    backgroundImage: `url(${card.imageUrl})`,
+    <div className="bg-[#F6F7F8] pt-24 pb-16 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header & Filter Section */}
+        <div className="mb-8">
+          {/* Top Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Events near{' '}
+              <button className="underline hover:text-gray-700">
+                New York, NY
+              </button>
+            </h1>
+            <div className="flex flex-wrap gap-3">
+              <button className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50">
+                Any day <ChevronDown className="w-4 h-4" />
+              </button>
+              <button className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50">
+                Any type <ChevronDown className="w-4 h-4" />
+              </button>
+              <button className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50">
+                Any distance <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Category Icons Row */}
+          <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+            <div className="flex gap-6 pb-2">
+              {categories.map((category, index) => {
+                const IconComponent = category.icon;
+                return (
+                  <button
+                    key={index}
+                    className={`flex flex-col items-center gap-2 min-w-[80px] pb-2 transition-colors ${
+                      category.active
+                        ? 'text-blue-600 border-b-2 border-blue-600'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <IconComponent className="w-6 h-6" />
+                    <span className="text-xs font-medium whitespace-nowrap">
+                      {category.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {events.map((event) => (
+            <div
+              key={event.id}
+              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            >
+              {/* Event Image */}
+              <div className="relative aspect-video bg-gray-200">
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
                   }}
                 />
-                
-                {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-black/40" />
-                
-                {/* Live Badge - Top Right */}
-                {card.hasLiveBadge && (
-                  <div className={`absolute top-4 right-4 flex items-center gap-2 bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 z-10 ${card.isFeatured ? 'live-pulse-badge' : ''}`}>
-                    <div className={`w-2 h-2 rounded-full pulse-dot ${card.isFeatured ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                    <span className="text-white text-xs font-semibold">Happening Now</span>
+                {/* Price Badge */}
+                {event.price && (
+                  <div className="absolute top-2 left-2 bg-white text-gray-900 text-xs font-semibold px-2 py-1 rounded">
+                    {event.price}
                   </div>
                 )}
-                
-                {/* Icon Watermark - Bottom Right */}
-                <IconComponent className="absolute bottom-4 right-4 w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 text-white/20 -rotate-12 z-0" strokeWidth={1.5} />
-                
-                {/* Social Proof - Only for Featured */}
-                {card.socialProof && (
-                  <div className="flex items-center gap-3 mb-4 z-10 relative">
-                    <div className="flex -space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"></div>
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white"></div>
-                    </div>
-                    <span className="text-white/90 text-sm font-medium font-['Caveat']">{card.socialProof}</span>
+              </div>
+
+              {/* Event Content */}
+              <div className="p-4">
+                {/* Date */}
+                <p className="text-xs font-bold text-[#7C6F50] uppercase tracking-wide mb-1">
+                  {event.date}
+                </p>
+
+                {/* Title */}
+                <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 line-clamp-2">
+                  {event.title}
+                </h3>
+
+                {/* Host Group */}
+                <p className="text-sm text-gray-500 mb-3">
+                  {event.hostGroup}
+                </p>
+
+                {/* Footer with Attendees */}
+                <div className="flex items-center">
+                  <div className="flex -space-x-2">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"></div>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white"></div>
                   </div>
-                )}
-                
-                {/* Glassmorphism Label - Bottom Left */}
-                <div className="backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl px-4 py-3 z-10 relative self-start">
-                  <h3 className={`text-white font-bold leading-none ${
-                    card.isFeatured 
-                      ? "font-['Permanent Marker'] text-4xl md:text-6xl lg:text-8xl"
-                      : card.title === 'LIVE MUSIC' || card.title === 'SPORTS'
-                      ? "font-['Bangers'] text-3xl md:text-5xl lg:text-7xl"
-                      : card.title === 'TECH'
-                      ? "font-['Righteous'] text-3xl md:text-5xl lg:text-6xl"
-                      : card.title === 'FOOD'
-                      ? "font-['Caveat'] text-3xl md:text-5xl lg:text-6xl"
-                      : card.title === 'ARTS'
-                      ? "font-['Abril Fatface'] text-3xl md:text-5xl lg:text-7xl"
-                      : "font-['Bangers'] text-3xl md:text-5xl lg:text-6xl"
-                  }`}>
-                    {card.title}
-                  </h3>
-                  {card.subtitle && (
-                    <p className="text-white/90 text-xs md:text-sm font-['Caveat'] mt-1 md:mt-2">
-                      {card.subtitle}
-                    </p>
-                  )}
+                  <span className="text-xs text-gray-500 ml-2">
+                    {event.attendees} attendees
+                  </span>
                 </div>
               </div>
-            );
-
-            return card.link ? (
-              <Link key={card.id} to={card.link} className={`block ${card.gridClass}`}>
-                {CardContent}
-              </Link>
-            ) : (
-              <div key={card.id} className={card.gridClass}>
-                {CardContent}
-              </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
+
+      {/* Hide scrollbar styles */}
+      <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 }
