@@ -4,6 +4,15 @@ import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Bookma
 function Explore() {
   const [savedEvents, setSavedEvents] = useState(new Set());
   const [boostedEvents, setBoostedEvents] = useState(new Set());
+  const [boostCounts, setBoostCounts] = useState(() => {
+    // Initialize with random counts for each event
+    const counts = {};
+    for (let i = 1; i <= 8; i++) {
+      counts[i] = Math.floor(Math.random() * 50);
+    }
+    return counts;
+  });
+  const [clickingBoost, setClickingBoost] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
   const [filters, setFilters] = useState({
     day: 'Any day',
@@ -266,22 +275,58 @@ function Explore() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        setClickingBoost(event.id);
+                        setTimeout(() => setClickingBoost(null), 150);
+                        
+                        const wasBoosted = isBoosted;
                         setBoostedEvents(prev => {
                           const newSet = new Set(prev);
-                          if (newSet.has(event.id)) {
+                          if (wasBoosted) {
                             newSet.delete(event.id);
                           } else {
                             newSet.add(event.id);
                           }
                           return newSet;
                         });
+                        
+                        // Update count
+                        setBoostCounts(prev => ({
+                          ...prev,
+                          [event.id]: wasBoosted 
+                            ? Math.max(0, prev[event.id] - 1)
+                            : (prev[event.id] || 0) + 1
+                        }));
                       }}
-                      className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
-                        isBoosted ? 'text-yellow-500' : ''
-                      }`}
+                      className={`
+                        backdrop-blur-sm shadow-sm transition-all duration-300 flex items-center justify-center cursor-pointer rounded-full
+                        ${boostCounts[event.id] > 0 ? 'px-3 py-1.5' : 'p-2'}
+                        ${isBoosted 
+                          ? 'bg-white ring-1 ring-yellow-200' 
+                          : 'bg-white/90 hover:bg-white'
+                        }
+                        ${clickingBoost === event.id ? 'scale-110' : ''}
+                      `}
                       aria-label="Boost event"
                     >
-                      <Zap className={`w-4 h-4 ${isBoosted ? 'fill-current' : ''}`} />
+                      <Zap 
+                        className={`
+                          w-4 h-4 transition-colors
+                          ${isBoosted 
+                            ? 'text-yellow-500 fill-yellow-500' 
+                            : 'text-gray-500'
+                          }
+                        `}
+                      />
+                      {boostCounts[event.id] > 0 && (
+                        <span 
+                          className={`
+                            text-xs font-bold ml-1.5 font-mono
+                            ${isBoosted ? 'text-yellow-700' : 'text-gray-700'}
+                          `}
+                        >
+                          {boostCounts[event.id]}
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>

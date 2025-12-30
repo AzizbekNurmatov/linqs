@@ -4,6 +4,8 @@ import { Bookmark, Zap } from 'lucide-react';
 function EventCard({ event, onInterested, onBoost, onCardClick }) {
   const [isSaved, setIsSaved] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
+  const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 50)); // Random initial count
+  const [isClicking, setIsClicking] = useState(false);
   
   // Generate mock avatars for face pile
   const avatars = [
@@ -112,15 +114,51 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setIsBoosted(!isBoosted);
+              setIsClicking(true);
+              setTimeout(() => setIsClicking(false), 150);
+              
+              const wasBoosted = isBoosted;
+              setIsBoosted(!wasBoosted);
+              
+              // Update count
+              if (wasBoosted) {
+                setBoostCount(prev => Math.max(0, prev - 1));
+              } else {
+                setBoostCount(prev => prev + 1);
+              }
+              
               if (onBoost) onBoost();
             }}
-            className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
-              isBoosted ? 'text-yellow-500' : ''
-            }`}
+            className={`
+              backdrop-blur-sm shadow-sm transition-all duration-300 flex items-center justify-center cursor-pointer rounded-full
+              ${boostCount > 0 ? 'px-3 py-1.5' : 'p-2'}
+              ${isBoosted 
+                ? 'bg-white ring-1 ring-yellow-200' 
+                : 'bg-white/90 hover:bg-white'
+              }
+              ${isClicking ? 'scale-110' : ''}
+            `}
             aria-label="Boost event"
           >
-            <Zap className={`w-4 h-4 ${isBoosted ? 'fill-current' : ''}`} />
+            <Zap 
+              className={`
+                w-4 h-4 transition-colors
+                ${isBoosted 
+                  ? 'text-yellow-500 fill-yellow-500' 
+                  : 'text-gray-500'
+                }
+              `}
+            />
+            {boostCount > 0 && (
+              <span 
+                className={`
+                  text-xs font-bold ml-1.5 font-mono
+                  ${isBoosted ? 'text-yellow-700' : 'text-gray-700'}
+                `}
+              >
+                {boostCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
