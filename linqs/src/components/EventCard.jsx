@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Bookmark, Zap } from 'lucide-react';
 
 function EventCard({ event, onInterested, onBoost, onCardClick }) {
   const [isSaved, setIsSaved] = useState(false);
@@ -11,21 +12,50 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     'https://i.pravatar.cc/150?img=3',
   ];
 
-  // Extract day and month from date
-  const dateParts = event.date.split(' ');
-  const day = dateParts[1]?.replace(',', '') || '';
-  const month = dateParts[0]?.substring(0, 3) || '';
+  // Format date to match Explore.jsx style (e.g., "WED, JAN 7 • 6:00 PM EST")
+  const formatDate = () => {
+    try {
+      const dateObj = new Date(event.date);
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      const dayName = days[dateObj.getDay()];
+      const month = months[dateObj.getMonth()];
+      const day = dateObj.getDate();
+      
+      // Extract time from event.time (format: "2:00 PM - 10:00 PM" or "2:00 PM")
+      const timeMatch = event.time.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+      const time = timeMatch ? timeMatch[1].toUpperCase() : 'TBD';
+      
+      return `${dayName}, ${month} ${day} • ${time} EST`;
+    } catch {
+      return event.date;
+    }
+  };
 
-  // Extract category from event title/description
-  const getCategory = () => {
+  // Extract host group from description or use a default
+  const getHostGroup = () => {
+    // Try to extract from description or use a default based on category
     const text = `${event.title} ${event.description}`.toLowerCase();
-    if (text.includes('music') || text.includes('festival') || text.includes('concert')) return 'Music';
-    if (text.includes('art') || text.includes('gallery') || text.includes('exhibition')) return 'Art';
-    if (text.includes('food') || text.includes('wine') || text.includes('tasting')) return 'Food';
-    if (text.includes('tech') || text.includes('innovation') || text.includes('summit')) return 'Tech';
-    if (text.includes('yoga') || text.includes('fitness') || text.includes('wellness')) return 'Wellness';
-    if (text.includes('comedy') || text.includes('stand-up')) return 'Comedy';
-    return 'Event';
+    if (text.includes('tech')) return 'by Tech Meetup';
+    if (text.includes('music')) return 'by Live Music Enthusiasts';
+    if (text.includes('art')) return 'by NYC Arts Collective';
+    if (text.includes('food')) return 'by NYC Foodies';
+    if (text.includes('yoga') || text.includes('fitness')) return 'by Wellness Community';
+    return 'by Local Community';
+  };
+
+  // Get price (default to Free)
+  const getPrice = () => {
+    const text = `${event.title} ${event.description}`.toLowerCase();
+    if (text.includes('tasting') || text.includes('summit') || text.includes('festival')) {
+      return Math.random() > 0.5 ? 'Free' : '$25';
+    }
+    return 'Free';
+  };
+
+  // Get attendee count (mock)
+  const getAttendeeCount = () => {
+    return Math.floor(Math.random() * 100) + 20;
   };
 
   const handleCardClick = (e) => {
@@ -40,115 +70,96 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
 
   return (
     <div 
-      className="relative bg-white rounded-2xl overflow-hidden border border-slate-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-out group cursor-pointer transform-gpu"
+      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
       onClick={handleCardClick}
     >
-      {/* Image Container with Date Badge */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      {/* Image Section (Relative) */}
+      <div className="relative aspect-video bg-gray-200">
         {event.image ? (
           <img 
             src={event.image} 
             alt={event.title}
-            className="object-cover w-full h-full transition-transform duration-500 ease-in-out group-hover:scale-105"
+            className="w-full h-full object-cover"
             onError={(e) => {
               e.target.style.display = 'none';
+              e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
             }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#6C5CE7] to-[#FF7675]"></div>
+          <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
         )}
         
-        {/* Date Badge - Glassmorphism Style */}
-        <div className="absolute top-3 left-3 backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1.5">
-          <div className="text-center">
-            <div className="font-semibold text-sm leading-none text-white">{day}</div>
-            <div className="text-[10px] text-white/90 font-medium uppercase tracking-wide">{month}</div>
-          </div>
+        {/* Price Badge (Top Left) */}
+        <div className="absolute top-2 left-2 bg-white text-gray-900 text-xs font-semibold px-2 py-1 rounded-sm">
+          {getPrice()}
         </div>
 
-        {/* Category Badge - Top Right */}
-        <div className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-md text-white shadow-sm">
-          {getCategory()}
+        {/* Actions (Top Right) */}
+        <div className="absolute top-2 right-2 flex gap-2 p-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsSaved(!isSaved);
+              if (onInterested) onInterested();
+            }}
+            className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
+              isSaved ? 'text-blue-600' : ''
+            }`}
+            aria-label="Bookmark event"
+          >
+            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsBoosted(!isBoosted);
+              if (onBoost) onBoost();
+            }}
+            className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
+              isBoosted ? 'text-yellow-500' : ''
+            }`}
+            aria-label="Boost event"
+          >
+            <Zap className={`w-4 h-4 ${isBoosted ? 'fill-current' : ''}`} />
+          </button>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="p-5">
-        <h3 className="font-bold text-lg text-slate-900 mb-2 line-clamp-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-          {event.title}
-        </h3>
-        <p className="text-slate-500 text-sm mb-4 line-clamp-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-          {event.description}
+      {/* Content Section */}
+      <div className="p-4">
+        {/* Date */}
+        <p className="text-xs font-bold text-[#7C6F50] uppercase tracking-wide mb-1">
+          {formatDate()}
         </p>
 
-        {/* Meta Info */}
-        <div className="space-y-1.5 mb-4">
-          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>{event.location}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>{event.time}</span>
-          </div>
-        </div>
+        {/* Title */}
+        <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 truncate">
+          {event.title}
+        </h3>
 
-        {/* Action Bar - Face Pile and Actions */}
-        <div className="flex items-center justify-between">
-          {/* Face Pile - Left */}
-          <div className="flex items-center -space-x-2">
+        {/* Host Group */}
+        <p className="text-sm text-gray-500 mb-3">
+          {getHostGroup()}
+        </p>
+
+        {/* Footer */}
+        <div className="flex items-center">
+          <div className="flex -space-x-2">
             {avatars.map((avatar, index) => (
               <img
                 key={index}
                 src={avatar}
                 alt={`Attendee ${index + 1}`}
-                className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                className="w-6 h-6 rounded-full border-2 border-white"
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=User${index + 1}&background=random`;
+                }}
               />
             ))}
           </div>
-
-          {/* Actions - Right (Ghost Buttons) */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsSaved(!isSaved);
-                onInterested();
-              }}
-              className={`rounded-lg p-2 transition-colors ${
-                isSaved
-                  ? 'text-black hover:bg-slate-50'
-                  : 'text-slate-400 hover:text-black hover:bg-slate-50'
-              }`}
-              aria-label="Bookmark event"
-            >
-              <svg className="w-5 h-5" fill={isSaved ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isSaved ? "0" : "2"}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsBoosted(!isBoosted);
-                onBoost();
-              }}
-              className={`rounded-lg p-2 transition-colors ${
-                isBoosted
-                  ? 'text-yellow-500 hover:bg-yellow-50'
-                  : 'text-slate-400 hover:text-yellow-500 hover:bg-yellow-50'
-              }`}
-              aria-label="Boost event"
-            >
-              <svg className="w-5 h-5" fill={isBoosted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24" strokeWidth={isBoosted ? "0" : "2"}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </button>
-          </div>
+          <span className="text-xs text-gray-500 ml-2">
+            {getAttendeeCount()} attendees
+          </span>
         </div>
       </div>
     </div>

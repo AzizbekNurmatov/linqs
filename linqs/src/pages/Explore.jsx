@@ -1,6 +1,9 @@
-import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Bookmark, Zap } from 'lucide-react';
 
 function Explore() {
+  const [savedEvents, setSavedEvents] = useState(new Set());
+  const [boostedEvents, setBoostedEvents] = useState(new Set());
   // Dummy events data
   const events = [
     {
@@ -140,61 +143,111 @@ function Explore() {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {events.map((event) => (
-            <div
-              key={event.id}
-              className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-            >
-              {/* Event Image */}
-              <div className="relative aspect-video bg-gray-200">
-                <img
-                  src={event.imageUrl}
-                  alt={event.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
-                  }}
-                />
-                {/* Price Badge */}
-                {event.price && (
-                  <div className="absolute top-2 left-2 bg-white text-gray-900 text-xs font-semibold px-2 py-1 rounded">
-                    {event.price}
+          {events.map((event) => {
+            const isSaved = savedEvents.has(event.id);
+            const isBoosted = boostedEvents.has(event.id);
+
+            return (
+              <div
+                key={event.id}
+                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
+              >
+                {/* Event Image */}
+                <div className="relative aspect-video bg-gray-200">
+                  <img
+                    src={event.imageUrl}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
+                    }}
+                  />
+                  
+                  {/* Price Badge (Top Left) */}
+                  {event.price && (
+                    <div className="absolute top-2 left-2 bg-white text-gray-900 text-xs font-semibold px-2 py-1 rounded-sm">
+                      {event.price}
+                    </div>
+                  )}
+
+                  {/* Actions (Top Right) */}
+                  <div className="absolute top-2 right-2 flex gap-2 p-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSavedEvents(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(event.id)) {
+                            newSet.delete(event.id);
+                          } else {
+                            newSet.add(event.id);
+                          }
+                          return newSet;
+                        });
+                      }}
+                      className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
+                        isSaved ? 'text-blue-600' : ''
+                      }`}
+                      aria-label="Bookmark event"
+                    >
+                      <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBoostedEvents(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(event.id)) {
+                            newSet.delete(event.id);
+                          } else {
+                            newSet.add(event.id);
+                          }
+                          return newSet;
+                        });
+                      }}
+                      className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
+                        isBoosted ? 'text-yellow-500' : ''
+                      }`}
+                      aria-label="Boost event"
+                    >
+                      <Zap className={`w-4 h-4 ${isBoosted ? 'fill-current' : ''}`} />
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* Event Content */}
-              <div className="p-4">
-                {/* Date */}
-                <p className="text-xs font-bold text-[#7C6F50] uppercase tracking-wide mb-1">
-                  {event.date}
-                </p>
+                {/* Event Content */}
+                <div className="p-4">
+                  {/* Date */}
+                  <p className="text-xs font-bold text-[#7C6F50] uppercase tracking-wide mb-1">
+                    {event.date}
+                  </p>
 
-                {/* Title */}
-                <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 line-clamp-2">
-                  {event.title}
-                </h3>
+                  {/* Title */}
+                  <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 truncate">
+                    {event.title}
+                  </h3>
 
-                {/* Host Group */}
-                <p className="text-sm text-gray-500 mb-3">
-                  {event.hostGroup}
-                </p>
+                  {/* Host Group */}
+                  <p className="text-sm text-gray-500 mb-3">
+                    {event.hostGroup}
+                  </p>
 
-                {/* Footer with Attendees */}
-                <div className="flex items-center">
-                  <div className="flex -space-x-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"></div>
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white"></div>
+                  {/* Footer with Attendees */}
+                  <div className="flex items-center">
+                    <div className="flex -space-x-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"></div>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white"></div>
+                    </div>
+                    <span className="text-xs text-gray-500 ml-2">
+                      {event.attendees} attendees
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">
-                    {event.attendees} attendees
-                  </span>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
