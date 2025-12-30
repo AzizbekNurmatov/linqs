@@ -1,13 +1,16 @@
-// Deterministic color assignment for pastel tags
-function getTagColor(tagString) {
-  const colors = [
-    'bg-indigo-100 text-indigo-700',
-    'bg-rose-100 text-rose-700',
-    'bg-emerald-100 text-emerald-700',
-    'bg-amber-100 text-amber-700',
-  ];
+// Color palette for tags
+const tagColors = [
+  { border: 'border-orange-400', hash: 'text-orange-600' },
+  { border: 'border-emerald-400', hash: 'text-emerald-600' },
+  { border: 'border-purple-400', hash: 'text-purple-600' },
+  { border: 'border-blue-400', hash: 'text-blue-600' },
+  { border: 'border-rose-400', hash: 'text-rose-600' },
+  { border: 'border-yellow-400', hash: 'text-yellow-600' },
+  { border: 'border-teal-400', hash: 'text-teal-600' },
+];
 
-  // Simple hash function for deterministic color assignment
+// Deterministic color assignment for tags
+function getTagColor(tagString) {
   let hash = 0;
   for (let i = 0; i < tagString.length; i++) {
     const char = tagString.charCodeAt(i);
@@ -15,8 +18,8 @@ function getTagColor(tagString) {
     hash = hash & hash; // Convert to 32-bit integer
   }
   
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
+  const index = Math.abs(hash) % tagColors.length;
+  return tagColors[index];
 }
 
 function FeaturesBentoGrid() {
@@ -42,29 +45,37 @@ function FeaturesBentoGrid() {
   return (
     <section className="w-full py-16">
       {/* Community Ticker - Single Row */}
-      <section className="w-full bg-white overflow-hidden py-8">
+      <section className="w-full bg-[#FDFBF7] overflow-hidden py-8">
         <div className="flex w-max animate-infinite-scroll">
           {/* First group of tags */}
           <div className="flex shrink-0 gap-4">
-            {tags.map((tag, index) => (
-              <span
-                key={`tag-1-${index}`}
-                className={`px-6 py-2 rounded-full font-bold text-sm ${getTagColor(tag)}`}
-              >
-                {tag}
-              </span>
-            ))}
+            {tags.map((tag, index) => {
+              const colorScheme = getTagColor(tag);
+              return (
+                <span
+                  key={`tag-1-${index}`}
+                  className={`px-6 py-2 rounded-full bg-white border ${colorScheme.border} font-mono text-sm font-medium tracking-wide uppercase text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]`}
+                >
+                  <span className={colorScheme.hash}>#</span>
+                  {tag.substring(1)}
+                </span>
+              );
+            })}
           </div>
           {/* Second group of tags (duplicate for seamless loop) */}
           <div className="flex shrink-0 gap-4">
-            {tags.map((tag, index) => (
-              <span
-                key={`tag-2-${index}`}
-                className={`px-6 py-2 rounded-full font-bold text-sm ${getTagColor(tag)}`}
-              >
-                {tag}
-              </span>
-            ))}
+            {tags.map((tag, index) => {
+              const colorScheme = getTagColor(tag);
+              return (
+                <span
+                  key={`tag-2-${index}`}
+                  className={`px-6 py-2 rounded-full bg-white border ${colorScheme.border} font-mono text-sm font-medium tracking-wide uppercase text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]`}
+                >
+                  <span className={colorScheme.hash}>#</span>
+                  {tag.substring(1)}
+                </span>
+              );
+            })}
           </div>
         </div>
       </section>
