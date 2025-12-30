@@ -4,8 +4,7 @@ import { Bookmark, Zap } from 'lucide-react';
 function EventCard({ event, onInterested, onBoost, onCardClick }) {
   const [isSaved, setIsSaved] = useState(false);
   const [isBoosted, setIsBoosted] = useState(false);
-  const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 50)); // Random initial count
-  const [isClicking, setIsClicking] = useState(false);
+  const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 91) + 10); // Random count between 10-100
   
   // Generate mock avatars for face pile
   const avatars = [
@@ -114,47 +113,31 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setIsClicking(true);
-              setTimeout(() => setIsClicking(false), 150);
-              
-              const wasBoosted = isBoosted;
-              setIsBoosted(!wasBoosted);
-              
-              // Update count
-              if (wasBoosted) {
-                setBoostCount(prev => Math.max(0, prev - 1));
-              } else {
-                setBoostCount(prev => prev + 1);
-              }
-              
+              setIsBoosted(!isBoosted);
               if (onBoost) onBoost();
             }}
             className={`
-              backdrop-blur-sm shadow-sm transition-all duration-300 flex items-center justify-center cursor-pointer rounded-full
-              ${boostCount > 0 ? 'px-3 py-1.5' : 'p-2'}
+              transition-all duration-300 ease-in-out flex items-center justify-center cursor-pointer rounded-full
               ${isBoosted 
-                ? 'bg-white ring-1 ring-yellow-200' 
-                : 'bg-white/90 hover:bg-white'
+                ? 'w-auto px-3 py-1.5 bg-white/90 hover:bg-white backdrop-blur-sm shadow-sm' 
+                : 'w-9 h-9 bg-white/90 hover:bg-white'
               }
-              ${isClicking ? 'scale-110' : ''}
+              active:scale-95
             `}
             aria-label="Boost event"
           >
             <Zap 
               className={`
-                w-4 h-4 transition-colors
+                w-4 h-4 transition-colors flex-shrink-0
                 ${isBoosted 
                   ? 'text-yellow-500 fill-yellow-500' 
                   : 'text-gray-500'
                 }
               `}
             />
-            {boostCount > 0 && (
+            {isBoosted && (
               <span 
-                className={`
-                  text-xs font-bold ml-1.5 font-mono
-                  ${isBoosted ? 'text-yellow-700' : 'text-gray-700'}
-                `}
+                className="text-xs font-bold font-mono ml-1.5 text-gray-700"
               >
                 {boostCount}
               </span>
