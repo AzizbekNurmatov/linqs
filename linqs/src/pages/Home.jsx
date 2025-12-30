@@ -56,7 +56,7 @@ function Home() {
           return eventText.includes(categoryLower);
         });
       });
-
+    
   return (
     <>
       <HeroSection 
