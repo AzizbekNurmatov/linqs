@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import EventForm from './EventForm';
 import Logout from './Logout';
@@ -8,6 +8,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
   const [showForm, setShowForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   return (
     <>
@@ -24,13 +25,34 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
 
           {/* Center: Navigation Links (Hidden on Mobile) */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
+            <Link 
+              to="/" 
+              className={`text-sm font-medium transition-colors duration-200 ${
+                location.pathname === '/' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
+            >
               Home
             </Link>
-            <Link to="/explore" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
+            <Link 
+              to="/explore" 
+              className={`text-sm font-medium transition-colors duration-200 ${
+                location.pathname === '/explore' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
+            >
               Explore
             </Link>
-            <Link to="/community" className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200">
+            <Link 
+              to="/community" 
+              className={`text-sm font-medium transition-colors duration-200 ${
+                location.pathname === '/community' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
+            >
               Community
             </Link>
           </div>
@@ -109,21 +131,33 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
           <nav className="flex flex-col p-4 gap-3">
             <Link 
               to="/" 
-              className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
+              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+                location.pathname === '/' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link 
               to="/explore" 
-              className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
+              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+                location.pathname === '/explore' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Explore
             </Link>
             <Link 
               to="/community" 
-              className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors duration-200 py-2"
+              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+                location.pathname === '/community' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Community

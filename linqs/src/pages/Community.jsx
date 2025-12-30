@@ -172,30 +172,70 @@ function Community() {
     return count.toString();
   };
 
+  const popularTopics = ['#Outdoors', '#TechBro', '#BookClub', '#Nightlife', '#Creatives', '#Parents'];
+
   return (
-    <div className="bg-[#F6F7F8] pt-24 pb-16 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Find your <span className="text-blue-600">Tribe</span>
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Connect with people who share your interests in New York, NY.
-          </p>
-          
-          {/* Search Bar */}
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search for hiking, coding, jazz..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+    <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
+      {/* Header Section - Split Layout */}
+      <div className="bg-white border-b border-gray-200 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Search & Intent */}
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                Find your <span className="text-blue-600">Tribe</span>
+              </h1>
+              <p className="text-gray-600 mb-6 text-lg">
+                Join 400+ active micro-communities in New York.
+              </p>
+              
+              {/* Search Bar */}
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search for 'Hiking', 'Chess', 'Startups'..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 h-14 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                />
+              </div>
+            </div>
+
+            {/* Right Column - Inspiration */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                POPULAR TOPICS NEAR YOU
+              </p>
+              
+              {/* Tag Cloud */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {popularTopics.map((topic, index) => (
+                  <button
+                    key={index}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer"
+                    onClick={() => setSearchQuery(topic.replace('#', ''))}
+                  >
+                    {topic}
+                  </button>
+                ))}
+              </div>
+
+              {/* Start a Group Link */}
+              <p className="text-sm text-gray-600">
+                Don't see your interest?{' '}
+                <button className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                  Start a new group
+                </button>
+                .
+              </p>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {/* Groups Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

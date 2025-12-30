@@ -1,9 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Bookmark, Zap } from 'lucide-react';
 
 function Explore() {
   const [savedEvents, setSavedEvents] = useState(new Set());
   const [boostedEvents, setBoostedEvents] = useState(new Set());
+  const [openFilter, setOpenFilter] = useState('');
+  const [filters, setFilters] = useState({
+    day: 'Any day',
+    type: 'Any type',
+    distance: 'Any distance',
+    price: 'Any price',
+  });
   // Dummy events data
   const events = [
     {
@@ -90,8 +97,76 @@ function Explore() {
     { name: 'Business', icon: Briefcase, active: false },
   ];
 
+  // Filter options
+  const filterOptions = {
+    day: ['Any day', 'Today', 'Tomorrow', 'This Weekend', 'This Week', 'Next Week'],
+    type: ['Any type', 'Online', 'In Person', 'Hybrid'],
+    distance: ['Any distance', 'Within 1 mile', 'Within 5 miles', 'Within 10 miles', 'Within 25 miles'],
+    price: ['Any price', 'Free', 'Under $20', 'Under $50'],
+  };
+
+  const handleFilterClick = (filterName) => {
+    setOpenFilter(openFilter === filterName ? '' : filterName);
+  };
+
+  const handleFilterSelect = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value,
+    }));
+    setOpenFilter('');
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.filter-dropdown')) {
+        setOpenFilter('');
+      }
+    };
+
+    if (openFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [openFilter]);
+
+  // FilterDropdown component
+  const FilterDropdown = ({ label, filterName, options }) => {
+    const isOpen = openFilter === filterName;
+    const selectedValue = filters[filterName];
+
+    return (
+      <div className="relative filter-dropdown">
+        <button
+          onClick={() => handleFilterClick(filterName)}
+          className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50"
+        >
+          {selectedValue} <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {isOpen && (
+          <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-20 w-48">
+            {options.map((option) => (
+              <button
+                key={option}
+                onClick={() => handleFilterSelect(filterName, option)}
+                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
+                  option === selectedValue ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-[#F6F7F8] pt-24 pb-16 min-h-screen">
+    <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header & Filter Section */}
         <div className="mb-8">
@@ -104,15 +179,10 @@ function Explore() {
               </button>
             </h1>
             <div className="flex flex-wrap gap-3">
-              <button className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50">
-                Any day <ChevronDown className="w-4 h-4" />
-              </button>
-              <button className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50">
-                Any type <ChevronDown className="w-4 h-4" />
-              </button>
-              <button className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50">
-                Any distance <ChevronDown className="w-4 h-4" />
-              </button>
+              <FilterDropdown label="Day" filterName="day" options={filterOptions.day} />
+              <FilterDropdown label="Type" filterName="type" options={filterOptions.type} />
+              <FilterDropdown label="Distance" filterName="distance" options={filterOptions.distance} />
+              <FilterDropdown label="Price" filterName="price" options={filterOptions.price} />
             </div>
           </div>
 
