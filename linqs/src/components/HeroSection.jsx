@@ -1,12 +1,8 @@
-import { useState } from 'react';
-
 function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) {
-  const [timeFilter, setTimeFilter] = useState('Tonight');
-
   return (
     <section className="bg-[#FDFBF7] max-w-7xl mx-auto px-6 pt-32 pb-16">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left Column: Typography & Action */}
+        {/* Left Column: Typography & Social Proof */}
         <div>
           {/* Headline */}
           <h1 className="text-6xl md:text-7xl font-serif font-bold text-gray-900 leading-tight tracking-tight">
@@ -18,82 +14,88 @@ function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) 
             Curated micro-communities and underground events for the curious.
           </p>
           
-          {/* Segmented Control */}
-          <div className="inline-flex bg-gray-100 p-1 rounded-lg mt-8">
-            <button
-              onClick={() => setTimeFilter('Tonight')}
-              className={`px-6 py-2 text-sm font-medium transition-all duration-200 ${
-                timeFilter === 'Tonight'
-                  ? 'bg-white shadow-sm text-black rounded-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Tonight
-            </button>
-            <button
-              onClick={() => setTimeFilter('This Weekend')}
-              className={`px-6 py-2 text-sm font-medium transition-all duration-200 ${
-                timeFilter === 'This Weekend'
-                  ? 'bg-white shadow-sm text-black rounded-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              This Weekend
-            </button>
+          {/* Live Activity Indicator */}
+          <div className="flex items-center mt-8 p-4 bg-gray-50 rounded-lg border border-gray-100 inline-flex">
+            {/* Pulsing Status Dot */}
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse mr-4"></div>
+            
+            {/* Avatar Stack */}
+            <div className="flex -space-x-2 mr-4">
+              <img 
+                src="https://i.pravatar.cc/150?img=1"
+                alt="User 1"
+                className="w-8 h-8 rounded-full border-2 border-white"
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=User1&background=random&size=32`;
+                }}
+              />
+              <img 
+                src="https://i.pravatar.cc/150?img=2"
+                alt="User 2"
+                className="w-8 h-8 rounded-full border-2 border-white"
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=User2&background=random&size=32`;
+                }}
+              />
+              <img 
+                src="https://i.pravatar.cc/150?img=3"
+                alt="User 3"
+                className="w-8 h-8 rounded-full border-2 border-white"
+                onError={(e) => {
+                  e.target.src = `https://ui-avatars.com/api/?name=User3&background=random&size=32`;
+                }}
+              />
+            </div>
+            
+            {/* Text */}
+            <span className="text-sm text-gray-700 font-medium">
+              <span className="font-semibold">420 people</span> are active across NYC right now.
+            </span>
           </div>
         </div>
 
-        {/* Right Column: Polaroid Stack */}
-        <div className="relative w-full h-[500px] flex items-center justify-center">
-          {/* Base Image (Back) - Rotated -6deg */}
-          <div 
-            className="w-64 h-80 bg-gray-300 border-4 border-white shadow-xl absolute top-0 right-20 z-0"
-            style={{ transform: 'rotate(-6deg)' }}
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=300&h=400&fit=crop"
-              alt="Event"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
-
-          {/* Middle Image - Rotated 3deg */}
-          <div 
-            className="w-64 h-80 bg-gray-400 border-4 border-white shadow-xl absolute top-10 right-10 z-10"
-            style={{ transform: 'rotate(3deg)' }}
-          >
-            <img 
-              src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=300&h=400&fit=crop"
-              alt="Event"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
-
-          {/* Hero Image (Front) - No rotation */}
-          <div className="w-72 h-96 bg-gray-800 border-8 border-white shadow-2xl relative z-20 flex flex-col">
-            <div className="flex-1 relative overflow-hidden">
-              <img 
-                src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=500&fit=crop"
-                alt="Underground Jazz"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              {/* Badge: Happening Now */}
-              <div className="absolute top-4 right-4 bg-white text-gray-900 text-xs font-semibold px-3 py-1 rounded-full">
-                Happening Now
+        {/* Right Column: Film Strip */}
+        <div className="relative w-full flex items-center justify-center">
+          <div className="border-[12px] border-white shadow-2xl rotate-[-2deg] overflow-hidden rounded-lg">
+            <div className="flex gap-0">
+              {/* Image 1 (Left) - DJ/Band */}
+              <div className="w-[200px] aspect-[2/3] bg-gray-300 flex-shrink-0">
+                <img 
+                  src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=450&fit=crop"
+                  alt="DJ"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.className += ' bg-gradient-to-br from-gray-400 to-gray-600';
+                  }}
+                />
               </div>
-            </div>
-            {/* Overlay text */}
-            <div className="p-4 bg-white">
-              <h3 className="font-serif text-xl font-bold text-gray-900">Underground Jazz</h3>
+              
+              {/* Image 2 (Middle) - People at dinner */}
+              <div className="w-[200px] aspect-[2/3] bg-gray-400 flex-shrink-0">
+                <img 
+                  src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300&h=450&fit=crop"
+                  alt="Dinner"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.className += ' bg-gradient-to-br from-gray-400 to-gray-600';
+                  }}
+                />
+              </div>
+              
+              {/* Image 3 (Right) - Night market */}
+              <div className="w-[200px] aspect-[2/3] bg-gray-500 flex-shrink-0">
+                <img 
+                  src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=450&fit=crop"
+                  alt="Night Market"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.className += ' bg-gradient-to-br from-gray-400 to-gray-600';
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
