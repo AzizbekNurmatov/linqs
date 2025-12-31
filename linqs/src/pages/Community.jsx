@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 function Community() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,6 +22,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=3',
       ],
       friendsCount: 12,
+      href: '#',
     },
     {
       id: 2,
@@ -37,6 +39,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=6',
       ],
       friendsCount: 8,
+      href: '/group/2',
     },
     {
       id: 3,
@@ -53,6 +56,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=9',
       ],
       friendsCount: 15,
+      href: '#',
     },
     {
       id: 4,
@@ -69,6 +73,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=12',
       ],
       friendsCount: 5,
+      href: '#',
     },
     {
       id: 5,
@@ -85,6 +90,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=15',
       ],
       friendsCount: 20,
+      href: '#',
     },
     {
       id: 6,
@@ -101,6 +107,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=18',
       ],
       friendsCount: 11,
+      href: '#',
     },
     {
       id: 7,
@@ -117,6 +124,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=21',
       ],
       friendsCount: 7,
+      href: '#',
     },
     {
       id: 8,
@@ -133,6 +141,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=24',
       ],
       friendsCount: 9,
+      href: '#',
     },
     {
       id: 9,
@@ -149,6 +158,7 @@ function Community() {
         'https://i.pravatar.cc/150?img=27',
       ],
       friendsCount: 6,
+      href: '#',
     },
   ];
 
@@ -227,8 +237,8 @@ function Community() {
                 key={group.id}
                 className="bg-white rounded-lg overflow-hidden relative flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {/* Cover Image */}
-                <div className="relative h-32 w-full bg-gray-200">
+                {/* Cover Image - Linked */}
+                <Link to={group.href || '#'} className="relative h-32 w-full bg-gray-200 cursor-pointer">
                   <img
                     src={group.coverImage}
                     alt={group.name}
@@ -238,7 +248,7 @@ function Community() {
                       e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
                     }}
                   />
-                </div>
+                </Link>
 
                 {/* Group Logo (Halfway Over Cover and Body) */}
                 <div className="relative flex justify-center -mt-8 mb-4">
@@ -254,10 +264,12 @@ function Community() {
 
                 {/* Content Body */}
                 <div className="px-4 pb-4 flex-1 flex flex-col">
-                  {/* Title */}
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 text-center">
-                    {group.name}
-                  </h3>
+                  {/* Title - Linked */}
+                  <Link to={group.href || '#'} className="cursor-pointer">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2 text-center hover:text-gray-700 transition-colors">
+                      {group.name}
+                    </h3>
+                  </Link>
 
                   {/* Meta Row */}
                   <p className="text-sm text-gray-500 mb-3 text-center">

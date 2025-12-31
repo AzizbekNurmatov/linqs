@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Explore from './pages/Explore';
 import GenreDetail from './pages/GenreDetail';
 import Community from './pages/Community';
+import GroupDetail from './pages/GroupDetail';
 import Login from './components/Login';
 import Register from './components/Register';
 
@@ -41,6 +42,7 @@ function App() {
               <Route path="explore" element={<Explore />} />
               <Route path="explore/:genre" element={<GenreDetail />} />
               <Route path="community" element={<Community />} />
+              <Route path="group/:id" element={<GroupDetail />} />
             </Route>
           </Routes>
         </BrowserRouter>
