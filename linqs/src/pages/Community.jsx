@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
 
 function Community() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -172,65 +171,46 @@ function Community() {
     return count.toString();
   };
 
-  const popularTopics = ['#Outdoors', '#TechBro', '#BookClub', '#Nightlife', '#Creatives', '#Parents'];
+  const popularTopics = ['Hiking', 'Tech', 'Art', 'Food', 'Music', 'Fitness'];
 
   return (
     <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
-      {/* Header Section - Split Layout */}
-      <div className="bg-white border-b border-gray-200 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Search & Intent */}
-            <div>
-              <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-3">
-                Find your <span className="text-blue-600">Tribe</span>
-              </h1>
-              <p className="text-gray-600 mb-6 text-lg">
-                Join 400+ active micro-communities in New York.
-              </p>
-              
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search for 'Hiking', 'Chess', 'Startups'..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 h-14 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-                />
-              </div>
-            </div>
-
-            {/* Right Column - Inspiration */}
-            <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
-                POPULAR TOPICS NEAR YOU
-              </p>
-              
-              {/* Tag Cloud */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {popularTopics.map((topic, index) => (
-                  <button
-                    key={index}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer"
-                    onClick={() => setSearchQuery(topic.replace('#', ''))}
-                  >
-                    {topic}
-                  </button>
-                ))}
-              </div>
-
-              {/* Start a Group Link */}
-              <p className="text-sm text-gray-600">
-                Don't see your interest?{' '}
-                <button className="font-semibold text-gray-900 hover:text-blue-600 transition-colors">
-                  Start a new group
-                </button>
-                .
-              </p>
-            </div>
+      {/* Header Section - Natural Language / Mad Libs Style */}
+      <div className="bg-white border-b border-gray-200 py-20">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Headline */}
+          <h1 className="text-6xl md:text-7xl font-serif font-bold text-black tracking-tight mb-12">
+            Find your <span className="text-blue-600">Tribe</span>
+          </h1>
+          
+          {/* Mad Libs Search Input */}
+          <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
+            <span className="font-serif text-gray-500 text-2xl md:text-3xl">I'm looking for a</span>
+            <input
+              type="text"
+              placeholder="community"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent border-b-2 border-gray-300 focus:border-black outline-none text-center font-serif text-2xl md:text-3xl placeholder:text-gray-300 min-w-[200px] max-w-[300px] px-2"
+            />
+            <span className="font-serif text-gray-500 text-2xl md:text-3xl">community.</span>
           </div>
+
+          {/* Trending Topics - Simple Text List */}
+          <p className="text-sm text-gray-400">
+            Trending:{' '}
+            {popularTopics.map((topic, index) => (
+              <span key={index}>
+                <button
+                  onClick={() => setSearchQuery(topic)}
+                  className="font-semibold text-gray-600 hover:text-black hover:underline transition-colors"
+                >
+                  {topic}
+                </button>
+                {index < popularTopics.length - 1 && ', '}
+              </span>
+            ))}
+          </p>
         </div>
       </div>
 
