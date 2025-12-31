@@ -182,7 +182,7 @@ function Community() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Search & Intent */}
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-3">
+              <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-3">
                 Find your <span className="text-blue-600">Tribe</span>
               </h1>
               <p className="text-gray-600 mb-6 text-lg">
@@ -204,7 +204,7 @@ function Community() {
 
             {/* Right Column - Inspiration */}
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">
                 POPULAR TOPICS NEAR YOU
               </p>
               
@@ -245,7 +245,7 @@ function Community() {
             return (
               <div
                 key={group.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden relative flex flex-col"
+                className="bg-white rounded-lg overflow-hidden relative flex flex-col shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
                 {/* Cover Image */}
                 <div className="relative h-32 w-full bg-gray-200">
@@ -315,19 +315,19 @@ function Community() {
                       +{group.friendsCount} friends are members
                     </span>
                   </div>
-                </div>
 
-                {/* Action Footer */}
-                <button
-                  onClick={() => handleJoinGroup(group.id)}
-                  className={`w-full font-medium py-3 border-t border-gray-100 transition-colors ${
-                    isJoined
-                      ? 'bg-blue-50 hover:bg-blue-100 text-blue-700'
-                      : 'bg-gray-50 hover:bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  {isJoined ? 'Joined' : 'Join Group'}
-                </button>
+                  {/* Join Button - Pill-shaped outline */}
+                  <button
+                    onClick={() => handleJoinGroup(group.id)}
+                    className={`self-center rounded-full border px-6 py-2 text-sm font-medium transition-all duration-200 mb-2 ${
+                      isJoined
+                        ? 'bg-black text-white border-black'
+                        : 'border-black text-black hover:bg-black hover:text-white'
+                    }`}
+                  >
+                    {isJoined ? 'Joined' : 'Join Group'}
+                  </button>
+                </div>
               </div>
             );
           })}
