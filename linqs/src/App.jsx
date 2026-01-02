@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { EventsProvider } from './context/EventsContext';
+import { SavedEventsProvider } from './context/SavedEventsContext';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -15,7 +16,8 @@ function App() {
   return (
     <AuthProvider>
       <EventsProvider>
-        <BrowserRouter>
+        <SavedEventsProvider>
+          <BrowserRouter>
           <Toaster 
             position="top-center"
             toastOptions={{
@@ -46,6 +48,7 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        </SavedEventsProvider>
       </EventsProvider>
     </AuthProvider>
   );

@@ -1,87 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Bookmark, X } from 'lucide-react';
+import EventDetailModal from './EventDetailModal';
+import { useSavedEvents } from '../context/SavedEventsContext';
 
 function SavedEventsDrawer({ isOpen, onClose }) {
-  const [expandedId, setExpandedId] = useState(null);
+  const { savedEvents } = useSavedEvents();
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Dummy saved events data
-  const savedEvents = [
-    {
-      id: 1,
-      title: "Summer Music Festival",
-      description: "Join us for an unforgettable weekend of live music featuring local and international artists across multiple stages.",
-      location: "Central Park",
-      date: "July 15, 2024",
-      time: "2:00 PM - 10:00 PM",
-      image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=200&fit=crop"
-    },
-    {
-      id: 2,
-      title: "Art Gallery Opening",
-      description: "Experience contemporary art from emerging local artists. Wine and refreshments will be served.",
-      location: "Downtown Art Gallery",
-      date: "July 18, 2024",
-      time: "6:00 PM - 9:00 PM",
-      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=200&fit=crop"
-    },
-    {
-      id: 3,
-      title: "Food & Wine Tasting",
-      description: "Sample exquisite dishes from top local restaurants paired with fine wines from regional vineyards.",
-      location: "Riverside Pavilion",
-      date: "July 20, 2024",
-      time: "5:00 PM - 8:00 PM",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=200&fit=crop"
-    },
-    {
-      id: 4,
-      title: "Tech Innovation Summit",
-      description: "Connect with industry leaders and discover the latest trends in technology and innovation.",
-      location: "Convention Center",
-      date: "July 22, 2024",
-      time: "9:00 AM - 5:00 PM",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop"
-    },
-    {
-      id: 5,
-      title: "Yoga in the Park",
-      description: "Start your weekend with a peaceful morning yoga session surrounded by nature. All levels welcome.",
-      location: "Riverside Park",
-      date: "July 23, 2024",
-      time: "8:00 AM - 9:30 AM",
-      image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=200&fit=crop"
-    }
-  ];
+  // Sort events in reverse chronological order (most recently saved first)
+  const sortedEvents = [...savedEvents].sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
 
-  // Set first event as expanded by default when drawer opens
-  useEffect(() => {
-    if (isOpen && savedEvents.length > 0) {
-      setExpandedId(savedEvents[0].id);
-    } else if (!isOpen) {
-      setExpandedId(null);
-    }
-  }, [isOpen]);
-
-  // Extract day and month from date
-  const getDateParts = (dateString) => {
-    const dateParts = dateString.split(' ');
-    const day = dateParts[1]?.replace(',', '') || '';
-    const month = dateParts[0]?.substring(0, 3) || '';
-    return { day, month };
+  const handleEventClick = (event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
   };
 
-  const handleCardClick = (eventId) => {
-    // Only expand if clicking a collapsed card
-    if (expandedId !== eventId) {
-      setExpandedId(eventId);
-    }
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
   };
 
-  // Sort events: inactive cards first, then active card at the end (bottom visually)
-  const sortedEvents = [...savedEvents].sort((a, b) => {
-    if (a.id === expandedId) return 1; // Active card goes to end
-    if (b.id === expandedId) return -1;
-    return 0; // Keep original order for inactive cards
-  });
+  // Format date for compact display
+  const formatCompactDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const dayName = days[date.getDay()];
+      const month = months[date.getMonth()];
+      const day = date.getDate();
+      return `${dayName}, ${month} ${day}`;
+    } catch {
+      // Fallback to original string if parsing fails
+      return dateString;
+    }
+  };
 
   return (
     <>
@@ -100,136 +54,87 @@ function SavedEventsDrawer({ isOpen, onClose }) {
         }`}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10">
-          <h2 className="text-xl font-bold text-slate-900" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+          <h2 className="text-xl font-bold text-gray-900">
             Saved Events
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-slate-100"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
             aria-label="Close drawer"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* File Folder Stack Container */}
-        <div className="h-[calc(100vh-73px)] overflow-y-auto px-6 py-6">
-          <div className="flex flex-col">
-            {sortedEvents.map((event, index) => {
-              const isActive = event.id === expandedId;
-              const { day, month } = getDateParts(event.date);
-
-              return (
+        {/* Scrollable Content */}
+        <div className="h-[calc(100vh-73px)] overflow-y-auto">
+          {savedEvents.length === 0 ? (
+            // Empty State
+            <div className="flex flex-col items-center justify-center h-full px-6 py-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <Bookmark className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No events saved yet.
+              </h3>
+              <p className="text-sm text-gray-500 max-w-xs">
+                Bookmark events to see them here!
+              </p>
+            </div>
+          ) : (
+            // Populated State - Scrollable List
+            <div className="px-4 py-4 space-y-2">
+              {sortedEvents.map((event, index) => (
                 <div
-                  key={event.id}
-                  onClick={() => handleCardClick(event.id)}
-                  className={`relative cursor-pointer transition-all duration-500 ease-out ${
-                    isActive 
-                      ? 'z-10' 
-                      : 'z-0 -mb-4 opacity-80'
-                  }`}
+                  key={`${event.title}-${event.date}-${index}`}
+                  onClick={() => handleEventClick(event)}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md bg-white cursor-pointer transition-all duration-200 group"
                 >
-                  {isActive ? (
-                    // Active Card (Full Height, Front Layer)
-                    <div className="bg-white rounded-2xl border-2 border-slate-300 overflow-hidden shadow-[0_-5px_20px_rgba(0,0,0,0.1)] hover:shadow-[0_-5px_25px_rgba(0,0,0,0.15)] transition-all duration-500">
-                      {/* Image */}
-                      <div className="relative aspect-[4/3] overflow-hidden">
-                        {event.image ? (
-                          <img
-                            src={event.image}
-                            alt={event.title}
-                            className="object-cover w-full h-full"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#6C5CE7] to-[#FF7675]"></div>
-                        )}
+                  {/* Thumbnail Image */}
+                  <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
+                    {event.image || event.imageUrl ? (
+                      <img
+                        src={event.image || event.imageUrl}
+                        alt={event.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
+                    )}
+                  </div>
 
-                        {/* Date Badge */}
-                        <div className="absolute top-3 left-3 backdrop-blur-md bg-black/30 rounded-lg px-2.5 py-1.5">
-                          <div className="text-center">
-                            <div className="font-semibold text-sm leading-none text-white">{day}</div>
-                            <div className="text-[10px] text-white/90 font-medium uppercase tracking-wide">{month}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-5">
-                        <h3 className="font-bold text-lg text-slate-900 mb-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-                          {event.title}
-                        </h3>
-                        <p className="text-slate-500 text-sm mb-4 line-clamp-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-                          {event.description}
-                        </p>
-
-                        {/* Meta Info */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-                            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span>{event.location}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-                            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{event.time}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-slate-500 text-sm" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-                            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span>{event.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Inactive Card (Tab - Short Height, Behind)
-                    <div className="h-14 bg-gray-100 rounded-t-2xl border-2 border-b-0 border-slate-200 overflow-hidden flex items-center px-4 hover:bg-gray-200 transition-colors duration-200">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-lg overflow-hidden mr-3">
-                        {event.image ? (
-                          <img
-                            src={event.image}
-                            alt={event.title}
-                            className="object-cover w-full h-full"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#6C5CE7] to-[#FF7675]"></div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm text-slate-900 truncate" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
-                          {event.title}
-                        </h4>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <span className="truncate">{event.location}</span>
-                          <span>•</span>
-                          <span className="whitespace-nowrap">{day} {month}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Event Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm text-gray-900 mb-1 truncate group-hover:text-gray-700">
+                      {event.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-1.5 truncate">
+                      {event.location || event.meetingLink || 'Location TBD'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {formatCompactDate(event.date)}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Event Detail Modal */}
+      <EventDetailModal
+        isOpen={isModalOpen}
+        event={selectedEvent}
+        onClose={handleCloseModal}
+      />
     </>
   );
 }
 
 export default SavedEventsDrawer;
-

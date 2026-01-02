@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Bookmark, Zap } from 'lucide-react';
+import { useSavedEvents } from '../context/SavedEventsContext';
 
 function EventCard({ event, onInterested, onBoost, onCardClick }) {
-  const [isSaved, setIsSaved] = useState(false);
+  const { toggleSaveEvent, isEventSaved } = useSavedEvents();
+  const isSaved = isEventSaved(event);
   const [isBoosted, setIsBoosted] = useState(false);
   const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 91) + 10); // Random count between 10-100
   
@@ -99,7 +101,7 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
 
   const handleSave = (e) => {
     e.stopPropagation();
-    setIsSaved(!isSaved);
+    toggleSaveEvent(event);
     if (onInterested) {
       onInterested(event);
     }
