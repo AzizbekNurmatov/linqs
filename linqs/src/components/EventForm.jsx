@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Calendar, MapPin, X, ChevronDown, ChevronUp, Users, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock } from 'lucide-react';
 
 // Tag color function matching FeaturesBentoGrid
 function getTagColor(tagString) {
@@ -21,36 +21,25 @@ function getTagColor(tagString) {
   return colors[index];
 }
 
-// Genre configuration
-const genres = [
-  { value: 'live-music', label: 'Music' },
-  { value: 'tech', label: 'Tech' },
-  { value: 'food', label: 'Food' },
-  { value: 'sports', label: 'Sports' },
-  { value: 'arts', label: 'Arts' },
-  { value: 'nightlife', label: 'Nightlife' },
-];
-
 function EventForm({ onAddEvent, onClose }) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
     location: '',
+    meetingLink: '',
     date: '',
     time: '',
     image: '',
-    genre: '',
     tags: [],
-    capacity: '',
-    externalLink: '',
-    visibility: 'public', // 'public' | 'private'
     isOnline: false,
   });
   
   const [tagInput, setTagInput] = useState('');
   const [imagePreview, setImagePreview] = useState('');
-  const textareaRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
+  const dateInputRef = useRef(null);
+  const timeInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,37 +49,64 @@ function EventForm({ onAddEvent, onClose }) {
     }));
   };
 
-  // Auto-expand textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [formData.description]);
-
   const handleImageChange = (e) => {
-    const { value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      image: value
-    }));
-    setImagePreview(value);
-  };
-
-  const handleImageClick = () => {
-    // Focus on image input (we'll use a hidden input)
-    const imageInput = document.getElementById('image-input');
-    if (imageInput) {
-      imageInput.focus();
-      imageInput.select();
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result;
+        setFormData(prev => ({
+          ...prev,
+          image: result
+        }));
+        setImagePreview(result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Fallback to URL input
+      const { value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        image: value
+      }));
+      setImagePreview(value);
     }
   };
 
-  const handleGenreSelect = (genreValue) => {
-    setFormData(prev => ({
-      ...prev,
-      genre: genreValue
-    }));
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result;
+        setFormData(prev => ({
+          ...prev,
+          image: result
+        }));
+        setImagePreview(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBannerClick = () => {
+    fileInputRef.current?.click();
   };
 
   const handleTagInputKeyDown = (e) => {
@@ -114,48 +130,35 @@ function EventForm({ onAddEvent, onClose }) {
     }));
   };
 
-  const handleAddSuggestedTag = (tag) => {
-    if (!formData.tags.includes(tag)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
-    }
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Basic validation for quick mode
-    const basicValid = formData.title && formData.date && formData.time && (formData.location || formData.isOnline);
+    const isValid = formData.title && 
+                    formData.date && 
+                    formData.time && 
+                    (formData.isOnline ? formData.meetingLink : formData.location);
     
-    // Advanced validation only if expanded
-    const advancedValid = !isExpanded || true; // Advanced fields are optional
-    
-    if (basicValid && advancedValid) {
+    if (isValid) {
       onAddEvent(formData);
       setFormData({
         title: '',
-        description: '',
         location: '',
+        meetingLink: '',
         date: '',
         time: '',
         image: '',
-        genre: '',
         tags: [],
-        capacity: '',
-        externalLink: '',
-        visibility: 'public',
         isOnline: false,
       });
       setTagInput('');
       setImagePreview('');
-      setIsExpanded(false);
       onClose();
     }
   };
 
-  // Conditional validation: only basic fields required in quick mode
-  const isFormValid = formData.title && formData.date && formData.time && (formData.location || formData.isOnline);
+  const isFormValid = formData.title && 
+                      formData.date && 
+                      formData.time && 
+                      (formData.isOnline ? formData.meetingLink : formData.location);
 
   return (
     <form onSubmit={handleSubmit} className="bg-white relative">
@@ -170,67 +173,64 @@ function EventForm({ onAddEvent, onClose }) {
         </button>
       </div>
 
-      {/* Cover Image Section - Only show when expanded */}
-      {isExpanded && (
-        <div 
-          className="relative w-full h-[200px] mb-6 rounded-t-2xl overflow-hidden cursor-pointer group transition-all duration-300"
-          onClick={handleImageClick}
-        >
-          {imagePreview ? (
-            <>
-              <img 
-                src={imagePreview} 
-                alt="Cover preview" 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
-                <button
-                  type="button"
-                  className="opacity-0 group-hover:opacity-100 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-semibold text-gray-900 transition-opacity duration-200"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleImageClick();
-                  }}
-                >
-                  Change
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-              <div 
-                className="w-full h-full opacity-30"
-                style={{
-                  backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.03) 10px, rgba(0,0,0,0.03) 20px)`,
-                }}
-              />
+      {/* Banner Image Upload - Drag and Drop */}
+      <div 
+        ref={dropZoneRef}
+        className={`relative w-full h-[200px] mb-6 rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 border-2 border-dashed ${
+          isDragging 
+            ? 'border-gray-900 bg-gray-50' 
+            : imagePreview 
+              ? 'border-transparent' 
+              : 'border-gray-200 hover:border-gray-300'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={handleBannerClick}
+      >
+        {imagePreview ? (
+          <>
+            <img 
+              src={imagePreview} 
+              alt="Banner preview" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
               <button
                 type="button"
-                className="absolute px-6 py-3 bg-white rounded-lg text-sm font-semibold text-gray-700 shadow-md hover:bg-gray-50 transition-colors duration-200"
+                className="opacity-0 group-hover:opacity-100 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg text-sm font-semibold text-gray-900 transition-opacity duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleImageClick();
+                  handleBannerClick();
                 }}
               >
-                Add Cover Image
+                Change Image
               </button>
             </div>
-          )}
-          {/* Hidden image input */}
-          <input
-            type="url"
-            id="image-input"
-            name="image"
-            value={formData.image}
-            onChange={handleImageChange}
-            placeholder="https://example.com/image.jpg"
-            className="absolute opacity-0 pointer-events-none"
-          />
-        </div>
-      )}
+          </>
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50">
+            <Upload className="w-10 h-10 text-gray-400 mb-3" />
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              {isDragging ? 'Drop image here' : 'Drag & drop banner image'}
+            </p>
+            <p className="text-xs text-gray-500">
+              or click to upload
+            </p>
+          </div>
+        )}
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+      </div>
       
       {/* Title Section */}
       <div className="mb-6">
@@ -241,78 +241,127 @@ function EventForm({ onAddEvent, onClose }) {
           value={formData.title}
           onChange={handleChange}
           required
-          placeholder="Event Name"
+          placeholder="Event Title"
           className="w-full text-2xl md:text-3xl font-bold bg-transparent border-none outline-none text-gray-900 placeholder:text-gray-400 focus:placeholder:text-gray-300"
         />
-        <p className="text-sm text-gray-500 mt-2">
-          Study group, casual run, coffee meetup…
-        </p>
       </div>
 
-      {/* Metadata Grid - Quick Mode */}
-      <div className="space-y-4 mb-6">
-        {/* Date & Time */}
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group">
-          <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
-          <div className="flex-1 flex gap-2">
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-              className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
+      {/* Date & Time Picker */}
+      <div className="mb-6 space-y-4">
+        {/* Date Input */}
+        <div 
+          onClick={() => {
+            dateInputRef.current?.showPicker?.() || dateInputRef.current?.click();
+          }}
+          className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+        >
+          <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+          <input
+            ref={dateInputRef}
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+        
+        {/* Time Input */}
+        <div 
+          onClick={() => {
+            timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
+          }}
+          className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+        >
+          <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+          <input
+            ref={timeInputRef}
+            type="time"
+            name="time"
+            value={formData.time}
+            onChange={handleChange}
+            required
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      </div>
+
+      {/* Online Event Toggle & Location */}
+      <div className="mb-6 space-y-4">
+        {/* Online Event Toggle */}
+        <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200">
+          <label className="flex items-center gap-3 cursor-pointer flex-1">
+            <span className="text-sm font-medium text-gray-700">Online Event</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setFormData(prev => ({ 
+                ...prev, 
+                isOnline: !prev.isOnline,
+                location: prev.isOnline ? prev.location : '',
+                meetingLink: !prev.isOnline ? prev.meetingLink : ''
+              }));
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+              formData.isOnline ? 'bg-gray-900' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                formData.isOnline ? 'translate-x-6' : 'translate-x-1'
+              }`}
             />
+          </button>
+        </div>
+
+        {/* Conditional Location Input */}
+        {formData.isOnline ? (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group">
+            <LinkIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
             <input
-              type="time"
-              name="time"
-              value={formData.time}
+              type="url"
+              name="meetingLink"
+              value={formData.meetingLink}
               onChange={handleChange}
               required
+              placeholder="Meeting Link (e.g., https://zoom.us/j/...)"
               className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
             />
           </div>
-        </div>
-
-        {/* Location or Online */}
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group">
-          <MapPin className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
-          <input
-            type="text"
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-            required={!formData.isOnline}
-            disabled={formData.isOnline}
-            placeholder={formData.isOnline ? "Online event" : "Location"}
-            className={`flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm ${formData.isOnline ? 'opacity-50' : ''}`}
-          />
-          <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        ) : (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group">
+            <MapPin className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0" />
             <input
-              type="checkbox"
-              checked={formData.isOnline}
-              onChange={(e) => setFormData(prev => ({ ...prev, isOnline: e.target.checked, location: e.target.checked ? 'Online' : '' }))}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              required
+              placeholder="Physical Location"
+              className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
             />
-            <span>Online</span>
-          </label>
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Tags Section - Quick Mode (Optional) */}
+      {/* Tags Section */}
       <div className="mb-6">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 min-h-[48px]">
           {/* Display existing tags */}
           {formData.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-1 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium"
+              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getTagColor(tag)}`}
             >
               {tag}
               <button
                 type="button"
                 onClick={() => handleRemoveTag(tag)}
-                className="hover:text-gray-900 transition-colors"
+                className="hover:opacity-70 transition-opacity"
                 aria-label={`Remove ${tag}`}
               >
                 <X className="w-3 h-3" />
@@ -331,111 +380,7 @@ function EventForm({ onAddEvent, onClose }) {
         </div>
       </div>
 
-      {/* Expand/Collapse Toggle */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          {isExpanded ? (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              Show less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              Add more details
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Advanced Fields - Only show when expanded */}
-      <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="space-y-6 mb-6">
-          {/* Description Section - Auto-expanding */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-            <textarea
-              ref={textareaRef}
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Describe your event in detail..."
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg text-gray-600 placeholder:text-gray-400 resize-none overflow-hidden min-h-[100px] focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-            />
-          </div>
-
-          {/* Capacity */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Max Attendees (Optional)</label>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-              <Users className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              <input
-                type="number"
-                name="capacity"
-                value={formData.capacity}
-                onChange={handleChange}
-                placeholder="No limit"
-                min="1"
-                className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* External Link */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">External Link (Optional)</label>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
-              <ExternalLink className="w-5 h-5 text-gray-400 flex-shrink-0" />
-              <input
-                type="url"
-                name="externalLink"
-                value={formData.externalLink}
-                onChange={handleChange}
-                placeholder="https://example.com"
-                className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Visibility Options */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, visibility: 'public' }))}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all ${
-                  formData.visibility === 'public'
-                    ? 'border-gray-900 bg-gray-900 text-white'
-                    : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">Public</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, visibility: 'private' }))}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all ${
-                  formData.visibility === 'private'
-                    ? 'border-gray-900 bg-gray-900 text-white'
-                    : 'border-gray-200 text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <EyeOff className="w-4 h-4" />
-                <span className="text-sm font-medium">Private</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer - Full Width Button */}
+      {/* Post Button */}
       <div className="pt-6 border-t border-gray-200">
         <button 
           type="submit"
@@ -446,7 +391,7 @@ function EventForm({ onAddEvent, onClose }) {
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          {isExpanded ? 'Publish Event' : 'Post Hangout'}
+          Post
         </button>
       </div>
     </form>

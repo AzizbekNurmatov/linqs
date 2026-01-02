@@ -3,7 +3,7 @@ function Footer() {
     <footer className="bg-white border-t border-gray-200 h-24 flex items-center mt-auto">
       <div className="max-w-7xl mx-auto w-full px-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-[#636E72] text-sm">
-          &copy; 2024 Linqs. All rights reserved.
+          &copy; 2025 Linqs. All rights reserved.
         </p>
         <div className="flex gap-6">
           <a href="#" className="text-[#636E72] text-sm hover:text-[#6C5CE7] transition-colors duration-200">
