@@ -13,10 +13,16 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     'https://i.pravatar.cc/150?img=3',
   ];
 
-  // Format date to match Explore.jsx style (e.g., "WED, JAN 7 • 6:00 PM EST")
+  // Format date - handles both formatted strings and Date objects
   const formatDate = () => {
+    // If date is already formatted (from Explore page), return it
+    if (typeof event.date === 'string' && event.date.includes('•')) {
+      return event.date;
+    }
+    
+    // Otherwise, format from Date object (from Home page/EventsContext)
     try {
-      const dateObj = new Date(event.date);
+      const dateObj = typeof event.date === 'string' ? new Date(event.date) : event.date;
       const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
       const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       const dayName = days[dateObj.getDay()];
@@ -24,19 +30,24 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
       const day = dateObj.getDate();
       
       // Extract time from event.time (format: "2:00 PM - 10:00 PM" or "2:00 PM")
-      const timeMatch = event.time.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+      const timeMatch = event.time?.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
       const time = timeMatch ? timeMatch[1].toUpperCase() : 'TBD';
       
       return `${dayName}, ${month} ${day} • ${time} EST`;
     } catch {
-      return event.date;
+      return event.date || 'TBD';
     }
   };
 
-  // Extract host group from description or use a default
+  // Get host group - handles both explicit hostGroup and derived from description
   const getHostGroup = () => {
-    // Try to extract from description or use a default based on category
-    const text = `${event.title} ${event.description}`.toLowerCase();
+    // If hostGroup is explicitly provided (Explore page), use it
+    if (event.hostGroup) {
+      return event.hostGroup;
+    }
+    
+    // Otherwise, derive from description (Home page)
+    const text = `${event.title} ${event.description || ''}`.toLowerCase();
     if (text.includes('tech')) return 'by Tech Meetup';
     if (text.includes('music')) return 'by Live Music Enthusiasts';
     if (text.includes('art')) return 'by NYC Arts Collective';
@@ -45,18 +56,35 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     return 'by Local Community';
   };
 
-  // Get price (default to Free)
+  // Get price - handles both explicit price and derived
   const getPrice = () => {
-    const text = `${event.title} ${event.description}`.toLowerCase();
+    // If price is explicitly provided (Explore page), use it
+    if (event.price) {
+      return event.price;
+    }
+    
+    // Otherwise, derive from content (Home page)
+    const text = `${event.title} ${event.description || ''}`.toLowerCase();
     if (text.includes('tasting') || text.includes('summit') || text.includes('festival')) {
       return Math.random() > 0.5 ? 'Free' : '$25';
     }
     return 'Free';
   };
 
-  // Get attendee count (mock)
+  // Get attendee count - handles both explicit attendees and mock
   const getAttendeeCount = () => {
+    // If attendees is explicitly provided (Explore page), use it
+    if (event.attendees !== undefined) {
+      return event.attendees;
+    }
+    
+    // Otherwise, generate mock count (Home page)
     return Math.floor(Math.random() * 100) + 20;
+  };
+
+  // Get image URL - handles both image and imageUrl properties
+  const getImageUrl = () => {
+    return event.image || event.imageUrl || '';
   };
 
   const handleCardClick = (e) => {
@@ -65,7 +93,23 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
       return;
     }
     if (onCardClick) {
-      onCardClick();
+      onCardClick(event);
+    }
+  };
+
+  const handleSave = (e) => {
+    e.stopPropagation();
+    setIsSaved(!isSaved);
+    if (onInterested) {
+      onInterested(event);
+    }
+  };
+
+  const handleBoost = (e) => {
+    e.stopPropagation();
+    setIsBoosted(!isBoosted);
+    if (onBoost) {
+      onBoost(event);
     }
   };
 
@@ -74,11 +118,11 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
       className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
       onClick={handleCardClick}
     >
-      {/* Image Section (Relative) */}
-      <div className="relative aspect-video bg-gray-200">
-        {event.image ? (
+      {/* Image Section - Sharp corners, aspect-video */}
+      <div className="relative aspect-video bg-gray-200 overflow-hidden">
+        {getImageUrl() ? (
           <img 
-            src={event.image} 
+            src={getImageUrl()} 
             alt={event.title}
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -96,13 +140,9 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
         </div>
 
         {/* Actions (Top Right) */}
-        <div className="absolute top-2 right-2 flex gap-2 p-2">
+        <div className="absolute top-2 right-2 flex gap-2">
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsSaved(!isSaved);
-              if (onInterested) onInterested();
-            }}
+            onClick={handleSave}
             className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
               isSaved ? 'text-blue-600' : ''
             }`}
@@ -111,11 +151,7 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
             <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
           </button>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsBoosted(!isBoosted);
-              if (onBoost) onBoost();
-            }}
+            onClick={handleBoost}
             className={`
               transition-all duration-300 ease-in-out flex items-center justify-center cursor-pointer rounded-full
               ${isBoosted 
@@ -153,17 +189,17 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
           {formatDate()}
         </p>
 
-        {/* Title */}
+        {/* Title - Bolded */}
         <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 truncate">
           {event.title}
         </h3>
 
-        {/* Host Group */}
+        {/* Host Group - "by [Organizer]" subtitle */}
         <p className="text-sm text-gray-500 mb-3">
           {getHostGroup()}
         </p>
 
-        {/* Footer */}
+        {/* Footer - Horizontal attendee avatar stack */}
         <div className="flex items-center">
           <div className="flex -space-x-2">
             {avatars.map((avatar, index) => (

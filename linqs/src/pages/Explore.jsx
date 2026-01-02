@@ -1,18 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Bookmark, Zap } from 'lucide-react';
+import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown } from 'lucide-react';
+import EventCard from '../components/EventCard';
+import EventDetailModal from '../components/EventDetailModal';
 
 function Explore() {
-  const [savedEvents, setSavedEvents] = useState(new Set());
-  const [boostedEvents, setBoostedEvents] = useState(new Set());
-  const [boostCounts, setBoostCounts] = useState(() => {
-    // Initialize with random counts for each event
-    const counts = {};
-    for (let i = 1; i <= 8; i++) {
-      counts[i] = Math.floor(Math.random() * 50);
-    }
-    return counts;
-  });
-  const [clickingBoost, setClickingBoost] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
   const [filters, setFilters] = useState({
     day: 'Any day',
@@ -20,79 +13,89 @@ function Explore() {
     distance: 'Any distance',
     price: 'Any price',
   });
-  // Dummy events data
+
+  const handleCardClick = (event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+  };
+
+  const handleInterested = (event) => {
+    console.log(`Interested in event: ${event.title}`);
+  };
+
+  const handleBoost = (event) => {
+    console.log(`Boosted event: ${event.title}`);
+  };
+  // Dummy events data - matching Home page structure
   const events = [
     {
-      id: 1,
-      date: 'WED, JAN 7 • 6:00 PM EST',
-      title: 'Charleston Tech Social',
-      hostGroup: 'by Charleston Tech Meetup',
-      imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=225&fit=crop',
-      attendees: 35,
-      price: 'Free',
+      title: "Summer Music Festival",
+      description: "Join us for an unforgettable weekend of live music featuring local and international artists across multiple stages.",
+      location: "Central Park",
+      date: "July 15, 2024",
+      time: "2:00 PM - 10:00 PM",
+      image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=200&fit=crop"
     },
     {
-      id: 2,
-      date: 'THU, JAN 8 • 7:30 PM EST',
-      title: 'Brooklyn Foodie Walk',
-      hostGroup: 'by NYC Foodies',
-      imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=225&fit=crop',
-      attendees: 42,
-      price: '$15',
+      title: "Art Gallery Opening",
+      description: "Experience contemporary art from emerging local artists. Wine and refreshments will be served.",
+      location: "Downtown Art Gallery",
+      date: "July 18, 2024",
+      time: "6:00 PM - 9:00 PM",
+      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=200&fit=crop"
     },
     {
-      id: 3,
-      date: 'FRI, JAN 9 • 8:00 PM EST',
-      title: 'Manhattan Photography Workshop',
-      hostGroup: 'by NYC Photographers',
-      imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&h=225&fit=crop',
-      attendees: 18,
-      price: 'Free',
+      title: "Food & Wine Tasting",
+      description: "Sample exquisite dishes from top local restaurants paired with fine wines from regional vineyards.",
+      location: "Riverside Pavilion",
+      date: "July 20, 2024",
+      time: "5:00 PM - 8:00 PM",
+      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=200&fit=crop"
     },
     {
-      id: 4,
-      date: 'SAT, JAN 10 • 10:00 AM EST',
-      title: 'Central Park Running Club',
-      hostGroup: 'by Brooklyn Hikers',
-      imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=225&fit=crop',
-      attendees: 67,
-      price: 'Free',
+      title: "Tech Innovation Summit",
+      description: "Connect with industry leaders and discover the latest trends in technology and innovation.",
+      location: "Convention Center",
+      date: "July 22, 2024",
+      time: "9:00 AM - 5:00 PM",
+      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop"
     },
     {
-      id: 5,
-      date: 'SUN, JAN 11 • 2:00 PM EST',
-      title: 'Startup Pitch Night',
-      hostGroup: 'by Tech Meetup',
-      imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=225&fit=crop',
-      attendees: 89,
-      price: '$25',
+      title: "Yoga in the Park",
+      description: "Start your weekend with a peaceful morning yoga session surrounded by nature. All levels welcome.",
+      location: "Riverside Park",
+      date: "July 23, 2024",
+      time: "8:00 AM - 9:30 AM",
+      image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=200&fit=crop"
     },
     {
-      id: 6,
-      date: 'MON, JAN 12 • 6:30 PM EST',
-      title: 'Art Gallery Opening',
-      hostGroup: 'by NYC Arts Collective',
-      imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=225&fit=crop',
-      attendees: 124,
-      price: 'Free',
+      title: "Comedy Night",
+      description: "Laugh the night away with stand-up comedians from across the country. 21+ event.",
+      location: "The Comedy Club",
+      date: "July 25, 2024",
+      time: "8:00 PM - 11:00 PM",
+      image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=200&fit=crop"
     },
     {
-      id: 7,
-      date: 'TUE, JAN 13 • 7:00 PM EST',
-      title: 'Jazz Night at Blue Note',
-      hostGroup: 'by Live Music Enthusiasts',
-      imageUrl: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=225&fit=crop',
-      attendees: 56,
-      price: '$30',
+      title: "Networking Happy Hour",
+      description: "Connect with professionals from various industries over drinks and appetizers. Great for expanding your network.",
+      location: "Downtown Bar & Grill",
+      date: "July 26, 2024",
+      time: "6:00 PM - 8:00 PM",
+      image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=200&fit=crop"
     },
     {
-      id: 8,
-      date: 'WED, JAN 14 • 5:00 PM EST',
-      title: 'Networking Happy Hour',
-      hostGroup: 'by Business Professionals',
-      imageUrl: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=225&fit=crop',
-      attendees: 93,
-      price: 'Free',
+      title: "Photography Workshop",
+      description: "Learn advanced photography techniques from professional photographers. Bring your camera!",
+      location: "Art Studio Downtown",
+      date: "July 27, 2024",
+      time: "10:00 AM - 2:00 PM",
+      image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&h=200&fit=crop"
     },
   ];
 
@@ -222,147 +225,15 @@ function Explore() {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {events.map((event) => {
-            const isSaved = savedEvents.has(event.id);
-            const isBoosted = boostedEvents.has(event.id);
-
-            return (
-              <div
-                key={event.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
-              >
-                {/* Event Image */}
-                <div className="relative aspect-video bg-gray-200">
-                  <img
-                    src={event.imageUrl}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
-                    }}
-                  />
-                  
-                  {/* Price Badge (Top Left) */}
-                  {event.price && (
-                    <div className="absolute top-2 left-2 bg-white text-gray-900 text-xs font-semibold px-2 py-1 rounded-sm">
-                      {event.price}
-                    </div>
-                  )}
-
-                  {/* Actions (Top Right) */}
-                  <div className="absolute top-2 right-2 flex gap-2 p-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSavedEvents(prev => {
-                          const newSet = new Set(prev);
-                          if (newSet.has(event.id)) {
-                            newSet.delete(event.id);
-                          } else {
-                            newSet.add(event.id);
-                          }
-                          return newSet;
-                        });
-                      }}
-                      className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
-                        isSaved ? 'text-blue-600' : ''
-                      }`}
-                      aria-label="Bookmark event"
-                    >
-                      <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setClickingBoost(event.id);
-                        setTimeout(() => setClickingBoost(null), 150);
-                        
-                        const wasBoosted = isBoosted;
-                        setBoostedEvents(prev => {
-                          const newSet = new Set(prev);
-                          if (wasBoosted) {
-                            newSet.delete(event.id);
-                          } else {
-                            newSet.add(event.id);
-                          }
-                          return newSet;
-                        });
-                        
-                        // Update count
-                        setBoostCounts(prev => ({
-                          ...prev,
-                          [event.id]: wasBoosted 
-                            ? Math.max(0, prev[event.id] - 1)
-                            : (prev[event.id] || 0) + 1
-                        }));
-                      }}
-                      className={`
-                        backdrop-blur-sm shadow-sm transition-all duration-300 flex items-center justify-center cursor-pointer rounded-full
-                        ${boostCounts[event.id] > 0 ? 'px-3 py-1.5' : 'p-2'}
-                        ${isBoosted 
-                          ? 'bg-white ring-1 ring-yellow-200' 
-                          : 'bg-white/90 hover:bg-white'
-                        }
-                        ${clickingBoost === event.id ? 'scale-110' : ''}
-                      `}
-                      aria-label="Boost event"
-                    >
-                      <Zap 
-                        className={`
-                          w-4 h-4 transition-colors
-                          ${isBoosted 
-                            ? 'text-yellow-500 fill-yellow-500' 
-                            : 'text-gray-500'
-                          }
-                        `}
-                      />
-                      {boostCounts[event.id] > 0 && (
-                        <span 
-                          className={`
-                            text-xs font-bold ml-1.5 font-mono
-                            ${isBoosted ? 'text-yellow-700' : 'text-gray-700'}
-                          `}
-                        >
-                          {boostCounts[event.id]}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Event Content */}
-                <div className="p-4">
-                  {/* Date */}
-                  <p className="text-xs font-bold text-[#7C6F50] uppercase tracking-wide mb-1">
-                    {event.date}
-                  </p>
-
-                  {/* Title */}
-                  <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 truncate">
-                    {event.title}
-                  </h3>
-
-                  {/* Host Group */}
-                  <p className="text-sm text-gray-500 mb-3">
-                    {event.hostGroup}
-                  </p>
-
-                  {/* Footer with Attendees */}
-                  <div className="flex items-center">
-                    <div className="flex -space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"></div>
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-white"></div>
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 border-2 border-white"></div>
-                    </div>
-                    <span className="text-xs text-gray-500 ml-2">
-                      {event.attendees} attendees
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {events.map((event, index) => (
+            <EventCard 
+              key={index} 
+              event={event} 
+              onInterested={() => handleInterested(event)}
+              onBoost={() => handleBoost(event)}
+              onCardClick={() => handleCardClick(event)}
+            />
+          ))}
         </div>
       </div>
 
@@ -376,6 +247,13 @@ function Explore() {
           display: none;
         }
       `}</style>
+      
+      {/* Event Detail Modal */}
+      <EventDetailModal 
+        isOpen={isModalOpen}
+        event={selectedEvent}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
