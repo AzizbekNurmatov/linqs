@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock } from 'lucide-react';
+import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus } from 'lucide-react';
 
 // Tag color function matching FeaturesBentoGrid
 function getTagColor(tagString) {
@@ -27,19 +27,25 @@ function EventForm({ onAddEvent, onClose }) {
     location: '',
     meetingLink: '',
     date: '',
+    endDate: '',
     time: '',
+    endTime: '',
     image: '',
     tags: [],
     isOnline: false,
   });
   
+  const [hasEndDate, setHasEndDate] = useState(false);
+  const [hasEndTime, setHasEndTime] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const dateInputRef = useRef(null);
+  const endDateInputRef = useRef(null);
   const timeInputRef = useRef(null);
+  const endTimeInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -130,25 +136,64 @@ function EventForm({ onAddEvent, onClose }) {
     }));
   };
 
+  // Format time for display (handles ranges)
+  const formatTimeForDisplay = (startTime, endTime) => {
+    if (!startTime) return '';
+    
+    const formatTime = (timeStr) => {
+      if (!timeStr) return '';
+      const [hours, minutes] = timeStr.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
+    };
+
+    const formattedStart = formatTime(startTime);
+    if (endTime) {
+      const formattedEnd = formatTime(endTime);
+      return `${formattedStart} - ${formattedEnd}`;
+    }
+    return formattedStart;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const isValid = formData.title && 
                     formData.date && 
                     formData.time && 
+                    (!hasEndDate || formData.endDate) &&
+                    (!hasEndTime || formData.endTime) &&
                     (formData.isOnline ? formData.meetingLink : formData.location);
     
     if (isValid) {
-      onAddEvent(formData);
+      // Format time as range if endTime exists
+      const timeDisplay = formatTimeForDisplay(formData.time, formData.endTime);
+      
+      const eventToSubmit = {
+        ...formData,
+        time: timeDisplay, // Store formatted time range
+        endTime: undefined, // Don't store endTime separately
+        endDate: hasEndDate ? formData.endDate : undefined,
+      };
+      
+      onAddEvent(eventToSubmit);
+      
+      // Reset form
       setFormData({
         title: '',
         location: '',
         meetingLink: '',
         date: '',
+        endDate: '',
         time: '',
+        endTime: '',
         image: '',
         tags: [],
         isOnline: false,
       });
+      setHasEndDate(false);
+      setHasEndTime(false);
       setTagInput('');
       setImagePreview('');
       onClose();
@@ -158,7 +203,23 @@ function EventForm({ onAddEvent, onClose }) {
   const isFormValid = formData.title && 
                       formData.date && 
                       formData.time && 
+                      (!hasEndDate || formData.endDate) &&
+                      (!hasEndTime || formData.endTime) &&
                       (formData.isOnline ? formData.meetingLink : formData.location);
+
+  // Calculate min values for validation
+  const getEndDateMin = () => {
+    return formData.date || '';
+  };
+
+  const getEndTimeMin = () => {
+    // If same day (no end date or end date equals start date), end time must be after start time
+    if (!hasEndDate || formData.endDate === formData.date) {
+      return formData.time || '';
+    }
+    // If different day, any time is valid
+    return '';
+  };
 
   return (
     <form onSubmit={handleSubmit} className="bg-white relative">
@@ -246,50 +307,256 @@ function EventForm({ onAddEvent, onClose }) {
         />
       </div>
 
-      {/* Date & Time Picker */}
+      {/* Date & Time Section - Context-Aware Layout */}
       <div className="mb-6 space-y-4">
-        {/* Date Input */}
-        <div 
-          onClick={() => {
-            dateInputRef.current?.showPicker?.() || dateInputRef.current?.click();
-          }}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-        >
-          <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-          <input
-            ref={dateInputRef}
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            required
-            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm cursor-pointer"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-        
-        {/* Time Input */}
-        <div 
-          onClick={() => {
-            timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
-          }}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-        >
-          <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-          <input
-            ref={timeInputRef}
-            type="time"
-            name="time"
-            value={formData.time}
-            onChange={handleChange}
-            required
-            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm cursor-pointer"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+        {hasEndDate ? (
+          // Multi-Day Layout: Two rows with Date + Time side-by-side
+          <>
+            {/* Row 1: Start Date + Start Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div 
+                onClick={() => {
+                  dateInputRef.current?.showPicker?.() || dateInputRef.current?.click();
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+              >
+                <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">Start Date</span>
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+              <div 
+                onClick={() => {
+                  timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+              >
+                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">Start Time</span>
+                  <input
+                    ref={timeInputRef}
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Row 2: End Date + End Time */}
+            <div className="grid grid-cols-2 gap-3">
+              <div 
+                onClick={() => {
+                  endDateInputRef.current?.showPicker?.() || endDateInputRef.current?.click();
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+              >
+                <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">End Date</span>
+                  <input
+                    ref={endDateInputRef}
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                    required={hasEndDate}
+                    min={getEndDateMin()}
+                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHasEndDate(false);
+                    setFormData(prev => ({ ...prev, endDate: '' }));
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                  aria-label="Remove end date"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div 
+                onClick={() => {
+                  if (hasEndTime) {
+                    endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.click();
+                  }
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+              >
+                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">End Time</span>
+                  {hasEndTime ? (
+                    <>
+                      <input
+                        ref={endTimeInputRef}
+                        type="time"
+                        name="endTime"
+                        value={formData.endTime}
+                        onChange={handleChange}
+                        required={hasEndTime}
+                        min={getEndTimeMin()}
+                        className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHasEndTime(false);
+                          setFormData(prev => ({ ...prev, endTime: '' }));
+                        }}
+                        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                        aria-label="Remove end time"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setHasEndTime(true);
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add end time</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          // Single-Day Layout: Date on its own row, Time(s) on another row
+          <>
+            {/* Date Row */}
+            <div className="flex items-center gap-2">
+              <div 
+                onClick={() => {
+                  dateInputRef.current?.showPicker?.() || dateInputRef.current?.click();
+                }}
+                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+              >
+                <Calendar className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                  className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setHasEndDate(true)}
+                className="flex items-center gap-1.5 px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add end date</span>
+              </button>
+            </div>
+
+            {/* Time Row */}
+            <div className="flex items-center gap-2">
+              <div 
+                onClick={() => {
+                  timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
+                }}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer ${
+                  hasEndTime ? 'flex-1' : 'flex-1'
+                }`}
+              >
+                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">Start Time</span>
+                  <input
+                    ref={timeInputRef}
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+              {hasEndTime ? (
+                <div 
+                  onClick={() => {
+                    endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.click();
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+                >
+                  <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xs text-gray-500 font-medium">End Time</span>
+                    <input
+                      ref={endTimeInputRef}
+                      type="time"
+                      name="endTime"
+                      value={formData.endTime}
+                      onChange={handleChange}
+                      required={hasEndTime}
+                      min={getEndTimeMin()}
+                      className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHasEndTime(false);
+                      setFormData(prev => ({ ...prev, endTime: '' }));
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    aria-label="Remove end time"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setHasEndTime(true)}
+                  className="flex items-center gap-1.5 px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add end time</span>
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Online Event Toggle & Location */}
+      {/* Online Event Toggle & Location - Clearly Separated */}
       <div className="mb-6 space-y-4">
         {/* Online Event Toggle */}
         <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200">

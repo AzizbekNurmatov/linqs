@@ -63,13 +63,22 @@ export function EventsProvider({ children }) {
       year: 'numeric' 
     });
     
-    // Format the time for display
-    const timeObj = new Date(`2000-01-01T${newEvent.time}`);
-    const formattedTime = timeObj.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
+    // Handle time - if it's already formatted as a range (e.g., "9:00 AM - 5:00 PM"), use it as-is
+    // Otherwise, format it from a single time value
+    let formattedTime = newEvent.time;
+    if (formattedTime && !formattedTime.includes(' - ')) {
+      // It's a single time, format it
+      try {
+        const timeObj = new Date(`2000-01-01T${formattedTime}`);
+        formattedTime = timeObj.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+      } catch {
+        // If parsing fails, use the time as-is
+      }
+    }
 
     const eventToAdd = {
       ...newEvent,
