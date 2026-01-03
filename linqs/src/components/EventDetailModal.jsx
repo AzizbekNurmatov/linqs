@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, MapPin, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, X, Link as LinkIcon } from 'lucide-react';
 
 // Tag color function - light blue/purple backgrounds with colored text
 function getTagColor(tagString) {
@@ -117,14 +117,123 @@ function EventDetailModal({ isOpen, event, onClose }) {
   const imageUrl = event.image || event.imageUrl;
   
   // Handle location - could be location or meetingLink for online events
-  const location = event.location || event.meetingLink || 'Location TBD';
+  const location = event.location || (event.meetingLink && !event.meetingLink.startsWith('http') ? event.meetingLink : null) || 'Location TBD';
   
   // Handle description - might not exist in Explore page events
   const description = event.description || 'No description available.';
   
-  // Handle date/time - Explore events have combined date string, Home events have separate date and time
-  const displayDate = event.date || 'Date TBD';
-  const displayTime = event.time || (event.date && event.date.includes('•') ? event.date.split('•')[1]?.trim() : 'Time TBD');
+  // Get event URL - handles url, website, and meetingLink (if it's a URL)
+  const getEventUrl = () => {
+    const url = event.url || event.website || (event.meetingLink && event.meetingLink.startsWith('http') ? event.meetingLink : null);
+    return url || null;
+  };
+  
+  // Format date for display
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return 'Date TBD';
+    // If date is already formatted (e.g., "July 15, 2024"), return as-is
+    if (typeof dateStr === 'string' && dateStr.includes(',')) {
+      // Check if it's already a formatted date (has month name and comma)
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      if (monthNames.some(month => dateStr.includes(month))) {
+        return dateStr;
+      }
+    }
+    try {
+      const dateObj = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        return dateStr;
+      }
+      const options = { month: 'long', day: 'numeric', year: 'numeric' };
+      return dateObj.toLocaleDateString('en-US', options);
+    } catch {
+      return dateStr;
+    }
+  };
+  
+  // Format time for display (handles both single time and time ranges)
+  const formatTimeDisplay = (timeStr) => {
+    if (!timeStr) return null;
+    // If it's already a range (contains " - "), return as-is
+    if (timeStr.includes(' - ')) {
+      return timeStr;
+    }
+    return timeStr;
+  };
+  
+  // Determine if event spans multiple days
+  const isMultiDayEvent = () => {
+    const startDate = event.startDate || event.date;
+    const endDate = event.endDate;
+    if (!endDate || !startDate) return false;
+    try {
+      const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
+      const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+      return start.toDateString() !== end.toDateString();
+    } catch {
+      return false;
+    }
+  };
+  
+  // Get formatted date/time display
+  const getDateTimeDisplay = () => {
+    // Handle Explore page format (date contains '•')
+    if (event.date && typeof event.date === 'string' && event.date.includes('•')) {
+      // Extract date and time from combined format
+      const parts = event.date.split('•');
+      const datePart = parts[0]?.trim();
+      const timePart = parts[1]?.trim() || event.time;
+      return {
+        date: datePart || 'Date TBD',
+        time: timePart || null
+      };
+    }
+    
+    const startDate = event.startDate || event.date;
+    const endDate = event.endDate;
+    const startTime = event.startTime || (event.time && !event.time.includes(' - ') ? event.time : event.time?.split(' - ')[0]?.trim());
+    const endTime = event.endTime || (event.time && event.time.includes(' - ') ? event.time.split(' - ')[1]?.trim() : null);
+    
+    const isMultiDay = isMultiDayEvent();
+    
+    if (isMultiDay && startDate && endDate) {
+      // Multi-day: "Start Date, Start Time – End Date, End Time"
+      const formattedStartDate = formatDateDisplay(startDate);
+      const formattedEndDate = formatDateDisplay(endDate);
+      const formattedStartTime = formatTimeDisplay(startTime) || 'TBD';
+      const formattedEndTime = formatTimeDisplay(endTime) || 'TBD';
+      return {
+        date: `${formattedStartDate}, ${formattedStartTime} – ${formattedEndDate}, ${formattedEndTime}`,
+        time: null // Combined into date line
+      };
+    } else {
+      // Single day: Date on first line, Time range on second line
+      const formattedDate = formatDateDisplay(startDate);
+      let formattedTime = null;
+      
+      // Only show time range if we have both start and end times, or if time already contains a range
+      if (startTime && endTime && startTime !== endTime) {
+        formattedTime = `${formatTimeDisplay(startTime)} - ${formatTimeDisplay(endTime)}`;
+      } else if (event.time && event.time.includes(' - ')) {
+        // Time already formatted as range
+        formattedTime = formatTimeDisplay(event.time);
+      } else if (startTime && !endTime) {
+        // Only start time
+        formattedTime = formatTimeDisplay(startTime);
+      } else if (event.time && !event.time.includes(' - ')) {
+        // Single time value
+        formattedTime = formatTimeDisplay(event.time);
+      }
+      
+      return {
+        date: formattedDate,
+        time: formattedTime
+      };
+    }
+  };
+  
+  const dateTimeDisplay = getDateTimeDisplay();
 
   return (
     <div
@@ -187,30 +296,49 @@ function EventDetailModal({ isOpen, event, onClose }) {
 
           {/* Date/Time & Location - Using thin-stroke Lucide icons */}
           <div className="space-y-3 mb-6">
-            {/* If date contains '•', it's a combined format from Explore page - show as single line */}
-            {displayDate.includes('•') ? (
+            {/* Date/Time Display */}
+            {isMultiDayEvent() ? (
+              // Multi-day: Combined on one line with Calendar icon
               <div className="flex items-center gap-3 text-gray-600">
                 <Calendar className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                <span className="text-base">{displayDate}</span>
+                <span className="text-base">{dateTimeDisplay.date}</span>
               </div>
             ) : (
+              // Single day: Date on first line, Time on second line
               <>
                 <div className="flex items-center gap-3 text-gray-600">
                   <Calendar className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                  <span className="text-base">{displayDate}</span>
+                  <span className="text-base">{dateTimeDisplay.date}</span>
                 </div>
-                {displayTime && (
+                {dateTimeDisplay.time && (
                   <div className="flex items-center gap-3 text-gray-600">
                     <Clock className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                    <span className="text-base">{displayTime}</span>
+                    <span className="text-base">{dateTimeDisplay.time}</span>
                   </div>
                 )}
               </>
             )}
-            {location && (
+            
+            {/* Location */}
+            {location && location !== 'Location TBD' && (
               <div className="flex items-center gap-3 text-gray-600">
                 <MapPin className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
                 <span className="text-base">{location}</span>
+              </div>
+            )}
+            
+            {/* Event URL - Clickable link with icon */}
+            {getEventUrl() && (
+              <div className="flex items-center gap-3 text-gray-600 min-w-0">
+                <LinkIcon className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
+                <a
+                  href={getEventUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-base text-blue-600 hover:underline truncate flex-1 min-w-0"
+                >
+                  {getEventUrl()}
+                </a>
               </div>
             )}
           </div>
