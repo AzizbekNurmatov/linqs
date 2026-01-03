@@ -267,6 +267,21 @@ function Explore() {
     );
   };
 
+  // Filter events based on active category
+  const filteredEvents = activeCategory === 'All events'
+    ? events
+    : activeCategory === 'New Groups'
+    ? events // For now, show all events for 'New Groups' (can be customized later)
+    : events.filter(event => {
+        const eventCategory = (event.category || '').toLowerCase().trim();
+        const activeCategoryLower = activeCategory.toLowerCase().trim();
+        
+        // Exact match or partial match (e.g., 'Social' matches 'Social Activities')
+        return eventCategory === activeCategoryLower || 
+               eventCategory.includes(activeCategoryLower) ||
+               activeCategoryLower.includes(eventCategory);
+      });
+
   return (
     <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -320,13 +335,17 @@ function Explore() {
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
           </div>
-        ) : events.length === 0 ? (
+        ) : filteredEvents.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No events found</p>
+            <p className="text-gray-500 text-lg">
+              {events.length === 0 
+                ? 'No events found' 
+                : `No ${activeCategory === 'All events' ? '' : activeCategory.toLowerCase()} events found`}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <EventCard 
                 key={event.id || event.title} 
                 event={event} 
