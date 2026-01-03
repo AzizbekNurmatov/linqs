@@ -3,10 +3,61 @@ import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown } from 
 import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
 
+// Custom minimalist SVG icons matching lucide-react style
+const WellnessIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const CultureIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <rect x="7" y="7" width="10" height="10" />
+  </svg>
+);
+
+const FoodIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+    <path d="M7 2v20" />
+    <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3v0" />
+    <path d="M21 15v7" />
+  </svg>
+);
+
 function Explore() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All events');
   const [filters, setFilters] = useState({
     day: 'Any day',
     type: 'Any type',
@@ -101,13 +152,20 @@ function Explore() {
 
   // Category icons
   const categories = [
-    { name: 'All events', icon: Calendar, active: true },
-    { name: 'New Groups', icon: Users, active: false },
-    { name: 'Social Activities', icon: Coffee, active: false },
-    { name: 'Hobbies', icon: Sparkles, active: false },
-    { name: 'Tech', icon: Code, active: false },
-    { name: 'Business', icon: Briefcase, active: false },
+    { name: 'All events', icon: Calendar },
+    { name: 'New Groups', icon: Users },
+    { name: 'Social Activities', icon: Coffee },
+    { name: 'Hobbies', icon: Sparkles },
+    { name: 'Tech', icon: Code },
+    { name: 'Business', icon: Briefcase },
+    { name: 'Wellness', icon: WellnessIcon },
+    { name: 'Culture', icon: CultureIcon },
+    { name: 'Food', icon: FoodIcon },
   ];
+
+  const handleCategoryClick = (categoryName) => {
+    setActiveCategory(categoryName);
+  };
 
   // Filter options
   const filterOptions = {
@@ -203,11 +261,13 @@ function Explore() {
             <div className="flex gap-6 pb-2">
               {categories.map((category, index) => {
                 const IconComponent = category.icon;
+                const isActive = activeCategory === category.name;
                 return (
                   <button
                     key={index}
+                    onClick={() => handleCategoryClick(category.name)}
                     className={`flex flex-col items-center gap-2 min-w-[80px] pb-2 transition-colors ${
-                      category.active
+                      isActive
                         ? 'text-blue-600 border-b-2 border-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
