@@ -63,6 +63,24 @@
   animation: infinite-scroll-reverse 25s linear infinite;
 }
 
+@keyframes checkmark-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-checkmark-in {
+  animation: checkmark-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 /* Custom scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

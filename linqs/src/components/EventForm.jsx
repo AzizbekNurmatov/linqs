@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2 } from 'lucide-react';
+import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 // Custom minimalist SVG icons matching lucide-react style
@@ -106,6 +106,8 @@ function EventForm({ onAddEvent, onClose }) {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [createdEventId, setCreatedEventId] = useState(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const dateInputRef = useRef(null);
@@ -317,17 +319,19 @@ function EventForm({ onAddEvent, onClose }) {
         image_url: imageUrl,
       };
 
-      const { error: insertError } = await supabase
+      const { data: insertedData, error: insertError } = await supabase
         .from('events')
-        .insert([eventData]);
+        .insert([eventData])
+        .select();
 
       if (insertError) {
         console.error('Supabase insert error:', insertError);
         throw insertError;
       }
 
-      // Step D: Success - Alert, close modal, and refresh
-      alert('Event Posted!');
+      // Step D: Success - Show success state
+      const newEventId = insertedData?.[0]?.id;
+      setCreatedEventId(newEventId);
       
       // Reset form
       setFormData({
@@ -349,9 +353,8 @@ function EventForm({ onAddEvent, onClose }) {
       setImagePreview('');
       setImageFile(null);
       
-      // Close modal and refresh
-      onClose();
-      window.location.reload(); // Refresh to show new event
+      // Show success state
+      setIsSuccess(true);
       
     } catch (error) {
       // Step D: Error Handling
@@ -382,6 +385,67 @@ function EventForm({ onAddEvent, onClose }) {
     // If different day, any time is valid
     return '';
   };
+
+  // Success state UI
+  if (isSuccess) {
+    return (
+      <div className="bg-white relative rounded-3xl p-12">
+        {/* Close Button */}
+        <div className="absolute top-4 right-4 z-10">
+          <button 
+            type="button" 
+            onClick={() => {
+              setIsSuccess(false);
+              setCreatedEventId(null);
+              onClose();
+              window.location.reload(); // Refresh to show new event
+            }}
+            className="w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-gray-600 transition-all duration-200 ease-out active:scale-95 shadow-sm"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Success Content */}
+        <div className="flex flex-col items-center justify-center text-center py-8">
+          {/* Animated Checkmark */}
+          <div className="mb-6">
+            <CheckCircle2 className="w-20 h-20 text-green-500 animate-checkmark-in" />
+          </div>
+          
+          {/* Success Message */}
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+            Your event is live!
+          </h2>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+            <button
+              type="button"
+              onClick={() => {
+                window.location.reload(); // Refresh to show new event
+              }}
+              className="flex-1 px-6 py-3 rounded-lg font-semibold bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98] transition-all duration-200"
+            >
+              View My Event
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSuccess(false);
+                setCreatedEventId(null);
+                onClose();
+                window.location.reload(); // Refresh to show new event
+              }}
+              className="flex-1 px-6 py-3 rounded-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-[0.98] transition-all duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="bg-white relative">
