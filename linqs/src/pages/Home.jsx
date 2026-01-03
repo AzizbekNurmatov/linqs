@@ -47,7 +47,8 @@ function Home() {
         const { data, error } = await supabase
           .from('events')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(8);
 
         if (error) {
           console.error('Error fetching events:', error);
@@ -128,9 +129,9 @@ function Home() {
     console.log(`Boosted event: ${events[index].title}`);
   };
 
-  // Filter events based on selected categories
+  // Filter events based on selected categories, but limit to 8 for grid
   const filteredEvents = selectedCategories.length === 0
-    ? events 
+    ? events.slice(0, 8) // Limit to 8 events for 2x4 grid
     : events.filter(event => {
         // Check if event's category matches any selected category
         // Also check title/description for backward compatibility
@@ -143,7 +144,7 @@ function Home() {
           return eventCategory.toLowerCase().includes(categoryLower) || 
                  eventText.includes(categoryLower);
         });
-      });
+      }).slice(0, 8); // Limit filtered results to 8 for grid
     
   return (
     <>
