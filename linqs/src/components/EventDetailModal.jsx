@@ -1,5 +1,78 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, MapPin, X, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Clock, MapPin, X, Link as LinkIcon, Coffee, Sparkles, Code, Briefcase } from 'lucide-react';
+
+// Custom minimalist SVG icons matching lucide-react style
+const WellnessIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const CultureIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <rect x="7" y="7" width="10" height="10" />
+  </svg>
+);
+
+const FoodIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+    <path d="M7 2v20" />
+    <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3v0" />
+    <path d="M21 15v7" />
+  </svg>
+);
+
+// Get category icon component
+const getCategoryIcon = (categoryName) => {
+  const category = categoryName || 'Social Activities';
+  switch (category) {
+    case 'Social Activities':
+      return Coffee;
+    case 'Hobbies':
+      return Sparkles;
+    case 'Wellness':
+      return WellnessIcon;
+    case 'Tech':
+      return Code;
+    case 'Business':
+      return Briefcase;
+    case 'Culture':
+      return CultureIcon;
+    case 'Food':
+      return FoodIcon;
+    default:
+      return Coffee; // Default to Social
+  }
+};
 
 // Tag color function - light blue/purple backgrounds with colored text
 function getTagColor(tagString) {
@@ -349,18 +422,30 @@ function EventDetailModal({ isOpen, event, onClose }) {
           </p>
 
           {/* Tags - Small pill-shaped badges with light blue/purple backgrounds */}
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${getTagColor(tag)}`}
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {tags.length > 0 && tags.map((tag, index) => (
+              <span
+                key={index}
+                className={`px-3 py-1 rounded-full text-sm font-medium ${getTagColor(tag)}`}
+              >
+                #{tag}
+              </span>
+            ))}
+            
+            {/* Category Indicator - Bottom Right, aligned with tags */}
+            {(() => {
+              const category = event.category || 'Social Activities';
+              const IconComponent = getCategoryIcon(category);
+              // Get display name (remove "Activities" from "Social Activities")
+              const categoryDisplayName = category === 'Social Activities' ? 'Social' : category;
+              return (
+                <div className={`flex items-center gap-1.5 ${tags.length > 0 ? 'ml-auto' : ''}`}>
+                  <IconComponent className="w-4 h-4 text-gray-500 flex-shrink-0" strokeWidth={1.5} />
+                  <span className="text-xs text-gray-400">{categoryDisplayName}</span>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
     </div>
