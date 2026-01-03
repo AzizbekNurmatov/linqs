@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown } from 'lucide-react';
+import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Loader2 } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
+import { supabase } from '../lib/supabase';
 
 // Custom minimalist SVG icons matching lucide-react style
 const WellnessIcon = ({ className }) => (
@@ -54,6 +55,8 @@ const FoodIcon = ({ className }) => (
 );
 
 function Explore() {
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
@@ -82,73 +85,102 @@ function Explore() {
   const handleBoost = (event) => {
     console.log(`Boosted event: ${event.title}`);
   };
-  // Dummy events data - matching Home page structure
-  const events = [
-    {
-      title: "Summer Music Festival",
-      description: "Join us for an unforgettable weekend of live music featuring local and international artists across multiple stages.",
-      location: "Central Park",
-      date: "July 15, 2024",
-      time: "2:00 PM - 10:00 PM",
-      image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Art Gallery Opening",
-      description: "Experience contemporary art from emerging local artists. Wine and refreshments will be served.",
-      location: "Downtown Art Gallery",
-      date: "July 18, 2024",
-      time: "6:00 PM - 9:00 PM",
-      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Food & Wine Tasting",
-      description: "Sample exquisite dishes from top local restaurants paired with fine wines from regional vineyards.",
-      location: "Riverside Pavilion",
-      date: "July 20, 2024",
-      time: "5:00 PM - 8:00 PM",
-      image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Tech Innovation Summit",
-      description: "Connect with industry leaders and discover the latest trends in technology and innovation.",
-      location: "Convention Center",
-      date: "July 22, 2024",
-      time: "9:00 AM - 5:00 PM",
-      image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Yoga in the Park",
-      description: "Start your weekend with a peaceful morning yoga session surrounded by nature. All levels welcome.",
-      location: "Riverside Park",
-      date: "July 23, 2024",
-      time: "8:00 AM - 9:30 AM",
-      image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Comedy Night",
-      description: "Laugh the night away with stand-up comedians from across the country. 21+ event.",
-      location: "The Comedy Club",
-      date: "July 25, 2024",
-      time: "8:00 PM - 11:00 PM",
-      image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Networking Happy Hour",
-      description: "Connect with professionals from various industries over drinks and appetizers. Great for expanding your network.",
-      location: "Downtown Bar & Grill",
-      date: "July 26, 2024",
-      time: "6:00 PM - 8:00 PM",
-      image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=200&fit=crop"
-    },
-    {
-      title: "Photography Workshop",
-      description: "Learn advanced photography techniques from professional photographers. Bring your camera!",
-      location: "Art Studio Downtown",
-      date: "July 27, 2024",
-      time: "10:00 AM - 2:00 PM",
-      image: "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400&h=200&fit=crop"
-    },
-  ];
+
+  // Fetch events from Supabase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching events:', error);
+          setEvents([]);
+          return;
+        }
+
+        // Map snake_case to camelCase for EventCard component
+        const mappedEvents = data.map((event) => {
+          // Format time - combine start_time and end_time if both exist
+          let timeDisplay = event.start_time || '';
+          if (event.start_time && event.end_time) {
+            // Format time from HH:MM to readable format
+            const formatTime = (timeStr) => {
+              if (!timeStr) return '';
+              const [hours, minutes] = timeStr.split(':');
+              const hour = parseInt(hours, 10);
+              const ampm = hour >= 12 ? 'PM' : 'AM';
+              const displayHour = hour % 12 || 12;
+              return `${displayHour}:${minutes} ${ampm}`;
+            };
+            timeDisplay = `${formatTime(event.start_time)} - ${formatTime(event.end_time)}`;
+          } else if (event.start_time) {
+            const [hours, minutes] = event.start_time.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            timeDisplay = `${displayHour}:${minutes} ${ampm}`;
+          }
+
+          return {
+            id: event.id,
+            title: event.title,
+            description: event.description || '',
+            // Date mapping - use start_date as date, and end_date if exists
+            date: event.start_date,
+            startDate: event.start_date,
+            endDate: event.end_date || null,
+            // Time mapping
+            time: timeDisplay,
+            startTime: event.start_time || null,
+            endTime: event.end_time || null,
+            // Image mapping
+            image: event.image_url || null,
+            imageUrl: event.image_url || null,
+            // Location mapping
+            location: event.is_online ? null : (event.address || null),
+            meetingLink: event.is_online ? (event.location_link || null) : null,
+            // URL mapping (for clickable links in EventCard)
+            // For online events, location_link is the meeting link
+            // For in-person events, we don't have a separate URL field
+            url: event.location_link || null,
+            website: event.location_link || null,
+            // Category and other fields
+            category: event.category || 'Social Activities',
+            tags: event.tags || [],
+            isOnline: event.is_online || false,
+            // Keep original data for reference
+            ...event,
+          };
+        });
+
+        setEvents(mappedEvents);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+        setEvents([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  // Dummy events data - commented out (keeping for reference)
+  // const dummyEvents = [
+  //   {
+  //     title: "Summer Music Festival",
+  //     description: "Join us for an unforgettable weekend of live music featuring local and international artists across multiple stages.",
+  //     location: "Central Park",
+  //     date: "July 15, 2024",
+  //     time: "2:00 PM - 10:00 PM",
+  //     image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=400&h=200&fit=crop"
+  //   },
+  //   // ... other dummy events
+  // ];
 
   // Category icons
   const categories = [
@@ -284,17 +316,27 @@ function Explore() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {events.map((event, index) => (
-            <EventCard 
-              key={index} 
-              event={event} 
-              onInterested={() => handleInterested(event)}
-              onBoost={() => handleBoost(event)}
-              onCardClick={() => handleCardClick(event)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+          </div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-gray-500 text-lg">No events found</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {events.map((event) => (
+              <EventCard 
+                key={event.id || event.title} 
+                event={event} 
+                onInterested={() => handleInterested(event)}
+                onBoost={() => handleBoost(event)}
+                onCardClick={() => handleCardClick(event)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Hide scrollbar styles */}

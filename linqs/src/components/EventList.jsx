@@ -3,12 +3,12 @@ import EventCard from './EventCard';
 function EventList({ events, onInterested, onBoost, onCardClick }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12">
-      {events.map((event, index) => (
+      {events.map((event) => (
         <EventCard 
-          key={index} 
+          key={event.id || event.title} 
           event={event} 
-          onInterested={() => onInterested(index)}
-          onBoost={() => onBoost(index)}
+          onInterested={() => onInterested(events.indexOf(event))}
+          onBoost={() => onBoost(events.indexOf(event))}
           onCardClick={() => onCardClick(event)}
         />
       ))}
