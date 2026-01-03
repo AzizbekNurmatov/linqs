@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 // Custom minimalist SVG icons matching lucide-react style
 const WellnessIcon = ({ className }) => (
@@ -103,6 +104,8 @@ function EventForm({ onAddEvent, onClose }) {
   const [imagePreview, setImagePreview] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
   const dateInputRef = useRef(null);
@@ -138,6 +141,8 @@ function EventForm({ onAddEvent, onClose }) {
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Store the file object for Supabase upload
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result;
@@ -151,6 +156,7 @@ function EventForm({ onAddEvent, onClose }) {
     } else {
       // Fallback to URL input
       const { value } = e.target;
+      setImageFile(null);
       setFormData(prev => ({
         ...prev,
         image: value
@@ -178,6 +184,8 @@ function EventForm({ onAddEvent, onClose }) {
 
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith('image/')) {
+      // Store the file object for Supabase upload
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result;
@@ -237,7 +245,7 @@ function EventForm({ onAddEvent, onClose }) {
     return formattedStart;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const isValid = formData.title && 
                     formData.date && 
@@ -246,18 +254,80 @@ function EventForm({ onAddEvent, onClose }) {
                     (!hasEndTime || formData.endTime) &&
                     (formData.isOnline ? formData.meetingLink : formData.location);
     
-    if (isValid) {
-      // Format time as range if endTime exists
-      const timeDisplay = formatTimeForDisplay(formData.time, formData.endTime);
+    if (!isValid) return;
+
+    setIsSubmitting(true);
+
+    try {
+      // Step A: Get Current User
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      const eventToSubmit = {
-        ...formData,
-        time: timeDisplay, // Store formatted time range
-        endTime: undefined, // Don't store endTime separately
-        endDate: hasEndDate ? formData.endDate : undefined,
+      if (userError || !user) {
+        alert('Please sign in to post');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const userId = user.id;
+      let imageUrl = null;
+
+      // Step B: Handle Image Upload (If exists)
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `public/${userId}/${fileName}`;
+
+        // Upload to event-banners bucket
+        const { error: uploadError } = await supabase.storage
+          .from('event-banners')
+          .upload(filePath, imageFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error('Image upload error:', uploadError);
+          throw uploadError;
+        }
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('event-banners')
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
+      } else if (formData.image && formData.image.startsWith('http')) {
+        // If image is already a URL (not a file), use it directly
+        imageUrl = formData.image;
+      }
+
+      // Step C: Insert Event Record
+      const eventData = {
+        user_id: userId,
+        title: formData.title,
+        start_date: formData.date,
+        start_time: formData.time,
+        end_date: hasEndDate && formData.endDate ? formData.endDate : null,
+        end_time: hasEndTime && formData.endTime ? formData.endTime : null,
+        category: formData.category,
+        tags: formData.tags,
+        is_online: formData.isOnline,
+        location_link: formData.isOnline ? formData.meetingLink : null,
+        address: !formData.isOnline ? formData.location : null,
+        image_url: imageUrl,
       };
-      
-      onAddEvent(eventToSubmit);
+
+      const { error: insertError } = await supabase
+        .from('events')
+        .insert([eventData]);
+
+      if (insertError) {
+        console.error('Supabase insert error:', insertError);
+        throw insertError;
+      }
+
+      // Step D: Success - Alert, close modal, and refresh
+      alert('Event Posted!');
       
       // Reset form
       setFormData({
@@ -277,7 +347,18 @@ function EventForm({ onAddEvent, onClose }) {
       setHasEndTime(false);
       setTagInput('');
       setImagePreview('');
+      setImageFile(null);
+      
+      // Close modal and refresh
       onClose();
+      window.location.reload(); // Refresh to show new event
+      
+    } catch (error) {
+      // Step D: Error Handling
+      console.error('Error posting event:', error);
+      alert(`Error posting event: ${error.message || 'Please try again'}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -781,14 +862,17 @@ function EventForm({ onAddEvent, onClose }) {
       <div className="pt-6 border-t border-gray-200">
         <button 
           type="submit"
-          disabled={!isFormValid}
-          className={`w-full px-6 py-4 rounded-lg font-semibold text-lg transition-all duration-200 ${
-            isFormValid
+          disabled={!isFormValid || isSubmitting}
+          className={`w-full px-6 py-4 rounded-lg font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+            isFormValid && !isSubmitting
               ? 'bg-gray-900 text-white hover:bg-gray-800 active:scale-[0.98]'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          Post
+          {isSubmitting && (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          )}
+          {isSubmitting ? 'Posting...' : 'Post'}
         </button>
       </div>
     </form>
