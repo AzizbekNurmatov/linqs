@@ -15,16 +15,46 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     'https://i.pravatar.cc/150?img=3',
   ];
 
-  // Format date - handles both formatted strings and Date objects
+  // Format date - handles both formatted strings and Date objects, with date range support
   const formatDate = () => {
     // If date is already formatted (from Explore page), return it
     if (typeof event.date === 'string' && event.date.includes('•')) {
       return event.date;
     }
     
-    // Otherwise, format from Date object (from Home page/EventsContext)
+    // Check if we have both startDate and endDate, or date and endDate
+    const startDate = event.startDate || event.date;
+    const endDate = event.endDate;
+    
+    // If we have an endDate and it's different from startDate, format as range
+    if (endDate && startDate) {
+      try {
+        const startDateObj = typeof startDate === 'string' ? new Date(startDate) : startDate;
+        const endDateObj = typeof endDate === 'string' ? new Date(endDate) : endDate;
+        
+        // Check if dates are the same day
+        const isSameDay = startDateObj.toDateString() === endDateObj.toDateString();
+        
+        if (!isSameDay) {
+          // Format as range: "Jan 5 - Jan 9, 2026"
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const startMonth = months[startDateObj.getMonth()];
+          const startDay = startDateObj.getDate();
+          const endMonth = months[endDateObj.getMonth()];
+          const endDay = endDateObj.getDate();
+          const year = endDateObj.getFullYear();
+          
+          // Always show both months for clarity: "Jan 5 - Jan 9, 2026" or "Jan 5 - Feb 9, 2026"
+          return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
+        }
+      } catch {
+        // If parsing fails, fall through to single date format
+      }
+    }
+    
+    // Single date format - keep existing style
     try {
-      const dateObj = typeof event.date === 'string' ? new Date(event.date) : event.date;
+      const dateObj = typeof startDate === 'string' ? new Date(startDate) : startDate;
       const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
       const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       const dayName = days[dateObj.getDay()];
@@ -87,6 +117,11 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
   // Get image URL - handles both image and imageUrl properties
   const getImageUrl = () => {
     return event.image || event.imageUrl || '';
+  };
+
+  // Get event URL - handles url, website, and meetingLink properties
+  const getEventUrl = () => {
+    return event.url || event.website || event.meetingLink || null;
   };
 
   const handleCardClick = (e) => {
@@ -187,9 +222,16 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
       {/* Content Section */}
       <div className="p-4">
         {/* Date */}
-        <p className="text-xs font-bold text-[#7C6F50] uppercase tracking-wide mb-1">
-          {formatDate()}
-        </p>
+        {(() => {
+          const formattedDate = formatDate();
+          // Check if it's a date range (contains " - " and doesn't contain "•")
+          const isDateRange = formattedDate.includes(' - ') && !formattedDate.includes('•');
+          return (
+            <p className={`text-xs font-bold text-[#7C6F50] tracking-wide mb-1 ${isDateRange ? '' : 'uppercase'}`}>
+              {formattedDate}
+            </p>
+          );
+        })()}
 
         {/* Title - Bolded */}
         <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 truncate">
@@ -200,6 +242,20 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
         <p className="text-sm text-gray-500 mb-3">
           {getHostGroup()}
         </p>
+
+        {/* Event URL - Clickable link */}
+        {getEventUrl() && (
+          <div className="mb-3 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <a
+              href={getEventUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:underline truncate block"
+            >
+              {getEventUrl()}
+            </a>
+          </div>
+        )}
 
         {/* Footer - Horizontal attendee avatar stack */}
         <div className="flex items-center">
