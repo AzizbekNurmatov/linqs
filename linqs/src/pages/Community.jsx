@@ -2,28 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 function Community() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [joinedGroups, setJoinedGroups] = useState(new Set());
 
-  // Dummy groups data
+  // Dummy groups data - Only NYC Hikers for development
   const groups = [
-    {
-      id: 1,
-      name: 'Brooklyn Analog Photography',
-      description: 'A community of film photography enthusiasts sharing techniques, organizing photo walks, and celebrating the art of analog photography.',
-      coverImage: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=12',
-      memberCount: 1200,
-      isPublic: true,
-      eventsThisWeek: 3,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=1',
-        'https://i.pravatar.cc/150?img=2',
-        'https://i.pravatar.cc/150?img=3',
-      ],
-      friendsCount: 12,
-      href: '#',
-    },
     {
       id: 2,
       name: 'NYC Hikers',
@@ -40,125 +23,6 @@ function Community() {
       ],
       friendsCount: 8,
       href: '/group/2',
-    },
-    {
-      id: 3,
-      name: 'Code & Coffee',
-      description: 'Weekly coding sessions at local cafes. Bring your laptop, work on projects, and connect with fellow developers.',
-      coverImage: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=20',
-      memberCount: 890,
-      isPublic: true,
-      eventsThisWeek: 2,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=7',
-        'https://i.pravatar.cc/150?img=8',
-        'https://i.pravatar.cc/150?img=9',
-      ],
-      friendsCount: 15,
-      href: '#',
-    },
-    {
-      id: 4,
-      name: 'Vinyl Collectors',
-      description: 'Record enthusiasts sharing finds, organizing listening parties, and exploring NYC\'s best record shops together.',
-      coverImage: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=25',
-      memberCount: 650,
-      isPublic: true,
-      eventsThisWeek: 1,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=10',
-        'https://i.pravatar.cc/150?img=11',
-        'https://i.pravatar.cc/150?img=12',
-      ],
-      friendsCount: 5,
-      href: '#',
-    },
-    {
-      id: 5,
-      name: 'Sunday Soccer',
-      description: 'Casual pickup soccer games every Sunday morning. All skill levels welcome. Just bring your cleats and positive energy!',
-      coverImage: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=30',
-      memberCount: 2100,
-      isPublic: true,
-      eventsThisWeek: 1,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=13',
-        'https://i.pravatar.cc/150?img=14',
-        'https://i.pravatar.cc/150?img=15',
-      ],
-      friendsCount: 20,
-      href: '#',
-    },
-    {
-      id: 6,
-      name: 'Brooklyn Foodies',
-      description: 'Discovering the best restaurants, food trucks, and hidden gems across Brooklyn. Monthly group dinners and food tours.',
-      coverImage: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=35',
-      memberCount: 1800,
-      isPublic: true,
-      eventsThisWeek: 4,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=16',
-        'https://i.pravatar.cc/150?img=17',
-        'https://i.pravatar.cc/150?img=18',
-      ],
-      friendsCount: 11,
-      href: '#',
-    },
-    {
-      id: 7,
-      name: 'Jazz Enthusiasts',
-      description: 'Live jazz lovers meeting up for shows, jam sessions, and discussions about the history and future of jazz music.',
-      coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=40',
-      memberCount: 950,
-      isPublic: true,
-      eventsThisWeek: 2,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=19',
-        'https://i.pravatar.cc/150?img=20',
-        'https://i.pravatar.cc/150?img=21',
-      ],
-      friendsCount: 7,
-      href: '#',
-    },
-    {
-      id: 8,
-      name: 'Yoga & Mindfulness',
-      description: 'Weekly yoga sessions in parks and studios. Focus on mindfulness, meditation, and building a supportive wellness community.',
-      coverImage: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=45',
-      memberCount: 1400,
-      isPublic: true,
-      eventsThisWeek: 3,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=22',
-        'https://i.pravatar.cc/150?img=23',
-        'https://i.pravatar.cc/150?img=24',
-      ],
-      friendsCount: 9,
-      href: '#',
-    },
-    {
-      id: 9,
-      name: 'Startup Founders',
-      description: 'Networking and knowledge sharing for entrepreneurs. Monthly pitch nights, workshops, and founder dinners.',
-      coverImage: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=50',
-      memberCount: 750,
-      isPublic: false,
-      eventsThisWeek: 2,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=25',
-        'https://i.pravatar.cc/150?img=26',
-        'https://i.pravatar.cc/150?img=27',
-      ],
-      friendsCount: 6,
-      href: '#',
     },
   ];
 
@@ -181,46 +45,123 @@ function Community() {
     return count.toString();
   };
 
-  const popularTopics = ['Hiking', 'Tech', 'Art', 'Food', 'Music', 'Fitness'];
+  // Passion categories for the hero section
+  const passionCategories = [
+    {
+      id: 'adventurers',
+      label: 'Adventurers',
+      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop',
+      description: 'Nature, Hiking, Outdoor',
+    },
+    {
+      id: 'creators',
+      label: 'Creators',
+      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop',
+      description: 'Art, Photography, Design',
+    },
+    {
+      id: 'techies',
+      label: 'Techies',
+      image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=400&fit=crop',
+      description: 'Code, Tech, Innovation',
+    },
+    {
+      id: 'socializers',
+      label: 'Socializers',
+      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop',
+      description: 'Food, Music, Events',
+    },
+  ];
+
+  // Filter groups based on selected category (mock implementation)
+  const filteredGroups = selectedCategory
+    ? groups.filter((group) => {
+        // Mock filtering logic - you can enhance this later
+        const groupName = group.name.toLowerCase();
+        const groupDesc = group.description.toLowerCase();
+        
+        switch (selectedCategory) {
+          case 'adventurers':
+            return groupName.includes('hiker') || groupName.includes('outdoor') || groupDesc.includes('hike') || groupDesc.includes('trail');
+          case 'creators':
+            return groupName.includes('art') || groupName.includes('photo') || groupName.includes('design') || groupDesc.includes('creative');
+          case 'techies':
+            return groupName.includes('code') || groupName.includes('tech') || groupDesc.includes('developer') || groupDesc.includes('coding');
+          case 'socializers':
+            return groupName.includes('food') || groupName.includes('music') || groupName.includes('jazz') || groupDesc.includes('social');
+          default:
+            return true;
+        }
+      })
+    : groups;
 
   return (
     <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
-      {/* Header Section - Natural Language / Mad Libs Style */}
-      <div className="bg-white border-b border-gray-200 py-20">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* Header Section - Passion Category Grid */}
+      <div className="bg-white border-b border-gray-200 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Headline */}
-          <h1 className="text-6xl md:text-7xl font-serif font-bold text-black tracking-tight mb-12">
-            Find your <span className="text-blue-600">Tribe</span>
-          </h1>
-          
-          {/* Mad Libs Search Input */}
-          <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
-            <span className="font-serif text-gray-500 text-2xl md:text-3xl">I'm looking for a</span>
-            <input
-              type="text"
-              placeholder="community"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-b-2 border-gray-300 focus:border-black outline-none text-center font-serif text-2xl md:text-3xl placeholder:text-gray-300 min-w-[200px] max-w-[300px] px-2"
-            />
-            <span className="font-serif text-gray-500 text-2xl md:text-3xl">community.</span>
+          <div className="text-center mb-12">
+            <h1 className="text-5xl md:text-6xl font-serif font-bold text-black tracking-tight mb-4">
+              Find your <span className="text-blue-600">Tribe</span>
+            </h1>
+            <p className="text-lg text-gray-600 font-serif">
+              Discover groups that share your obsession.
+            </p>
           </div>
-
-          {/* Trending Topics - Simple Text List */}
-          <p className="text-sm text-gray-400">
-            Trending:{' '}
-            {popularTopics.map((topic, index) => (
-              <span key={index}>
-                <button
-                  onClick={() => setSearchQuery(topic)}
-                  className="font-semibold text-gray-600 hover:text-black hover:underline transition-colors"
+          
+          {/* Passion Category Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            {passionCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                className={`
+                  relative aspect-[4/3] rounded-lg overflow-hidden group
+                  transition-all duration-300 ease-out
+                  ${selectedCategory === category.id 
+                    ? 'ring-4 ring-blue-600 ring-offset-2 scale-105' 
+                    : 'hover:scale-105 hover:brightness-110'
+                  }
+                `}
+              >
+                {/* Background Image */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url(${category.image})` }}
                 >
-                  {topic}
-                </button>
-                {index < popularTopics.length - 1 && ', '}
-              </span>
+                  {/* Dark Overlay */}
+                  <div className={`
+                    absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30
+                    transition-opacity duration-300
+                    ${selectedCategory === category.id ? 'opacity-90' : 'group-hover:opacity-80'}
+                  `} />
+                </div>
+                
+                {/* Content */}
+                <div className="relative h-full flex flex-col items-center justify-center text-white p-4">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-2 text-center">
+                    {category.label}
+                  </h3>
+                  <p className="text-sm text-gray-200 text-center opacity-90">
+                    {category.description}
+                  </p>
+                </div>
+              </button>
             ))}
-          </p>
+          </div>
+          
+          {/* Clear Filter Button */}
+          {selectedCategory && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className="text-sm text-gray-500 hover:text-gray-900 underline transition-colors"
+              >
+                Clear filter
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -229,7 +170,7 @@ function Community() {
 
         {/* Groups Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {groups.map((group) => {
+          {filteredGroups.map((group) => {
             const isJoined = joinedGroups.has(group.id);
             
             return (
