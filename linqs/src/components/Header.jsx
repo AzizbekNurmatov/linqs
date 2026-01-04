@@ -96,13 +96,17 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             {/* Create Event Button */}
             <button
               onClick={() => setShowForm(true)}
-              className="bg-gradient-to-r from-indigo-500 to-rose-400 text-white rounded-full px-6 py-2.5 font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all duration-200 ease-out shadow-lg hover:shadow-xl"
+              className="group relative overflow-hidden bg-gradient-to-b from-blue-500 to-blue-700 border-t border-blue-400/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)] hover:from-blue-400 hover:via-blue-600 hover:to-blue-800 transition-all duration-300 active:shadow-inner text-white rounded-full px-6 py-2.5 font-bold text-sm flex items-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Glare Effect */}
+              <span className="absolute top-0 -left-full h-full w-1/2 z-10 block transform -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:left-[150%] transition-all duration-700 ease-in-out"></span>
+              
+              {/* Button Content */}
+              <svg className="w-4 h-4 relative z-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
               </svg>
-              <span className="hidden sm:inline">Create Event</span>
-              <span className="sm:hidden">Create</span>
+              <span className="hidden sm:inline relative z-20">Create Event</span>
+              <span className="sm:hidden relative z-20">Create</span>
             </button>
 
             {/* Mobile Menu Button */}
