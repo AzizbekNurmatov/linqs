@@ -39,9 +39,9 @@ function CreatePostWidget({ communityId, userAvatar, onPostCreated }) {
       setPostContent('');
       setIsExpanded(false);
       
-      // Refresh posts
+      // Refresh posts - ensure callback is called and awaited
       if (onPostCreated) {
-        onPostCreated();
+        await onPostCreated();
       }
     } catch (error) {
       console.error('Error creating post:', error);
@@ -271,23 +271,34 @@ function GroupDetail() {
 
   const fetchDiscussionPosts = async () => {
     try {
-      const { data: posts, error } = await supabase
+      // Fetch posts first
+      const { data: postsData, error: postsError } = await supabase
         .from('discussion_posts')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('community_id', id)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (error) throw error;
+      if (postsError) throw postsError;
+
+      // Fetch profiles for each post
+      const postsWithProfiles = await Promise.all(
+        (postsData || []).map(async (post) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', post.user_id)
+            .single();
+
+          return {
+            ...post,
+            profiles: profile || {},
+          };
+        })
+      );
 
       // Transform posts
-      const transformedPosts = (posts || []).map((post) => {
+      const transformedPosts = postsWithProfiles.map((post) => {
         const profile = post.profiles || {};
         const createdAt = new Date(post.created_at);
         const now = new Date();
@@ -317,6 +328,7 @@ function GroupDetail() {
       setDiscussionPosts(transformedPosts);
     } catch (error) {
       console.error('Error fetching discussion posts:', error);
+      toast.error('Failed to load discussion posts');
     }
   };
 
