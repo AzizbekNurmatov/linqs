@@ -1,37 +1,89 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 function Community() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [joinedGroups, setJoinedGroups] = useState(new Set());
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     bannerImageUrl: '',
     communityName: '',
     shortDescription: '',
   });
 
-  // Dummy groups data - Only NYC Hikers for development
-  const groups = [
-    {
-      id: 2,
-      name: 'NYC Hikers',
-      description: 'Exploring trails around New York City and beyond. Weekly hikes, camping trips, and outdoor adventures for all skill levels.',
-      coverImage: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=200&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=15',
-      memberCount: 3400,
-      isPublic: true,
-      eventsThisWeek: 5,
-      memberAvatars: [
-        'https://i.pravatar.cc/150?img=4',
-        'https://i.pravatar.cc/150?img=5',
-        'https://i.pravatar.cc/150?img=6',
-      ],
-      friendsCount: 8,
-      href: '/group/2',
-    },
-  ];
+  // Fetch communities from Supabase
+  useEffect(() => {
+    fetchCommunities();
+  }, []);
+
+  const fetchCommunities = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('communities')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data to match component structure
+      const transformedGroups = await Promise.all(
+        (data || []).map(async (community) => {
+          // Get member count
+          const { count: memberCount } = await supabase
+            .from('community_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('community_id', community.id);
+
+          // Get events this week
+          const startOfWeek = new Date();
+          startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+          const { count: eventsThisWeek } = await supabase
+            .from('events')
+            .select('*', { count: 'exact', head: true })
+            .eq('community_id', community.id)
+            .gte('start_date', startOfWeek.toISOString().split('T')[0]);
+
+          // Get host profile
+          const { data: hostProfile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', community.host_user_id)
+            .single();
+
+          return {
+            id: community.id,
+            name: community.name,
+            description: community.short_description || '',
+            coverImage: community.banner_image_url,
+            logo: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
+            memberCount: memberCount || 0,
+            isPublic: true, // Assuming all are public for now
+            eventsThisWeek: eventsThisWeek || 0,
+            memberAvatars: [], // Will be populated if needed
+            friendsCount: 0,
+            href: `/group/${community.id}`,
+          };
+        })
+      );
+
+      setGroups(transformedGroups);
+    } catch (error) {
+      console.error('Error fetching communities:', error);
+      toast.error('Failed to load communities');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleJoinGroup = (groupId) => {
     setJoinedGroups(prev => {
@@ -109,15 +161,76 @@ function Community() {
     }));
   };
 
-  const handleCreateCommunity = () => {
-    console.log('Creating community with data:', formData);
-    // Reset form and close modal
-    setFormData({
-      bannerImageUrl: '',
-      communityName: '',
-      shortDescription: '',
-    });
-    setIsCreateModalOpen(false);
+  const handleCreateCommunity = async () => {
+    if (!user) {
+      toast.error('Please sign in to create a community');
+      return;
+    }
+
+    if (!formData.communityName.trim() || !formData.shortDescription.trim()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      // Generate slug from name
+      const slug = formData.communityName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      // Insert community
+      const descriptionText = formData.shortDescription.trim();
+      const { data: community, error: communityError } = await supabase
+        .from('communities')
+        .insert([
+          {
+            name: formData.communityName.trim(),
+            slug: slug,
+            short_description: descriptionText,
+            long_description: descriptionText,
+            banner_image_url: formData.bannerImageUrl.trim() || null,
+            host_user_id: user.id,
+          },
+        ])
+        .select()
+        .single();
+
+      if (communityError) throw communityError;
+
+      // Insert current user as admin member
+      const { error: memberError } = await supabase
+        .from('community_members')
+        .insert([
+          {
+            community_id: community.id,
+            user_id: user.id,
+            role: 'admin',
+          },
+        ]);
+
+      if (memberError) throw memberError;
+
+      toast.success('Community created successfully!');
+      
+      // Reset form and close modal
+      setFormData({
+        bannerImageUrl: '',
+        communityName: '',
+        shortDescription: '',
+      });
+      setIsCreateModalOpen(false);
+
+      // Redirect to the new community page
+      navigate(`/group/${community.id}`);
+    } catch (error) {
+      console.error('Error creating community:', error);
+      toast.error(error.message || 'Failed to create community');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -215,8 +328,13 @@ function Community() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
 
         {/* Groups Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGroups.map((group) => {
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Loading communities...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGroups.map((group) => {
             const isJoined = joinedGroups.has(group.id);
             
             return (
@@ -310,7 +428,8 @@ function Community() {
               </div>
             );
           })}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Create Community Modal */}
@@ -410,9 +529,10 @@ function Community() {
               </button>
               <button
                 onClick={handleCreateCommunity}
-                className="px-6 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+                disabled={isCreating}
+                className="px-6 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Community
+                {isCreating ? 'Creating...' : 'Create Community'}
               </button>
             </div>
           </div>

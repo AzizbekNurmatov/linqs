@@ -83,7 +83,7 @@ function getTagColor(tagString) {
   return colors[index];
 }
 
-function EventForm({ onAddEvent, onClose }) {
+function EventForm({ onAddEvent, onClose, communityId = null }) {
   const [formData, setFormData] = useState({
     title: '',
     location: '',
@@ -317,6 +317,7 @@ function EventForm({ onAddEvent, onClose }) {
         location_link: formData.isOnline ? formData.meetingLink : null,
         address: !formData.isOnline ? formData.location : null,
         image_url: imageUrl,
+        community_id: communityId, // Include community_id if provided
       };
 
       const { data: insertedData, error: insertError } = await supabase

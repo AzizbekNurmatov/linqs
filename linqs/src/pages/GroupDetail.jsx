@@ -1,20 +1,53 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, MessageSquare, Image as ImageIcon, User } from 'lucide-react';
 import EventCard from '../components/EventCard';
+import EventForm from '../components/EventForm';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 // CreatePostWidget Component
-function CreatePostWidget({ userAvatar = 'https://i.pravatar.cc/150?img=10' }) {
+function CreatePostWidget({ communityId, userAvatar, onPostCreated }) {
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [postContent, setPostContent] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
 
-  const handlePost = () => {
-    if (postContent.trim()) {
-      // TODO: Handle post submission
-      console.log('Posting:', { content: postContent, isAnonymous });
+  const handlePost = async () => {
+    if (!postContent.trim() || !user) {
+      toast.error('Please sign in to post');
+      return;
+    }
+
+    setIsPosting(true);
+    try {
+      const { error } = await supabase
+        .from('discussion_posts')
+        .insert([
+          {
+            community_id: communityId,
+            user_id: user.id,
+            content: postContent.trim(),
+          },
+        ]);
+
+      if (error) throw error;
+
+      toast.success('Post created!');
       setPostContent('');
       setIsExpanded(false);
+      
+      // Refresh posts
+      if (onPostCreated) {
+        onPostCreated();
+      }
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast.error('Failed to create post');
+    } finally {
+      setIsPosting(false);
     }
   };
 
@@ -78,14 +111,14 @@ function CreatePostWidget({ userAvatar = 'https://i.pravatar.cc/150?img=10' }) {
           {/* Right: Post Button */}
           <button
             onClick={handlePost}
-            disabled={!postContent.trim()}
+            disabled={!postContent.trim() || isPosting}
             className={`rounded-full px-6 py-2 text-sm font-medium transition-all duration-200 ${
-              postContent.trim()
+              postContent.trim() && !isPosting
                 ? 'bg-black text-white hover:bg-gray-800'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
-            Post
+            {isPosting ? 'Posting...' : 'Post'}
           </button>
         </div>
       )}
@@ -93,180 +126,309 @@ function CreatePostWidget({ userAvatar = 'https://i.pravatar.cc/150?img=10' }) {
   );
 }
 
-// Centralized data for all communities
-const getCommunityData = (id) => {
-  const communities = {
-    1: {
-      // Brooklyn Analog Photography
-      id: 1,
-      name: 'Brooklyn Analog Photography',
-      description: 'A community of film photography enthusiasts sharing techniques, organizing photo walks, and celebrating the art of analog photography.',
-      coverImage: null, // No banner image - will show placeholder
-      logo: 'https://i.pravatar.cc/150?img=12',
-      memberCount: 1200,
-      eventsThisWeek: 3,
-      isPublic: true,
-      location: 'Brooklyn, NY',
-      organizer: {
-        name: 'David Kim',
-        avatar: 'https://i.pravatar.cc/150?img=12',
-      },
-      organizers: [
-        { name: 'David Kim', avatar: 'https://i.pravatar.cc/150?img=12' },
-        { name: 'Lisa Park', avatar: 'https://i.pravatar.cc/150?img=13' },
-        { name: 'James Wong', avatar: 'https://i.pravatar.cc/150?img=14' },
-      ],
-      membersYouKnow: [
-        { name: 'Alex', avatar: 'https://i.pravatar.cc/150?img=1' },
-        { name: 'Jordan', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { name: 'Casey', avatar: 'https://i.pravatar.cc/150?img=3' },
-      ],
-      rules: [
-        'Be respectful to all members',
-        'No spam or self-promotion',
-        'Share your work and provide constructive feedback',
-        'Respect copyright and intellectual property',
-      ],
-      details: 'Brooklyn Analog Photography was founded in 2019 by a group of film photography enthusiasts who wanted to preserve and celebrate the art of analog photography in the digital age. We organize monthly photo walks, darkroom workshops, and gallery visits throughout Brooklyn and Manhattan.',
-      upcomingEvents: [], // Empty - will show placeholder
-      discussionPosts: [], // Empty - will show placeholder
-      members: [], // Empty - will show placeholder
-      mediaItems: [], // Empty - will show placeholder
-    },
-    2: {
-      // NYC Hikers
-      id: 2,
-      name: 'NYC Hikers',
-      description: 'Exploring trails around New York City and beyond. Weekly hikes, camping trips, and outdoor adventures for all skill levels. Join us for breathtaking views, great company, and unforgettable memories in nature.',
-      coverImage: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h=600&fit=crop',
-      logo: 'https://i.pravatar.cc/150?img=15',
-      memberCount: 3400,
-      eventsThisWeek: 5,
-      isPublic: true,
-      location: 'New York, NY',
-      organizer: {
-        name: 'Sarah Chen',
-        avatar: 'https://i.pravatar.cc/150?img=4',
-      },
-      organizers: [
-        { name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?img=4' },
-        { name: 'Mike Rodriguez', avatar: 'https://i.pravatar.cc/150?img=5' },
-        { name: 'Emma Thompson', avatar: 'https://i.pravatar.cc/150?img=6' },
-      ],
-      membersYouKnow: [
-        { name: 'Alex', avatar: 'https://i.pravatar.cc/150?img=1' },
-        { name: 'Jordan', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { name: 'Casey', avatar: 'https://i.pravatar.cc/150?img=3' },
-      ],
-      rules: [
-        'Be respectful to all members and the environment',
-        'Come prepared with appropriate gear and water',
-        'Follow Leave No Trace principles',
-        'Communicate if you need to cancel last minute',
-      ],
-      details: 'NYC Hikers was founded in 2018 by a group of outdoor enthusiasts who wanted to make hiking more accessible to city dwellers. What started as a small group of friends exploring local trails has grown into a vibrant community of over 3,400 members. We organize weekly hikes ranging from beginner-friendly city walks to challenging mountain treks. Our events are designed to accommodate all fitness levels, and we always prioritize safety and environmental responsibility.',
-      upcomingEvents: [
-        {
-          title: 'Sunrise Hike at Bear Mountain',
-          description: 'Early morning hike to catch the sunrise. Moderate difficulty, 4 miles round trip.',
-          location: 'Bear Mountain State Park',
-          date: 'January 15, 2024',
-          time: '5:30 AM',
-          image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
-        },
-        {
-          title: 'Weekend Camping Trip',
-          description: 'Two-day camping adventure in the Catskills. All experience levels welcome.',
-          location: 'Catskill Mountains',
-          date: 'January 20, 2024',
-          time: '10:00 AM',
-          image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400&h=300&fit=crop',
-        },
-      ],
-      discussionPosts: [
-        {
-          id: 1,
-          author: 'Mike Rodriguez',
-          avatar: 'https://i.pravatar.cc/150?img=5',
-          content: 'Just completed the Breakneck Ridge trail yesterday! Amazing views. Who\'s up for doing it again next weekend?',
-          timestamp: '2 hours ago',
-        },
-        {
-          id: 2,
-          author: 'Emma Thompson',
-          avatar: 'https://i.pravatar.cc/150?img=6',
-          content: 'Sharing some photos from last week\'s hike. The fall colors are absolutely stunning right now!',
-          timestamp: '5 hours ago',
-        },
-      ],
-      members: [
-        { name: 'Alex Johnson', avatar: 'https://i.pravatar.cc/150?img=1' },
-        { name: 'Jordan Smith', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { name: 'Casey Brown', avatar: 'https://i.pravatar.cc/150?img=3' },
-        { name: 'Taylor Davis', avatar: 'https://i.pravatar.cc/150?img=7' },
-        { name: 'Morgan Wilson', avatar: 'https://i.pravatar.cc/150?img=8' },
-        { name: 'Riley Martinez', avatar: 'https://i.pravatar.cc/150?img=9' },
-      ],
-      mediaItems: [
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
-        'https://images.unsplash.com/photo-1511497584788-876760111969?w=400&h=300&fit=crop',
-      ],
-    },
-    3: {
-      // Code & Coffee
-      id: 3,
-      name: 'Code & Coffee',
-      description: 'Weekly coding sessions at local cafes. Bring your laptop, work on projects, and connect with fellow developers.',
-      coverImage: null, // No banner image - will show placeholder
-      logo: 'https://i.pravatar.cc/150?img=20',
-      memberCount: 890,
-      eventsThisWeek: 2,
-      isPublic: true,
-      location: 'New York, NY',
-      organizer: {
-        name: 'Maria Garcia',
-        avatar: 'https://i.pravatar.cc/150?img=20',
-      },
-      organizers: [
-        { name: 'Maria Garcia', avatar: 'https://i.pravatar.cc/150?img=20' },
-        { name: 'Tom Anderson', avatar: 'https://i.pravatar.cc/150?img=21' },
-        { name: 'Priya Patel', avatar: 'https://i.pravatar.cc/150?img=22' },
-      ],
-      membersYouKnow: [
-        { name: 'Alex', avatar: 'https://i.pravatar.cc/150?img=1' },
-        { name: 'Jordan', avatar: 'https://i.pravatar.cc/150?img=2' },
-        { name: 'Casey', avatar: 'https://i.pravatar.cc/150?img=3' },
-      ],
-      rules: [
-        'Be respectful to all members',
-        'No spam or self-promotion',
-        'Help others when you can',
-        'Keep discussions relevant to coding and tech',
-      ],
-      details: 'Code & Coffee was started in 2020 as a casual meetup for developers who wanted to code together in a relaxed environment. We meet weekly at various cafes around NYC, working on personal projects, collaborating on open source, and sharing knowledge. Whether you\'re a beginner or an experienced developer, you\'re welcome to join us.',
-      upcomingEvents: [], // Empty - will show placeholder
-      discussionPosts: [], // Empty - will show placeholder
-      members: [], // Empty - will show placeholder
-      mediaItems: [], // Empty - will show placeholder
-    },
-  };
-
-  return communities[id] || communities[2]; // Default to NYC Hikers if not found
-};
-
 function GroupDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [isJoined, setIsJoined] = useState(false);
   const [activeTab, setActiveTab] = useState('Events');
+  const [loading, setLoading] = useState(true);
+  const [groupData, setGroupData] = useState(null);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [discussionPosts, setDiscussionPosts] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [mediaItems, setMediaItems] = useState([]);
+  const [showEventForm, setShowEventForm] = useState(false);
 
-  // Get community data based on ID
-  const groupData = getCommunityData(parseInt(id));
-  const upcomingEvents = groupData.upcomingEvents || [];
-  const discussionPosts = groupData.discussionPosts || [];
-  const members = groupData.members || [];
-  const mediaItems = groupData.mediaItems || [];
+  // Fetch community data from Supabase
+  useEffect(() => {
+    if (id) {
+      fetchCommunityData();
+    }
+  }, [id]);
+
+  const fetchCommunityData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch community
+      const { data: community, error: communityError } = await supabase
+        .from('communities')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (communityError) throw communityError;
+      if (!community) {
+        toast.error('Community not found');
+        navigate('/community');
+        return;
+      }
+
+      // Fetch host profile
+      const { data: hostProfile } = await supabase
+        .from('profiles')
+        .select('username, avatar_url')
+        .eq('id', community.host_user_id)
+        .single();
+
+      // Fetch member count
+      const { count: memberCount } = await supabase
+        .from('community_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('community_id', id);
+
+      // Fetch events this week
+      const startOfWeek = new Date();
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+      const { count: eventsThisWeek } = await supabase
+        .from('events')
+        .select('*', { count: 'exact', head: true })
+        .eq('community_id', id)
+        .gte('start_date', startOfWeek.toISOString().split('T')[0]);
+
+      // Check if user is a member
+      if (user) {
+        const { data: memberCheck } = await supabase
+          .from('community_members')
+          .select('*')
+          .eq('community_id', id)
+          .eq('user_id', user.id)
+          .single();
+        setIsJoined(!!memberCheck);
+      }
+
+      // Set group data
+      setGroupData({
+        id: community.id,
+        name: community.name,
+        description: community.short_description || '',
+        coverImage: community.banner_image_url,
+        logo: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
+        memberCount: memberCount || 0,
+        eventsThisWeek: eventsThisWeek || 0,
+        isPublic: true,
+        location: 'New York, NY', // You can add location to communities table if needed
+        organizer: {
+          name: hostProfile?.username || 'Unknown',
+          avatar: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
+        },
+        details: community.long_description || community.short_description || '', // Use long_description for details, fallback to short_description
+        rules: [
+          'Be respectful to all members',
+          'No spam or self-promotion',
+          'Keep discussions relevant',
+          'Follow community guidelines',
+        ],
+      });
+
+      // Fetch events
+      await fetchEvents();
+      // Fetch discussion posts
+      await fetchDiscussionPosts();
+      // Fetch members
+      await fetchMembers();
+      // Fetch media
+      await fetchMedia();
+    } catch (error) {
+      console.error('Error fetching community:', error);
+      toast.error('Failed to load community');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const { data: events, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('community_id', id)
+        .gte('start_date', new Date().toISOString().split('T')[0])
+        .order('start_date', { ascending: true })
+        .order('start_time', { ascending: true });
+
+      if (error) throw error;
+
+      // Transform events to match EventCard format
+      const transformedEvents = (events || []).map((event) => ({
+        title: event.title,
+        description: event.description || '',
+        location: event.address || event.location_link || '',
+        date: event.start_date,
+        time: event.start_time,
+        image: event.image_url,
+        category: event.category || 'Social Activities',
+        price: 'Free', // You can add price field if needed
+        attendees: 0, // You can add attendee count if needed
+      }));
+
+      setUpcomingEvents(transformedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
+  const fetchDiscussionPosts = async () => {
+    try {
+      const { data: posts, error } = await supabase
+        .from('discussion_posts')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('community_id', id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      // Transform posts
+      const transformedPosts = (posts || []).map((post) => {
+        const profile = post.profiles || {};
+        const createdAt = new Date(post.created_at);
+        const now = new Date();
+        const diffMs = now - createdAt;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        let timestamp = 'just now';
+        if (diffMins > 0 && diffMins < 60) {
+          timestamp = `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`;
+        } else if (diffHours > 0 && diffHours < 24) {
+          timestamp = `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+        } else if (diffDays > 0) {
+          timestamp = `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+        }
+
+        return {
+          id: post.id,
+          author: profile.username || 'Anonymous',
+          avatar: profile.avatar_url || 'https://i.pravatar.cc/150?img=10',
+          content: post.content,
+          timestamp: timestamp,
+        };
+      });
+
+      setDiscussionPosts(transformedPosts);
+    } catch (error) {
+      console.error('Error fetching discussion posts:', error);
+    }
+  };
+
+  const fetchMembers = async () => {
+    try {
+      const { data: memberData, error } = await supabase
+        .from('community_members')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('community_id', id)
+        .limit(50);
+
+      if (error) throw error;
+
+      // Transform members
+      const transformedMembers = (memberData || [])
+        .map((member) => {
+          const profile = member.profiles || {};
+          return {
+            name: profile.username || 'Unknown',
+            avatar: profile.avatar_url || 'https://i.pravatar.cc/150?img=10',
+            role: member.role,
+          };
+        })
+        .filter((member) => member.name !== 'Unknown');
+
+      setMembers(transformedMembers);
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    }
+  };
+
+  const fetchMedia = async () => {
+    try {
+      const { data: media, error } = await supabase
+        .from('community_media')
+        .select('image_url')
+        .eq('community_id', id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      const imageUrls = (media || []).map((item) => item.image_url).filter(Boolean);
+      setMediaItems(imageUrls);
+    } catch (error) {
+      console.error('Error fetching media:', error);
+    }
+  };
+
+  const handleJoinLeave = async () => {
+    if (!user) {
+      toast.error('Please sign in to join communities');
+      return;
+    }
+
+    try {
+      if (isJoined) {
+        // Leave community
+        const { error } = await supabase
+          .from('community_members')
+          .delete()
+          .eq('community_id', id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        setIsJoined(false);
+        toast.success('Left community');
+        await fetchMembers(); // Refresh member list
+      } else {
+        // Join community
+        const { error } = await supabase
+          .from('community_members')
+          .insert([
+            {
+              community_id: id,
+              user_id: user.id,
+              role: 'member',
+            },
+          ]);
+
+        if (error) throw error;
+        setIsJoined(true);
+        toast.success('Joined community!');
+        await fetchMembers(); // Refresh member list
+      }
+    } catch (error) {
+      console.error('Error joining/leaving community:', error);
+      toast.error('Failed to update membership');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white min-h-screen pt-32 flex items-center justify-center">
+        <p className="text-gray-500">Loading community...</p>
+      </div>
+    );
+  }
+
+  if (!groupData) {
+    return (
+      <div className="bg-white min-h-screen pt-32 flex items-center justify-center">
+        <p className="text-gray-500">Community not found</p>
+      </div>
+    );
+  }
 
   const formatMemberCount = (count) => {
     if (count >= 1000) {
@@ -323,14 +485,15 @@ function GroupDetail() {
               {groupData.description}
             </p>
             <button
-              onClick={() => setIsJoined(!isJoined)}
+              onClick={handleJoinLeave}
+              disabled={!user}
               className={`rounded-full border px-8 py-3 text-sm font-medium transition-all duration-200 ${
                 isJoined
                   ? 'border-gray-300 text-gray-700 bg-white'
                   : 'border-black text-black hover:bg-black hover:text-white'
-              }`}
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {isJoined ? 'Member' : 'Join Group'}
+              {!user ? 'Sign in to join' : isJoined ? 'Member' : 'Join Group'}
             </button>
           </div>
 
@@ -414,7 +577,11 @@ function GroupDetail() {
             {activeTab === 'Discussion' && (
               <div className="space-y-6">
                 {/* Create Post Widget */}
-                <CreatePostWidget />
+                <CreatePostWidget 
+                  communityId={id} 
+                  userAvatar={user?.user_metadata?.avatar_url || 'https://i.pravatar.cc/150?img=10'}
+                  onPostCreated={fetchDiscussionPosts}
+                />
                 
                 {/* Existing Posts or Placeholder */}
                 {discussionPosts.length > 0 ? (
@@ -448,24 +615,38 @@ function GroupDetail() {
             )}
 
             {activeTab === 'Events' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {upcomingEvents.length > 0 ? (
-                  upcomingEvents.map((event, index) => (
-                    <EventCard
-                      key={index}
-                      event={event}
-                      onInterested={() => {}}
-                      onBoost={() => {}}
-                      onCardClick={() => {}}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-2 bg-white border border-gray-100 rounded-lg p-12 text-center">
-                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg font-medium mb-2">No upcoming events</p>
-                    <p className="text-gray-400 text-sm">Check back soon for new events!</p>
-                  </div>
+              <div className="space-y-6">
+                {/* Create Event Button */}
+                {user && (
+                  <button
+                    onClick={() => setShowEventForm(true)}
+                    className="w-full md:w-auto rounded-full bg-black text-white px-6 py-3 text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Create Event
+                  </button>
                 )}
+                
+                {/* Events Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {upcomingEvents.length > 0 ? (
+                    upcomingEvents.map((event, index) => (
+                      <EventCard
+                        key={index}
+                        event={event}
+                        onInterested={() => {}}
+                        onBoost={() => {}}
+                        onCardClick={() => {}}
+                      />
+                    ))
+                  ) : (
+                    <div className="col-span-2 bg-white border border-gray-100 rounded-lg p-12 text-center">
+                      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg font-medium mb-2">No upcoming events</p>
+                      <p className="text-gray-400 text-sm">Check back soon for new events!</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -558,6 +739,23 @@ function GroupDetail() {
           </div>
         </div>
       </div>
+
+      {/* Event Form Modal */}
+      {showEventForm && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <EventForm 
+              onAddEvent={() => {
+                fetchEvents();
+                setShowEventForm(false);
+                toast.success('Event created!');
+              }} 
+              onClose={() => setShowEventForm(false)}
+              communityId={id}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Hide scrollbar styles */}
       <style>{`
