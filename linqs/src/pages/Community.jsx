@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { X } from 'lucide-react';
 
 function Community() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [joinedGroups, setJoinedGroups] = useState(new Set());
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    bannerImageUrl: '',
+    communityName: '',
+    shortDescription: '',
+  });
 
   // Dummy groups data - Only NYC Hikers for development
   const groups = [
@@ -95,19 +102,58 @@ function Community() {
       })
     : groups;
 
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleCreateCommunity = () => {
+    console.log('Creating community with data:', formData);
+    // Reset form and close modal
+    setFormData({
+      bannerImageUrl: '',
+      communityName: '',
+      shortDescription: '',
+    });
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsCreateModalOpen(false);
+    // Reset form when closing
+    setFormData({
+      bannerImageUrl: '',
+      communityName: '',
+      shortDescription: '',
+    });
+  };
+
   return (
     <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
       {/* Header Section - Passion Category Grid */}
       <div className="bg-white border-b border-gray-200 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Headline */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-serif font-bold text-black tracking-tight mb-4">
-              Find your <span className="text-blue-600">Tribe</span>
-            </h1>
-            <p className="text-lg text-gray-600 font-serif">
-              Discover groups that share your obsession.
-            </p>
+          {/* Header with Title and Create Button */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
+            {/* Left: Title and Subtitle */}
+            <div>
+              <h1 className="text-5xl md:text-6xl font-serif font-bold text-black tracking-tight mb-2">
+                Find your <span className="text-blue-600">Tribe</span>
+              </h1>
+              <p className="text-lg text-gray-600 font-serif">
+                Discover groups or start your own.
+              </p>
+            </div>
+            
+            {/* Right: Create Community Button */}
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="rounded-full bg-black text-white px-6 py-3 text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+            >
+              + Create Community
+            </button>
           </div>
           
           {/* Passion Category Grid */}
@@ -266,6 +312,112 @@ function Community() {
           })}
         </div>
       </div>
+
+      {/* Create Community Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">Start a New Community</h2>
+              <button
+                onClick={handleCloseModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Banner Image URL */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Banner Image URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.bannerImageUrl}
+                  onChange={(e) => handleInputChange('bannerImageUrl', e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                />
+                {/* Image Preview */}
+                {formData.bannerImageUrl && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-500 mb-2">Preview:</p>
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100">
+                      <img
+                        src={formData.bannerImageUrl}
+                        alt="Banner preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.parentElement.className += ' bg-gray-200';
+                          e.target.parentElement.innerHTML += '<div class="flex items-center justify-center h-full text-gray-400 text-sm">Invalid image URL</div>';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Community Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Community Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.communityName}
+                  onChange={(e) => handleInputChange('communityName', e.target.value)}
+                  placeholder="Enter community name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
+                />
+              </div>
+
+              {/* Short Description */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Short Description
+                  </label>
+                  <span className="text-xs text-gray-500">
+                    {formData.shortDescription.length}/140
+                  </span>
+                </div>
+                <textarea
+                  value={formData.shortDescription}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 140) {
+                      handleInputChange('shortDescription', e.target.value);
+                    }
+                  }}
+                  placeholder="Describe your community in a few words..."
+                  rows={4}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={handleCloseModal}
+                className="px-6 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCommunity}
+                className="px-6 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Create Community
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
