@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, MessageSquare, Image as ImageIcon, User } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, MessageSquare, Image as ImageIcon, User, Plus } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import EventForm from '../components/EventForm';
+import AddMediaModal from '../components/AddMediaModal';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -139,6 +140,7 @@ function GroupDetail() {
   const [members, setMembers] = useState([]);
   const [mediaItems, setMediaItems] = useState([]);
   const [showEventForm, setShowEventForm] = useState(false);
+  const [showAddMediaModal, setShowAddMediaModal] = useState(false);
 
   // Fetch community data from Supabase
   useEffect(() => {
@@ -370,9 +372,9 @@ function GroupDetail() {
     try {
       const { data: media, error } = await supabase
         .from('community_media')
-        .select('image_url')
+        .select('*')
         .eq('community_id', id)
-        .order('created_at', { ascending: false })
+        .order('uploaded_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
@@ -689,28 +691,42 @@ function GroupDetail() {
             )}
 
             {activeTab === 'Media' && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {mediaItems.length > 0 ? (
-                  mediaItems.map((imageUrl, index) => (
-                    <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-200">
-                      <img
-                        src={imageUrl}
-                        alt={`Media ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
-                        }}
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-3 bg-white border border-gray-100 rounded-lg p-12 text-center">
-                    <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg font-medium mb-2">No media yet</p>
-                    <p className="text-gray-400 text-sm">Photos and videos will appear here once shared.</p>
-                  </div>
+              <div className="space-y-6">
+                {/* Add Photos Button */}
+                {user && (
+                  <button
+                    onClick={() => setShowAddMediaModal(true)}
+                    className="w-full md:w-auto rounded-full bg-black text-white px-6 py-3 text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Photos
+                  </button>
                 )}
+                
+                {/* Media Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {mediaItems.length > 0 ? (
+                    mediaItems.map((imageUrl, index) => (
+                      <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-200">
+                        <img
+                          src={imageUrl}
+                          alt={`Media ${index + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
+                          }}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-3 bg-white border border-gray-100 rounded-lg p-12 text-center">
+                      <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg font-medium mb-2">No media yet</p>
+                      <p className="text-gray-400 text-sm">Photos and videos will appear here once shared.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -768,6 +784,14 @@ function GroupDetail() {
           </div>
         </div>
       )}
+
+      {/* Add Media Modal */}
+      <AddMediaModal
+        isOpen={showAddMediaModal}
+        onClose={() => setShowAddMediaModal(false)}
+        communityId={id}
+        onUploadSuccess={fetchMedia}
+      />
 
       {/* Hide scrollbar styles */}
       <style>{`
