@@ -12,7 +12,12 @@ function Footer() {
           <a href="#" className="text-[#636E72] text-sm hover:text-[#6C5CE7] transition-colors duration-200">
             Terms of Service
           </a>
-          <a href="#" className="text-[#636E72] text-sm hover:text-[#6C5CE7] transition-colors duration-200">
+          <a 
+            href="https://www.linkedin.com/in/azizbek-nurmatov/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[#636E72] text-sm hover:text-[#6C5CE7] transition-colors duration-200"
+          >
             Contact
           </a>
         </div>
