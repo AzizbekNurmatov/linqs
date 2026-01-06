@@ -210,7 +210,6 @@ function GroupDetail() {
         memberCount: memberCount || 0,
         eventsThisWeek: eventsThisWeek || 0,
         isPublic: true,
-        host_user_id: community.host_user_id, // Store host_user_id for role checking
         location: 'New York, NY', // You can add location to communities table if needed
         organizer: {
           name: hostProfile?.username || 'Unknown',
@@ -337,50 +336,28 @@ function GroupDetail() {
 
   const fetchMembers = async () => {
     try {
-      // Step 1: Fetch community to get host_user_id
-      const { data: community, error: communityError } = await supabase
-        .from('communities')
-        .select('host_user_id')
-        .eq('id', id)
-        .single();
-
-      if (communityError) throw communityError;
-
-      // Step 2: Fetch community members
-      const { data: memberData, error: membersError } = await supabase
+      const { data: memberData, error } = await supabase
         .from('community_members')
-        .select('user_id, joined_at')
-        .eq('community_id', id);
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .eq('community_id', id)
+        .limit(50);
 
-      if (membersError) throw membersError;
+      if (error) throw error;
 
-      if (!memberData || memberData.length === 0) {
-        setMembers([]);
-        return;
-      }
-
-      // Step 3: Get user IDs and fetch profiles
-      const userIds = memberData.map(m => m.user_id);
-      
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', userIds);
-
-      if (profilesError) throw profilesError;
-
-      // Step 4: Transform and combine data
-      const hostUserId = community?.host_user_id;
-      const transformedMembers = (profiles || [])
-        .map((profile) => {
-          // Determine role: Host if profile.id matches community host_user_id, otherwise Member
-          const role = profile.id === hostUserId ? 'Host' : 'Member';
-          
+      // Transform members
+      const transformedMembers = (memberData || [])
+        .map((member) => {
+          const profile = member.profiles || {};
           return {
-            id: profile.id,
             name: profile.username || 'Unknown',
             avatar: profile.avatar_url || 'https://i.pravatar.cc/150?img=10',
-            role: role,
+            role: member.role,
           };
         })
         .filter((member) => member.name !== 'Unknown');
@@ -388,7 +365,6 @@ function GroupDetail() {
       setMembers(transformedMembers);
     } catch (error) {
       console.error('Error fetching members:', error);
-      toast.error('Failed to load members');
     }
   };
 
@@ -428,18 +404,6 @@ function GroupDetail() {
         if (error) throw error;
         setIsJoined(false);
         toast.success('Left community');
-        
-        // Refresh member count
-        const { count: memberCount } = await supabase
-          .from('community_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('community_id', id);
-        
-        setGroupData(prev => ({
-          ...prev,
-          memberCount: memberCount || 0
-        }));
-        
         await fetchMembers(); // Refresh member list
       } else {
         // Join community
@@ -456,18 +420,6 @@ function GroupDetail() {
         if (error) throw error;
         setIsJoined(true);
         toast.success('Joined community!');
-        
-        // Refresh member count
-        const { count: memberCount } = await supabase
-          .from('community_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('community_id', id);
-        
-        setGroupData(prev => ({
-          ...prev,
-          memberCount: memberCount || 0
-        }));
-        
         await fetchMembers(); // Refresh member list
       }
     } catch (error) {
@@ -549,13 +501,13 @@ function GroupDetail() {
             <button
               onClick={handleJoinLeave}
               disabled={!user}
-              className={`rounded-full px-8 py-3 text-sm font-medium transition-all duration-200 ${
+              className={`rounded-full border px-8 py-3 text-sm font-medium transition-all duration-200 ${
                 isJoined
-                  ? 'bg-black text-white hover:bg-gray-800'
-                  : 'border border-black text-black hover:bg-black hover:text-white'
+                  ? 'border-gray-300 text-gray-700 bg-white'
+                  : 'border-black text-black hover:bg-black hover:text-white'
               } disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              {!user ? 'Sign in to join' : isJoined ? 'Joined' : 'Join Group'}
+              {!user ? 'Sign in to join' : isJoined ? 'Member' : 'Join Group'}
             </button>
           </div>
 
@@ -715,8 +667,8 @@ function GroupDetail() {
             {activeTab === 'Members' && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                 {members.length > 0 ? (
-                  members.map((member) => (
-                    <div key={member.id} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
+                  members.map((member, index) => (
+                    <div key={index} className="flex items-center gap-3 p-4 bg-white border border-gray-100 rounded-lg shadow-sm">
                       <img
                         src={member.avatar}
                         alt={member.name}
@@ -725,16 +677,7 @@ function GroupDetail() {
                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&background=random&size=48`;
                         }}
                       />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 text-sm truncate">{member.name}</p>
-                        <p className={`text-xs font-medium ${
-                          member.role === 'Host' 
-                            ? 'text-amber-600' 
-                            : 'text-gray-500'
-                        }`}>
-                          {member.role}
-                        </p>
-                      </div>
+                      <p className="font-medium text-gray-900 text-sm">{member.name}</p>
                     </div>
                   ))
                 ) : (

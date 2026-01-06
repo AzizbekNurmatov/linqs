@@ -1,3 +1,7 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+
 // Color palette for tags
 const tagColors = [
   { border: 'border-orange-400', hash: 'text-orange-600' },
@@ -23,24 +27,55 @@ function getTagColor(tagString) {
 }
 
 function FeaturesBentoGrid() {
+  const [trendingGroups, setTrendingGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   // Tags for the ticker - extended list
   const tags = ['#NightLife', '#TechTalks', '#Campus', '#RunClub', '#Art', '#Foodies', '#StudyGroup', '#LiveMusic', '#Workshops', '#Gaming', '#Startups', '#Volunteering', '#Design', '#Yoga'];
 
-  // Trending groups data
-  const trendingGroups = [
-    {
-      name: 'Brooklyn Hikers',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-    },
-    {
-      name: 'NYC Foodies',
-      avatar: 'https://i.pravatar.cc/150?img=15',
-    },
-    {
-      name: 'Tech Meetup',
-      avatar: 'https://i.pravatar.cc/150?img=20',
-    },
-  ];
+  // Fetch trending communities from Supabase
+  useEffect(() => {
+    const fetchTrendingGroups = async () => {
+      try {
+        setLoading(true);
+        // Fetch communities, limit to 4
+        const { data: communities, error } = await supabase
+          .from('communities')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(4);
+
+        if (error) throw error;
+
+        // Transform communities to match component structure
+        const transformedGroups = await Promise.all(
+          (communities || []).map(async (community) => {
+            // Get host profile for avatar
+            const { data: hostProfile } = await supabase
+              .from('profiles')
+              .select('username, avatar_url')
+              .eq('id', community.host_user_id)
+              .single();
+
+            return {
+              id: community.id,
+              name: community.name,
+              avatar: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
+            };
+          })
+        );
+
+        setTrendingGroups(transformedGroups);
+      } catch (error) {
+        console.error('Error fetching trending groups:', error);
+        setTrendingGroups([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrendingGroups();
+  }, []);
 
   return (
     <section className="w-full py-16">
@@ -131,49 +166,59 @@ function FeaturesBentoGrid() {
 
             {/* Groups List */}
             <div className="flex-1 space-y-4">
-              {trendingGroups.map((group, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center gap-3 py-2 hover:bg-stone-50 rounded-lg transition-colors"
-                >
-                  {/* Group Avatar */}
-                  <div className="flex-shrink-0">
-                    <img
-                      src={group.avatar}
-                      alt={group.name}
-                      className="w-12 h-12 rounded-full border-2 border-stone-200"
-                      onError={(e) => {
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name)}&background=random`;
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Group Name */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-[#2D3436] truncate">
-                      {group.name}
-                    </p>
-                  </div>
-                  
-                  {/* Join Link */}
-                  <a 
-                    href="#" 
-                    className="flex-shrink-0 text-sm text-stone-600 hover:text-stone-900 font-medium transition-colors"
-                  >
-                    Join
-                  </a>
+              {loading ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-stone-600">Loading groups...</p>
                 </div>
-              ))}
+              ) : trendingGroups.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-sm text-stone-600">No groups available</p>
+                </div>
+              ) : (
+                trendingGroups.map((group) => (
+                  <div 
+                    key={group.id}
+                    className="flex items-center gap-3 py-2 hover:bg-stone-50 rounded-lg transition-colors"
+                  >
+                    {/* Group Avatar */}
+                    <div className="flex-shrink-0">
+                      <img
+                        src={group.avatar}
+                        alt={group.name}
+                        className="w-12 h-12 rounded-full border-2 border-stone-200"
+                        onError={(e) => {
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name)}&background=random`;
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Group Name */}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-[#2D3436] truncate">
+                        {group.name}
+                      </p>
+                    </div>
+                    
+                    {/* View Button */}
+                    <Link 
+                      to={`/group/${group.id}`}
+                      className="flex-shrink-0 text-sm text-stone-600 hover:text-stone-900 font-medium transition-colors"
+                    >
+                      View
+                    </Link>
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Footer Link */}
             <div className="mt-6 pt-6 border-t border-stone-200">
-              <a 
-                href="#" 
+              <Link 
+                to="/community"
                 className="text-sm text-stone-600 hover:text-stone-900 font-medium transition-colors"
               >
                 View all groups →
-              </a>
+              </Link>
             </div>
           </div>
         </div>
