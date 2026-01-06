@@ -917,7 +917,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagInputKeyDown}
-            placeholder={formData.tags.length === 0 ? "Add tags (optional)..." : ""}
+            placeholder={formData.tags.length === 0 ? "Add a phrase or word to create a tag..." : ""}
             className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm min-w-[120px]"
           />
         </div>
