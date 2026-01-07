@@ -1,23 +1,31 @@
 import { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin, X, Link as LinkIcon } from 'lucide-react';
 
-// Tag color function - light gray backgrounds with dark text
-function getTagColor(tagString) {
-  const colors = [
-    'bg-gray-100 text-gray-700',
-    'bg-gray-200 text-gray-800',
-    'bg-gray-100 text-gray-800',
+// Dynamic tag color function - deterministically assigns colors based on tag name
+function getTagColor(tagName) {
+  // Define color palette with complete Tailwind class mappings
+  const colorClasses = [
+    'border-emerald-400 text-emerald-600 bg-emerald-50',
+    'border-violet-400 text-violet-600 bg-violet-50',
+    'border-amber-400 text-amber-600 bg-amber-50',
+    'border-rose-400 text-rose-600 bg-rose-50',
+    'border-sky-400 text-sky-600 bg-sky-50',
+    'border-orange-400 text-orange-600 bg-orange-50',
+    'border-indigo-400 text-indigo-600 bg-indigo-50',
+    'border-fuchsia-400 text-fuchsia-600 bg-fuchsia-50',
   ];
-
+  
+  // Hash function: sum character codes
   let hash = 0;
-  for (let i = 0; i < tagString.length; i++) {
-    const char = tagString.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+  for (let i = 0; i < tagName.length; i++) {
+    hash += tagName.charCodeAt(i);
   }
   
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
+  // Get index from palette using modulo
+  const index = Math.abs(hash) % colorClasses.length;
+  
+  // Return Tailwind classes: border, text, and background
+  return colorClasses[index];
 }
 
 function EventDetailModal({ isOpen, event, onClose }) {
@@ -167,7 +175,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. Hero Banner Section */}
-        <div className="relative h-[280px] w-full overflow-hidden">
+        <div className="relative h-64 md:h-72 w-full overflow-hidden">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -207,11 +215,11 @@ function EventDetailModal({ isOpen, event, onClose }) {
         {/* 2. Tags Row */}
         {tags.length > 0 && (
           <div className="w-full px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(tag)}`}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 ${getTagColor(tag)} whitespace-nowrap`}
                 >
                   {tag}
                 </span>
@@ -221,7 +229,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
         )}
 
         {/* 3. Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-8 p-6 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-8 p-6 md:p-8">
           {/* Left Column - About the Event */}
           <div className="space-y-4">
             <h3 className="text-xl font-bold text-gray-900">About the Event</h3>
@@ -290,7 +298,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
                     }
                   }
                 }}
-                className="w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-indigo-700 hover:bg-indigo-800 active:scale-[0.98] transition-all duration-200 text-base"
+                className="w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-blue-700 hover:bg-blue-800 active:scale-[0.98] transition-all duration-200 text-base"
               >
                 Join Event
               </button>
