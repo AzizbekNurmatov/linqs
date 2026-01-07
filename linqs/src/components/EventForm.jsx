@@ -86,6 +86,7 @@ function getTagColor(tagString) {
 function EventForm({ onAddEvent, onClose, communityId = null }) {
   const [formData, setFormData] = useState({
     title: '',
+    description: '',
     location: '',
     meetingLink: '',
     date: '',
@@ -307,6 +308,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
       const eventData = {
         user_id: userId,
         title: formData.title,
+        description: formData.description || null,
         start_date: formData.date,
         start_time: formData.time,
         end_date: hasEndDate && formData.endDate ? formData.endDate : null,
@@ -337,6 +339,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
       // Reset form
       setFormData({
         title: '',
+        description: '',
         location: '',
         meetingLink: '',
         date: '',
@@ -531,6 +534,19 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
           required
           placeholder="Event Title"
           className="w-full text-2xl md:text-3xl font-bold bg-transparent border-none outline-none text-gray-900 placeholder:text-gray-400 focus:placeholder:text-gray-300"
+        />
+      </div>
+
+      {/* Description Section */}
+      <div className="mb-6">
+        <textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="Event Description"
+          rows={4}
+          className="w-full px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 bg-transparent outline-none text-gray-700 placeholder:text-gray-400 text-sm resize-y"
         />
       </div>
 
