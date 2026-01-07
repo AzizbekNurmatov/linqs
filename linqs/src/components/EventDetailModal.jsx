@@ -1,88 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, MapPin, X, Link as LinkIcon, Coffee, Sparkles, Code, Briefcase } from 'lucide-react';
+import { Calendar, Clock, MapPin, X, Link as LinkIcon } from 'lucide-react';
 
-// Custom minimalist SVG icons matching lucide-react style
-const WellnessIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </svg>
-);
-
-const CultureIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect x="3" y="3" width="18" height="18" rx="2" />
-    <rect x="7" y="7" width="10" height="10" />
-  </svg>
-);
-
-const FoodIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
-    <path d="M7 2v20" />
-    <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3v0" />
-    <path d="M21 15v7" />
-  </svg>
-);
-
-// Get category icon component
-const getCategoryIcon = (categoryName) => {
-  const category = categoryName || 'Social Activities';
-  switch (category) {
-    case 'Social Activities':
-      return Coffee;
-    case 'Hobbies':
-      return Sparkles;
-    case 'Wellness':
-      return WellnessIcon;
-    case 'Tech':
-      return Code;
-    case 'Business':
-      return Briefcase;
-    case 'Culture':
-      return CultureIcon;
-    case 'Food':
-      return FoodIcon;
-    default:
-      return Coffee; // Default to Social
-  }
-};
-
-// Tag color function - light blue/purple backgrounds with colored text
+// Tag color function - light gray backgrounds with dark text
 function getTagColor(tagString) {
   const colors = [
-    'bg-indigo-100 text-indigo-700',
-    'bg-purple-100 text-purple-700',
-    'bg-blue-100 text-blue-700',
-    'bg-violet-100 text-violet-700',
-    'bg-sky-100 text-sky-700',
-    'bg-cyan-100 text-cyan-700',
+    'bg-gray-100 text-gray-700',
+    'bg-gray-200 text-gray-800',
+    'bg-gray-100 text-gray-800',
   ];
 
   let hash = 0;
@@ -96,52 +20,12 @@ function getTagColor(tagString) {
   return colors[index];
 }
 
-// Generate tags from event data
-function generateTags(event) {
-  const tags = [];
-  
-  // Extract keywords from title and description
-  const text = `${event.title} ${event.description || ''}`.toLowerCase();
-  
-  // Common event categories/keywords
-  const keywords = {
-    'music': ['music', 'festival', 'concert', 'band', 'dj', 'live music'],
-    'art': ['art', 'gallery', 'exhibition', 'painting', 'sculpture'],
-    'food': ['food', 'wine', 'tasting', 'restaurant', 'culinary', 'dining'],
-    'tech': ['tech', 'technology', 'innovation', 'summit', 'conference', 'startup'],
-    'wellness': ['yoga', 'fitness', 'wellness', 'meditation', 'health'],
-    'comedy': ['comedy', 'stand-up', 'laugh', 'humor'],
-    'networking': ['networking', 'meetup', 'social', 'community'],
-    'outdoor': ['park', 'outdoor', 'nature', 'fresh air'],
-  };
-
-  // Check for matching keywords
-  for (const [tag, keywordsList] of Object.entries(keywords)) {
-    if (keywordsList.some(keyword => text.includes(keyword))) {
-      tags.push(tag);
-    }
-  }
-
-  // If event has explicit tags, use those instead
-  if (event.tags && Array.isArray(event.tags)) {
-    return event.tags;
-  }
-
-  // If no tags found, generate from location or add default
-  if (tags.length === 0) {
-    tags.push('event');
-  }
-
-  return tags;
-}
-
 function EventDetailModal({ isOpen, event, onClose }) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Trigger animation when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Small delay to trigger animation
       requestAnimationFrame(() => {
         setIsAnimating(true);
       });
@@ -160,7 +44,6 @@ function EventDetailModal({ isOpen, event, onClose }) {
 
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     }
 
@@ -172,13 +55,13 @@ function EventDetailModal({ isOpen, event, onClose }) {
 
   if (!isOpen || !event) return null;
 
-  const tags = generateTags(event);
+  // Get tags from event data
+  const tags = (event.tags && Array.isArray(event.tags)) ? event.tags : [];
 
-  // Generate host name - extract from hostGroup or use default
+  // Generate host name
   const getHostName = () => {
     if (event.host) return event.host;
     if (event.hostGroup) {
-      // Extract from "by Tech Meetup" format
       return event.hostGroup.replace('by ', '');
     }
     return 'Event Organizer';
@@ -186,27 +69,26 @@ function EventDetailModal({ isOpen, event, onClose }) {
   
   const hostName = getHostName();
   
-  // Handle both image and imageUrl properties
-  const imageUrl = event.image || event.imageUrl;
+  // Handle image URL
+  const imageUrl = event.image_url || event.image || event.imageUrl;
   
-  // Handle location - could be location or meetingLink for online events
-  const location = event.location || (event.meetingLink && !event.meetingLink.startsWith('http') ? event.meetingLink : null) || 'Location TBD';
-  
-  // Handle description - might not exist in Explore page events
-  const description = event.description || 'No description available.';
-  
-  // Get event URL - handles url, website, and meetingLink (if it's a URL)
-  const getEventUrl = () => {
-    const url = event.url || event.website || (event.meetingLink && event.meetingLink.startsWith('http') ? event.meetingLink : null);
-    return url || null;
+  // Handle location - use address for in-person, location_link for online
+  const getLocation = () => {
+    if (event.is_online || event.isOnline) {
+      return event.location_link || event.meetingLink || 'Online Event';
+    }
+    return event.address || event.location || 'Location TBD';
   };
+  
+  const location = getLocation();
+  
+  // Handle description - use the new description column
+  const description = event.description || 'No description available.';
   
   // Format date for display
   const formatDateDisplay = (dateStr) => {
     if (!dateStr) return 'Date TBD';
-    // If date is already formatted (e.g., "July 15, 2024"), return as-is
     if (typeof dateStr === 'string' && dateStr.includes(',')) {
-      // Check if it's already a formatted date (has month name and comma)
       const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
       if (monthNames.some(month => dateStr.includes(month))) {
         return dateStr;
@@ -214,7 +96,6 @@ function EventDetailModal({ isOpen, event, onClose }) {
     }
     try {
       const dateObj = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-      // Check if date is valid
       if (isNaN(dateObj.getTime())) {
         return dateStr;
       }
@@ -225,85 +106,45 @@ function EventDetailModal({ isOpen, event, onClose }) {
     }
   };
   
-  // Format time for display (handles both single time and time ranges)
-  const formatTimeDisplay = (timeStr) => {
+  // Format time from HH:MM to readable format
+  const formatTime = (timeStr) => {
     if (!timeStr) return null;
-    // If it's already a range (contains " - "), return as-is
     if (timeStr.includes(' - ')) {
       return timeStr;
     }
-    return timeStr;
-  };
-  
-  // Determine if event spans multiple days
-  const isMultiDayEvent = () => {
-    const startDate = event.startDate || event.date;
-    const endDate = event.endDate;
-    if (!endDate || !startDate) return false;
     try {
-      const start = typeof startDate === 'string' ? new Date(startDate) : startDate;
-      const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
-      return start.toDateString() !== end.toDateString();
+      const [hours, minutes] = timeStr.split(':');
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${minutes} ${ampm}`;
     } catch {
-      return false;
+      return timeStr;
     }
   };
   
   // Get formatted date/time display
   const getDateTimeDisplay = () => {
-    // Handle Explore page format (date contains '•')
-    if (event.date && typeof event.date === 'string' && event.date.includes('•')) {
-      // Extract date and time from combined format
-      const parts = event.date.split('•');
-      const datePart = parts[0]?.trim();
-      const timePart = parts[1]?.trim() || event.time;
-      return {
-        date: datePart || 'Date TBD',
-        time: timePart || null
-      };
+    const startDate = event.start_date || event.startDate || event.date;
+    const endDate = event.end_date || event.endDate;
+    const startTime = event.start_time || event.startTime;
+    const endTime = event.end_time || event.endTime;
+    
+    const formattedDate = formatDateDisplay(startDate);
+    let formattedTime = null;
+    
+    if (startTime && endTime) {
+      formattedTime = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    } else if (startTime) {
+      formattedTime = formatTime(startTime);
+    } else if (event.time) {
+      formattedTime = event.time;
     }
     
-    const startDate = event.startDate || event.date;
-    const endDate = event.endDate;
-    const startTime = event.startTime || (event.time && !event.time.includes(' - ') ? event.time : event.time?.split(' - ')[0]?.trim());
-    const endTime = event.endTime || (event.time && event.time.includes(' - ') ? event.time.split(' - ')[1]?.trim() : null);
-    
-    const isMultiDay = isMultiDayEvent();
-    
-    if (isMultiDay && startDate && endDate) {
-      // Multi-day: "Start Date, Start Time – End Date, End Time"
-      const formattedStartDate = formatDateDisplay(startDate);
-      const formattedEndDate = formatDateDisplay(endDate);
-      const formattedStartTime = formatTimeDisplay(startTime) || 'TBD';
-      const formattedEndTime = formatTimeDisplay(endTime) || 'TBD';
-      return {
-        date: `${formattedStartDate}, ${formattedStartTime} – ${formattedEndDate}, ${formattedEndTime}`,
-        time: null // Combined into date line
-      };
-    } else {
-      // Single day: Date on first line, Time range on second line
-      const formattedDate = formatDateDisplay(startDate);
-      let formattedTime = null;
-      
-      // Only show time range if we have both start and end times, or if time already contains a range
-      if (startTime && endTime && startTime !== endTime) {
-        formattedTime = `${formatTimeDisplay(startTime)} - ${formatTimeDisplay(endTime)}`;
-      } else if (event.time && event.time.includes(' - ')) {
-        // Time already formatted as range
-        formattedTime = formatTimeDisplay(event.time);
-      } else if (startTime && !endTime) {
-        // Only start time
-        formattedTime = formatTimeDisplay(startTime);
-      } else if (event.time && !event.time.includes(' - ')) {
-        // Single time value
-        formattedTime = formatTimeDisplay(event.time);
-      }
-      
-      return {
-        date: formattedDate,
-        time: formattedTime
-      };
-    }
+    return {
+      date: formattedDate,
+      time: formattedTime
+    };
   };
   
   const dateTimeDisplay = getDateTimeDisplay();
@@ -320,13 +161,13 @@ function EventDetailModal({ isOpen, event, onClose }) {
       
       {/* Modal Panel */}
       <div
-        className={`relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out ${
+        className={`relative bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out ${
           isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header - High-quality banner at the top */}
-        <div className="relative h-64 overflow-hidden rounded-t-3xl">
+        {/* 1. Hero Banner Section */}
+        <div className="relative h-[280px] w-full overflow-hidden">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -337,114 +178,123 @@ function EventDetailModal({ isOpen, event, onClose }) {
               }}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#6C5CE7] to-[#FF7675]" />
+            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600" />
           )}
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           
           {/* Close Button - Top Right */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all duration-200 ease-out active:scale-95 shadow-lg"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all duration-200 ease-out active:scale-95 shadow-lg z-10"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
+          
+          {/* Title and Host Info - Absolute positioned at bottom-left */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 pb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+              {event.title}
+            </h2>
+            <p className="text-white/90 text-sm md:text-base drop-shadow-md">
+              Hosted by <span className="font-semibold">{hostName}</span>
+            </p>
+          </div>
         </div>
 
-        {/* Content Body */}
-        <div className="p-8">
-          {/* Large Title */}
-          <h2 className="font-bold text-3xl mb-4 text-gray-900">
-            {event.title}
-          </h2>
-
-          {/* Host Info - Circular avatar with "Hosted by" text */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6C5CE7] to-[#FF7675] flex items-center justify-center text-white font-semibold text-sm">
-              {hostName.charAt(0).toUpperCase()}
+        {/* 2. Tags Row */}
+        {tags.length > 0 && (
+          <div className="w-full px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div className="flex flex-wrap items-center gap-2">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium ${getTagColor(tag)}`}
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
-            <span className="text-sm text-gray-600">
-              Hosted by <span className="font-semibold text-gray-900">{hostName}</span>
-            </span>
+          </div>
+        )}
+
+        {/* 3. Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-8 p-6 md:p-8">
+          {/* Left Column - About the Event */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900">About the Event</h3>
+            <div className="text-gray-700 text-base leading-relaxed whitespace-pre-wrap">
+              {description}
+            </div>
           </div>
 
-          {/* Date/Time & Location - Using thin-stroke Lucide icons */}
-          <div className="space-y-3 mb-6">
-            {/* Date/Time Display */}
-            {isMultiDayEvent() ? (
-              // Multi-day: Combined on one line with Calendar icon
-              <div className="flex items-center gap-3 text-gray-600">
-                <Calendar className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                <span className="text-base">{dateTimeDisplay.date}</span>
-              </div>
-            ) : (
-              // Single day: Date on first line, Time on second line
-              <>
-                <div className="flex items-center gap-3 text-gray-600">
-                  <Calendar className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                  <span className="text-base">{dateTimeDisplay.date}</span>
+          {/* Right Column - Logistics (Sticky on larger screens) */}
+          <div className="lg:sticky lg:top-6 h-fit">
+            <div className="bg-gray-50 rounded-lg p-6 space-y-6 border border-gray-200">
+              {/* Date & Time */}
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Calendar className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Date</p>
+                    <p className="text-base text-gray-900">{dateTimeDisplay.date}</p>
+                  </div>
                 </div>
+                
                 {dateTimeDisplay.time && (
-                  <div className="flex items-center gap-3 text-gray-600">
-                    <Clock className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                    <span className="text-base">{dateTimeDisplay.time}</span>
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-500 mb-1">Time</p>
+                      <p className="text-base text-gray-900">{dateTimeDisplay.time}</p>
+                    </div>
                   </div>
                 )}
-              </>
-            )}
-            
-            {/* Location */}
-            {location && location !== 'Location TBD' && (
-              <div className="flex items-center gap-3 text-gray-600">
-                <MapPin className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                <span className="text-base">{location}</span>
               </div>
-            )}
-            
-            {/* Event URL - Clickable link with icon */}
-            {getEventUrl() && (
-              <div className="flex items-center gap-3 text-gray-600 min-w-0">
-                <LinkIcon className="w-5 h-5 flex-shrink-0" strokeWidth={1.5} />
-                <a
-                  href={getEventUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-base text-blue-600 hover:underline truncate flex-1 min-w-0"
-                >
-                  {getEventUrl()}
-                </a>
-              </div>
-            )}
-          </div>
 
-          {/* Description */}
-          <p className="text-gray-600 text-base mb-6 leading-relaxed">
-            {description}
-          </p>
-
-          {/* Tags - Small pill-shaped badges with light blue/purple backgrounds */}
-          <div className="flex flex-wrap items-center gap-2">
-            {tags.length > 0 && tags.map((tag, index) => (
-              <span
-                key={index}
-                className={`px-3 py-1 rounded-full text-sm font-medium ${getTagColor(tag)}`}
-              >
-                #{tag}
-              </span>
-            ))}
-            
-            {/* Category Indicator - Bottom Right, aligned with tags */}
-            {(() => {
-              const category = event.category || 'Social Activities';
-              const IconComponent = getCategoryIcon(category);
-              // Get display name (remove "Activities" from "Social Activities")
-              const categoryDisplayName = category === 'Social Activities' ? 'Social' : category;
-              return (
-                <div className={`flex items-center gap-1.5 ${tags.length > 0 ? 'ml-auto' : ''}`}>
-                  <IconComponent className="w-4 h-4 text-gray-500 flex-shrink-0" strokeWidth={1.5} />
-                  <span className="text-xs text-gray-400">{categoryDisplayName}</span>
+              {/* Location */}
+              {location && location !== 'Location TBD' && (
+                <div className="flex items-start gap-3">
+                  {event.is_online || event.isOnline ? (
+                    <LinkIcon className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 mb-1">Location</p>
+                    {event.is_online || event.isOnline ? (
+                      <a
+                        href={event.location_link || event.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base text-blue-600 hover:underline break-words"
+                      >
+                        {location}
+                      </a>
+                    ) : (
+                      <p className="text-base text-gray-900">{location}</p>
+                    )}
+                  </div>
                 </div>
-              );
-            })()}
+              )}
+
+              {/* Join Event Button */}
+              <button
+                onClick={() => {
+                  if (event.is_online || event.isOnline) {
+                    const link = event.location_link || event.meetingLink;
+                    if (link) {
+                      window.open(link, '_blank', 'noopener,noreferrer');
+                    }
+                  }
+                }}
+                className="w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-indigo-700 hover:bg-indigo-800 active:scale-[0.98] transition-all duration-200 text-base"
+              >
+                Join Event
+              </button>
+            </div>
           </div>
         </div>
       </div>
