@@ -101,6 +101,8 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
   
   const [hasEndDate, setHasEndDate] = useState(false);
   const [hasEndTime, setHasEndTime] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -251,8 +253,8 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isValid = formData.title && 
-                    formData.date && 
                     formData.time && 
+                    ((!isRecurring && formData.date) || (isRecurring && recurringDays.length > 0)) &&
                     (!hasEndDate || formData.endDate) &&
                     (!hasEndTime || formData.endTime) &&
                     (formData.isOnline ? formData.meetingLink : formData.location);
@@ -309,7 +311,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         user_id: userId,
         title: formData.title,
         description: formData.description || null,
-        start_date: formData.date,
+        start_date: isRecurring ? null : formData.date,
         start_time: formData.time,
         end_date: hasEndDate && formData.endDate ? formData.endDate : null,
         end_time: hasEndTime && formData.endTime ? formData.endTime : null,
@@ -320,6 +322,8 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         address: !formData.isOnline ? formData.location : null,
         image_url: imageUrl,
         community_id: communityId, // Include community_id if provided
+        is_recurring: isRecurring,
+        recurring_days: isRecurring && recurringDays.length > 0 ? recurringDays : null,
       };
 
       const { data: insertedData, error: insertError } = await supabase
@@ -353,6 +357,8 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
       });
       setHasEndDate(false);
       setHasEndTime(false);
+      setIsRecurring(false);
+      setRecurringDays([]);
       setTagInput('');
       setImagePreview('');
       setImageFile(null);
@@ -370,23 +376,28 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
   };
 
   const isFormValid = formData.title && 
-                      formData.date && 
                       formData.time && 
+                      ((!isRecurring && formData.date) || (isRecurring && recurringDays.length > 0)) &&
                       (!hasEndDate || formData.endDate) &&
                       (!hasEndTime || formData.endTime) &&
                       (formData.isOnline ? formData.meetingLink : formData.location);
 
   // Calculate min values for validation
   const getEndDateMin = () => {
-    return formData.date || '';
+    // Only return min date if we have a start date (non-recurring events)
+    if (!isRecurring && formData.date) {
+      return formData.date;
+    }
+    return '';
   };
 
   const getEndTimeMin = () => {
     // If same day (no end date or end date equals start date), end time must be after start time
-    if (!hasEndDate || formData.endDate === formData.date) {
+    // Only applies to non-recurring events with a start date
+    if (!isRecurring && (!hasEndDate || formData.endDate === formData.date)) {
       return formData.time || '';
     }
-    // If different day, any time is valid
+    // If different day or recurring event, any time is valid
     return '';
   };
 
@@ -550,9 +561,145 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         />
       </div>
 
+      {/* Weekly Recurring Event Toggle */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200">
+          <label className="flex items-center gap-3 cursor-pointer flex-1">
+            <span className="text-sm font-medium text-gray-700">Weekly Event?</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setIsRecurring(!isRecurring);
+              if (!isRecurring) {
+                // When turning ON recurring, clear date and reset recurring days
+                setFormData(prev => ({ ...prev, date: '', endDate: '' }));
+                setHasEndDate(false);
+                setRecurringDays([]);
+              } else {
+                // When turning OFF recurring, clear recurring days
+                setRecurringDays([]);
+              }
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+              isRecurring ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                isRecurring ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
       {/* Date & Time Section - Context-Aware Layout */}
       <div className="mb-6 space-y-4">
-        {hasEndDate ? (
+        {isRecurring ? (
+          // Recurring Event: Day Selector
+          <>
+            {/* Day Selector */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Select Days</label>
+              <div className="flex gap-2">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => {
+                  const isSelected = recurringDays.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        if (isSelected) {
+                          setRecurringDays(prev => prev.filter(d => d !== day));
+                        } else {
+                          setRecurringDays(prev => [...prev, day]);
+                        }
+                      }}
+                      className={`flex-1 px-3 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Time Row (for recurring events) */}
+            <div className="flex items-center gap-2">
+              <div 
+                onClick={() => {
+                  timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
+                }}
+                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+              >
+                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-medium">Start Time</span>
+                  <input
+                    ref={timeInputRef}
+                    type="time"
+                    name="time"
+                    value={formData.time}
+                    onChange={handleChange}
+                    required
+                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              </div>
+              {hasEndTime ? (
+                <div 
+                  onClick={() => {
+                    endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.click();
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
+                >
+                  <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xs text-gray-500 font-medium">End Time</span>
+                    <input
+                      ref={endTimeInputRef}
+                      type="time"
+                      name="endTime"
+                      value={formData.endTime}
+                      onChange={handleChange}
+                      required={hasEndTime}
+                      min={getEndTimeMin()}
+                      className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHasEndTime(false);
+                      setFormData(prev => ({ ...prev, endTime: '' }));
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    aria-label="Remove end time"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setHasEndTime(true)}
+                  className="flex items-center gap-1.5 px-3 py-3 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add end time</span>
+                </button>
+              )}
+            </div>
+          </>
+        ) : hasEndDate ? (
           // Multi-Day Layout: Two rows with Date + Time side-by-side
           <>
             {/* Row 1: Start Date + Start Time */}
@@ -572,7 +719,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
-                    required
+                    required={!isRecurring}
                     className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -709,7 +856,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
                   name="date"
                   value={formData.date}
                   onChange={handleChange}
-                  required
+                  required={!isRecurring}
                   className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder:text-gray-400 text-sm cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 />

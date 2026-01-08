@@ -152,6 +152,11 @@ function Explore() {
             category: event.category || 'Social Activities',
             tags: event.tags || [],
             isOnline: event.is_online || false,
+            // Recurring event fields
+            is_recurring: event.is_recurring || false,
+            isRecurring: event.is_recurring || false,
+            recurring_days: event.recurring_days || null,
+            recurringDays: event.recurring_days || null,
             // Keep original data for reference
             ...event,
           };

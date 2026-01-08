@@ -99,6 +99,15 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     const startDate = event.startDate || event.date;
     const endDate = event.endDate;
     
+    // Handle null/undefined dates (recurring events)
+    if (!startDate) {
+      // For recurring events, this should be handled by the day pills display
+      // But if we somehow get here, return a fallback
+      const timeMatch = event.time?.match(/(\d{1,2}:\d{2}\s*(?:AM|PM))/i);
+      const time = timeMatch ? timeMatch[1].toUpperCase() : 'TBD';
+      return `Weekly • ${time} EST`;
+    }
+    
     // If we have an endDate and it's different from startDate, format as range
     if (endDate && startDate) {
       try {
@@ -128,6 +137,11 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     // Single date format - keep existing style
     try {
       const dateObj = typeof startDate === 'string' ? new Date(startDate) : startDate;
+      // Validate date object
+      if (isNaN(dateObj.getTime())) {
+        return event.date || 'TBD';
+      }
+      
       const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
       const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       const dayName = days[dateObj.getDay()];
@@ -294,16 +308,46 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
 
       {/* Content Section */}
       <div className="p-4">
-        {/* Date */}
+        {/* Date or Recurring Days */}
         {(() => {
-          const formattedDate = formatDate();
-          // Check if it's a date range (contains " - " and doesn't contain "•")
-          const isDateRange = formattedDate.includes(' - ') && !formattedDate.includes('•');
-          return (
-            <p className={`text-xs font-bold text-[#7C6F50] tracking-wide mb-1 ${isDateRange ? '' : 'uppercase'}`}>
-              {formattedDate}
-            </p>
-          );
+          const isRecurring = event.is_recurring || event.isRecurring;
+          const recurringDays = event.recurring_days || event.recurringDays || [];
+          
+          if (isRecurring && recurringDays.length > 0) {
+            // Show day pills for recurring events
+            const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            return (
+              <div className="mb-1">
+                <div className="flex gap-1.5">
+                  {dayLabels.map((day) => {
+                    const isSelected = recurringDays.includes(day);
+                    return (
+                      <div
+                        key={day}
+                        className={`flex-1 px-2 py-1.5 rounded-full text-xs font-semibold text-center transition-colors ${
+                          isSelected
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-400'
+                        }`}
+                      >
+                        {day}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          } else {
+            // Show formatted date for non-recurring events
+            const formattedDate = formatDate();
+            // Check if it's a date range (contains " - " and doesn't contain "•")
+            const isDateRange = formattedDate.includes(' - ') && !formattedDate.includes('•');
+            return (
+              <p className={`text-xs font-bold text-[#7C6F50] tracking-wide mb-1 ${isDateRange ? '' : 'uppercase'}`}>
+                {formattedDate}
+              </p>
+            );
+          }
         })()}
 
         {/* Title - Bolded */}
