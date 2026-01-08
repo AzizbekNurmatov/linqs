@@ -131,6 +131,10 @@ function EventDetailModal({ isOpen, event, onClose }) {
     }
   };
   
+  // Check if event is recurring
+  const isRecurring = event.is_recurring || event.isRecurring || false;
+  const recurringDays = event.recurring_days || event.recurringDays || [];
+  
   // Get formatted date/time display
   const getDateTimeDisplay = () => {
     const startDate = event.start_date || event.startDate || event.date;
@@ -138,7 +142,8 @@ function EventDetailModal({ isOpen, event, onClose }) {
     const startTime = event.start_time || event.startTime;
     const endTime = event.end_time || event.endTime;
     
-    const formattedDate = formatDateDisplay(startDate);
+    // For recurring events, don't format the date (we'll show day pills instead)
+    const formattedDate = isRecurring ? null : formatDateDisplay(startDate);
     let formattedTime = null;
     
     if (startTime && endTime) {
@@ -151,7 +156,9 @@ function EventDetailModal({ isOpen, event, onClose }) {
     
     return {
       date: formattedDate,
-      time: formattedTime
+      time: formattedTime,
+      isRecurring: isRecurring,
+      recurringDays: recurringDays
     };
   };
   
@@ -247,7 +254,31 @@ function EventDetailModal({ isOpen, event, onClose }) {
                   <Calendar className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-500 mb-1">Date</p>
-                    <p className="text-base text-gray-900">{dateTimeDisplay.date}</p>
+                    {dateTimeDisplay.isRecurring && dateTimeDisplay.recurringDays.length > 0 ? (
+                      // Show day pills for recurring events - only selected days, sorted chronologically
+                      <div className="flex gap-2 mt-1 flex-wrap">
+                        {(() => {
+                          // Define day order for sorting
+                          const dayOrder = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+                          // Sort recurring days chronologically
+                          const sortedDays = [...dateTimeDisplay.recurringDays].sort((a, b) => {
+                            return dayOrder.indexOf(a) - dayOrder.indexOf(b);
+                          });
+                          // Render only the selected days
+                          return sortedDays.map((day) => (
+                            <div
+                              key={day}
+                              className="px-3 py-1.5 rounded-full text-sm font-semibold text-center bg-blue-600 text-white"
+                            >
+                              {day}
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      // Show formatted date for non-recurring events
+                      <p className="text-base text-gray-900">{dateTimeDisplay.date || 'Date TBD'}</p>
+                    )}
                   </div>
                 </div>
                 
