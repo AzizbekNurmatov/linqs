@@ -297,7 +297,7 @@ function Explore() {
             <h1 className="text-3xl font-bold text-gray-900">
               Events near{' '}
               <button className="underline hover:text-gray-700">
-                New York, NY
+                Charleston, SC
               </button>
             </h1>
             <div className="flex flex-wrap gap-3">

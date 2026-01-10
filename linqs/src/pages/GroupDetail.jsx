@@ -210,7 +210,7 @@ function GroupDetail() {
         memberCount: memberCount || 0,
         eventsThisWeek: eventsThisWeek || 0,
         isPublic: true,
-        location: 'New York, NY', // You can add location to communities table if needed
+        location: 'Charleston, SC', // You can add location to communities table if needed
         organizer: {
           name: hostProfile?.username || 'Unknown',
           avatar: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
