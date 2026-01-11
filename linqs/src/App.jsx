@@ -10,6 +10,7 @@ import GenreDetail from './pages/GenreDetail';
 import Community from './pages/Community';
 import GroupDetail from './pages/GroupDetail';
 import SavedEvents from './pages/SavedEvents';
+import About from './pages/About';
 import Login from './components/Login';
 import Register from './components/Register';
 
@@ -47,6 +48,7 @@ function App() {
               <Route path="community" element={<Community />} />
               <Route path="group/:id" element={<GroupDetail />} />
               <Route path="saved" element={<SavedEvents />} />
+              <Route path="about" element={<About />} />
             </Route>
           </Routes>
         </BrowserRouter>

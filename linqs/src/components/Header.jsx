@@ -71,6 +71,16 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             >
               Community
             </Link>
+            <Link 
+              to="/about" 
+              className={`text-sm font-medium transition-colors duration-200 ${
+                location.pathname === '/about' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
+            >
+              About
+            </Link>
           </div>
 
           {/* Right: Actions */}
@@ -177,6 +187,17 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
               onClick={() => setMobileMenuOpen(false)}
             >
               Community
+            </Link>
+            <Link 
+              to="/about" 
+              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+                location.pathname === '/about' 
+                  ? 'text-black font-bold' 
+                  : 'text-gray-500 hover:text-black'
+              }`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              About
             </Link>
             {onOpenSavedEvents && (
               <button
