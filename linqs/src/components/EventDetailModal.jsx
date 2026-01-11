@@ -255,29 +255,29 @@ function EventDetailModal({ isOpen, event, onClose }) {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-500 mb-1">Date</p>
                     {dateTimeDisplay.isRecurring && dateTimeDisplay.recurringDays.length > 0 ? (
-                      // Show day pills for recurring events - only selected days, sorted chronologically
-                      <div className="flex gap-2 mt-1 flex-wrap">
-                        {(() => {
-                          // Define day order for sorting
-                          const dayOrder = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-                          // Sort recurring days chronologically
-                          const sortedDays = [...dateTimeDisplay.recurringDays].sort((a, b) => {
-                            return dayOrder.indexOf(a) - dayOrder.indexOf(b);
-                          });
-                          // Render only the selected days
-                          return sortedDays.map((day) => (
+                      // Show 7-day row for recurring events (matching Preview Card pattern)
+                      <div className="flex gap-1.5 mt-1">
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => {
+                          const isSelected = dateTimeDisplay.recurringDays.includes(day);
+                          return (
                             <div
                               key={day}
-                              className="px-3 py-1.5 rounded-full text-sm font-semibold text-center bg-blue-600 text-white"
+                              className={`flex-1 px-2 py-1.5 rounded-full text-xs font-semibold text-center transition-colors ${
+                                isSelected
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-100 text-gray-400'
+                              }`}
                             >
                               {day}
                             </div>
-                          ));
-                        })()}
+                          );
+                        })}
                       </div>
                     ) : (
-                      // Show formatted date for non-recurring events
-                      <p className="text-base text-gray-900">{dateTimeDisplay.date || 'Date TBD'}</p>
+                      // Show standard date format for non-recurring events
+                      <p className="text-base text-gray-900 mt-1">
+                        {dateTimeDisplay.date || 'Date TBD'}
+                      </p>
                     )}
                   </div>
                 </div>
