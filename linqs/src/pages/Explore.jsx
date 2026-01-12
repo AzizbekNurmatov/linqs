@@ -3,6 +3,8 @@ import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Loader
 import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
 import { supabase } from '../lib/supabase';
+import { getJoinedEventIds } from '../lib/eventAttendeesService';
+import { useAuth } from '../context/AuthContext';
 
 // Custom minimalist SVG icons matching lucide-react style
 const WellnessIcon = ({ className }) => (
@@ -61,6 +63,8 @@ function Explore() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
   const [activeCategory, setActiveCategory] = useState('All events');
+  const [joinedEventIds, setJoinedEventIds] = useState(new Set());
+  const { user } = useAuth();
   const [filters, setFilters] = useState({
     day: 'Any day',
     type: 'Any type',
@@ -86,24 +90,40 @@ function Explore() {
     console.log(`Boosted event: ${event.title}`);
   };
 
-  // Fetch events from Supabase
+  // Fetch events and joined status from Supabase
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .order('created_at', { ascending: false });
+        
+        // Fetch events and joined event IDs in parallel
+        const [eventsResult, joinedIdsResult] = await Promise.all([
+          supabase
+            .from('events')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
+        ]);
 
-        if (error) {
-          console.error('Error fetching events:', error);
+        const { data: eventsData, error: eventsError } = eventsResult;
+        const { data: joinedIds, error: joinedError } = joinedIdsResult;
+
+        if (eventsError) {
+          console.error('Error fetching events:', eventsError);
           setEvents([]);
           return;
         }
 
+        if (joinedError) {
+          console.error('Error fetching joined events:', joinedError);
+        }
+
+        // Create Set of joined event IDs for O(1) lookup
+        const joinedSet = new Set(joinedIds || []);
+        setJoinedEventIds(joinedSet);
+
         // Map snake_case to camelCase for EventCard component
-        const mappedEvents = data.map((event) => {
+        const mappedEvents = eventsData.map((event) => {
           // Format time - combine start_time and end_time if both exist
           let timeDisplay = event.start_time || '';
           if (event.start_time && event.end_time) {
@@ -164,15 +184,15 @@ function Explore() {
 
         setEvents(mappedEvents);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error fetching data:', error);
         setEvents([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
-  }, []);
+    fetchData();
+  }, [user?.id]);
 
   // Dummy events data - commented out (keeping for reference)
   // const dummyEvents = [
@@ -350,15 +370,19 @@ function Explore() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredEvents.map((event) => (
-              <EventCard 
-                key={event.id || event.title} 
-                event={event} 
-                onInterested={() => handleInterested(event)}
-                onBoost={() => handleBoost(event)}
-                onCardClick={() => handleCardClick(event)}
-              />
-            ))}
+            {filteredEvents.map((event) => {
+              const isJoined = joinedEventIds.has(event.id);
+              return (
+                <EventCard 
+                  key={event.id || event.title}
+                  event={event}
+                  isJoined={isJoined}
+                  onInterested={() => handleInterested(event)}
+                  onBoost={() => handleBoost(event)}
+                  onCardClick={() => handleCardClick(event)}
+                />
+              );
+            })}
           </div>
         )}
       </div>

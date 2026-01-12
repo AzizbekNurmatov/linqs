@@ -5,6 +5,8 @@ import EventList from '../components/EventList';
 import EventDetailModal from '../components/EventDetailModal';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
+import { getJoinedEventIds } from '../lib/eventAttendeesService';
+import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
 function Home() {
@@ -13,6 +15,8 @@ function Home() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [joinedEventIds, setJoinedEventIds] = useState(new Set());
+  const { user } = useAuth();
 
   const handleCardClick = (event) => {
     setSelectedEvent(event);
@@ -39,25 +43,41 @@ function Home() {
     handleCategoryToggle(category);
   };
 
-  // Fetch events from Supabase
+  // Fetch events and joined status from Supabase
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
-          .from('events')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(8);
+        
+        // Fetch events and joined event IDs in parallel
+        const [eventsResult, joinedIdsResult] = await Promise.all([
+          supabase
+            .from('events')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(8),
+          user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
+        ]);
 
-        if (error) {
-          console.error('Error fetching events:', error);
+        const { data: eventsData, error: eventsError } = eventsResult;
+        const { data: joinedIds, error: joinedError } = joinedIdsResult;
+
+        if (eventsError) {
+          console.error('Error fetching events:', eventsError);
           setEvents([]);
           return;
         }
 
+        if (joinedError) {
+          console.error('Error fetching joined events:', joinedError);
+        }
+
+        // Create Set of joined event IDs for O(1) lookup
+        const joinedSet = new Set(joinedIds || []);
+        setJoinedEventIds(joinedSet);
+
         // Map snake_case to camelCase for EventCard component
-        const mappedEvents = data.map((event) => {
+        const mappedEvents = eventsData.map((event) => {
           // Format time - combine start_time and end_time if both exist
           let timeDisplay = event.start_time || '';
           if (event.start_time && event.end_time) {
@@ -111,15 +131,15 @@ function Home() {
 
         setEvents(mappedEvents);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error fetching data:', error);
         setEvents([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
-  }, []);
+    fetchData();
+  }, [user?.id]);
 
   const handleInterested = (index) => {
     console.log(`Interested in event: ${events[index].title}`);
@@ -169,7 +189,8 @@ function Home() {
           </div>
         ) : (
           <EventList 
-            events={filteredEvents} 
+            events={filteredEvents}
+            joinedEventIds={joinedEventIds}
             onInterested={handleInterested}
             onBoost={handleBoost}
             onCardClick={handleCardClick}

@@ -75,7 +75,7 @@ const getCategoryIcon = (categoryName) => {
   }
 };
 
-function EventCard({ event, onInterested, onBoost, onCardClick }) {
+function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick }) {
   const { toggleSaveEvent, isEventSaved } = useSavedEvents();
   const isSaved = isEventSaved(event);
   const [isBoosted, setIsBoosted] = useState(false);

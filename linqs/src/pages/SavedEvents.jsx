@@ -4,26 +4,46 @@ import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
 import { useSavedEvents } from '../context/SavedEventsContext';
 import { getSavedEvents } from '../lib/savedEventsService';
+import { getJoinedEventIds } from '../lib/eventAttendeesService';
+import { useAuth } from '../context/AuthContext';
 
 function SavedEvents() {
   const { savedEvents: contextSavedEvents, loading: contextLoading } = useSavedEvents();
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [joinedEventIds, setJoinedEventIds] = useState(new Set());
 
-  // Fetch saved events from Supabase
+  // Fetch saved events and joined status from Supabase
   useEffect(() => {
     const fetchSavedEvents = async () => {
       try {
         setLoading(true);
-        const { data, error } = await getSavedEvents();
+        
+        // Fetch saved events and joined event IDs in parallel
+        const [savedEventsResult, joinedIdsResult] = await Promise.all([
+          getSavedEvents(),
+          user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
+        ]);
+        
+        const { data, error } = savedEventsResult;
+        const { data: joinedIds, error: joinedError } = joinedIdsResult;
         
         if (error) {
           console.error('Error fetching saved events:', error);
           setEvents([]);
           return;
         }
+
+        if (joinedError) {
+          console.error('Error fetching joined events:', joinedError);
+        }
+
+        // Create Set of joined event IDs for O(1) lookup
+        const joinedSet = new Set(joinedIds || []);
+        setJoinedEventIds(joinedSet);
 
         setEvents(data || []);
       } catch (error) {
@@ -35,7 +55,7 @@ function SavedEvents() {
     };
 
     fetchSavedEvents();
-  }, [contextSavedEvents]); // Re-fetch when context saved events change
+  }, [contextSavedEvents, user?.id]); // Re-fetch when context saved events or user changes
 
   const handleEventClick = (event) => {
     setSelectedEvent(event);
@@ -102,15 +122,19 @@ function SavedEvents() {
         ) : (
           // Events Grid
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {events.map((event, index) => (
-              <EventCard
-                key={event.id || `${event.title}-${event.date}-${index}`}
-                event={event}
-                onInterested={handleInterested}
-                onBoost={handleBoost}
-                onCardClick={handleEventClick}
-              />
-            ))}
+            {events.map((event, index) => {
+              const isJoined = joinedEventIds.has(event.id);
+              return (
+                <EventCard
+                  key={event.id || `${event.title}-${event.date}-${index}`}
+                  event={event}
+                  isJoined={isJoined}
+                  onInterested={handleInterested}
+                  onBoost={handleBoost}
+                  onCardClick={handleEventClick}
+                />
+              );
+            })}
           </div>
         )}
 

@@ -1,6 +1,6 @@
 import EventCard from './EventCard';
 
-function EventList({ events, onInterested, onBoost, onCardClick }) {
+function EventList({ events, joinedEventIds, onInterested, onBoost, onCardClick }) {
   // Create array of 8 slots, filling with events and null for empty slots
   const gridSlots = Array.from({ length: 8 }, (_, index) => events[index] || null);
 
@@ -13,10 +13,12 @@ function EventList({ events, onInterested, onBoost, onCardClick }) {
             <div key={`placeholder-${index}`} className="hidden lg:block" />
           );
         }
+        const isJoined = joinedEventIds ? joinedEventIds.has(event.id) : false;
         return (
           <EventCard 
             key={event.id || event.title} 
-            event={event} 
+            event={event}
+            isJoined={isJoined}
             onInterested={() => onInterested(events.indexOf(event))}
             onBoost={() => onBoost(events.indexOf(event))}
             onCardClick={() => onCardClick(event)}

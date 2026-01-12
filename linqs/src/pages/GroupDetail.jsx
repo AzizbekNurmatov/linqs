@@ -6,6 +6,7 @@ import EventForm from '../components/EventForm';
 import AddMediaModal from '../components/AddMediaModal';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { getJoinedEventIds } from '../lib/eventAttendeesService';
 import toast from 'react-hot-toast';
 
 // CreatePostWidget Component
@@ -141,13 +142,14 @@ function GroupDetail() {
   const [mediaItems, setMediaItems] = useState([]);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showAddMediaModal, setShowAddMediaModal] = useState(false);
+  const [joinedEventIds, setJoinedEventIds] = useState(new Set());
 
   // Fetch community data from Supabase
   useEffect(() => {
     if (id) {
       fetchCommunityData();
     }
-  }, [id]);
+  }, [id, user?.id]);
 
   const fetchCommunityData = async () => {
     try {
@@ -242,18 +244,34 @@ function GroupDetail() {
 
   const fetchEvents = async () => {
     try {
-      const { data: events, error } = await supabase
-        .from('events')
-        .select('*')
-        .eq('community_id', id)
-        .gte('start_date', new Date().toISOString().split('T')[0])
-        .order('start_date', { ascending: true })
-        .order('start_time', { ascending: true });
+      // Fetch events and joined event IDs in parallel
+      const [eventsResult, joinedIdsResult] = await Promise.all([
+        supabase
+          .from('events')
+          .select('*')
+          .eq('community_id', id)
+          .gte('start_date', new Date().toISOString().split('T')[0])
+          .order('start_date', { ascending: true })
+          .order('start_time', { ascending: true }),
+        user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
+      ]);
+
+      const { data: events, error } = eventsResult;
+      const { data: joinedIds, error: joinedError } = joinedIdsResult;
 
       if (error) throw error;
 
+      if (joinedError) {
+        console.error('Error fetching joined events:', joinedError);
+      }
+
+      // Create Set of joined event IDs for O(1) lookup
+      const joinedSet = new Set(joinedIds || []);
+      setJoinedEventIds(joinedSet);
+
       // Transform events to match EventCard format
       const transformedEvents = (events || []).map((event) => ({
+        id: event.id,
         title: event.title,
         description: event.description || '',
         location: event.address || event.location_link || '',
@@ -644,15 +662,19 @@ function GroupDetail() {
                 {/* Events Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {upcomingEvents.length > 0 ? (
-                    upcomingEvents.map((event, index) => (
-                      <EventCard
-                        key={index}
-                        event={event}
-                        onInterested={() => {}}
-                        onBoost={() => {}}
-                        onCardClick={() => {}}
-                      />
-                    ))
+                    upcomingEvents.map((event, index) => {
+                      const isJoined = joinedEventIds.has(event.id);
+                      return (
+                        <EventCard
+                          key={event.id || index}
+                          event={event}
+                          isJoined={isJoined}
+                          onInterested={() => {}}
+                          onBoost={() => {}}
+                          onCardClick={() => {}}
+                        />
+                      );
+                    })
                   ) : (
                     <div className="col-span-2 bg-white border border-gray-100 rounded-lg p-12 text-center">
                       <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
