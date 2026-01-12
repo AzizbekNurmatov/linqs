@@ -1,5 +1,69 @@
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, MapPin, X, Link as LinkIcon } from 'lucide-react';
+import { Calendar, Clock, MapPin, X, Link as LinkIcon, Check } from 'lucide-react';
+import { useEventAttendance } from '../hooks/useEventAttendance';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+
+// Join Event Button Component
+function JoinEventButton({ event, isJoined, isLoading, isToggling, user, onToggleAttendance, onLoginRequired }) {
+  const isOnline = event?.is_online || event?.isOnline;
+  const meetingLink = event?.location_link || event?.meetingLink;
+  const isDisabled = isLoading || isToggling;
+
+  const handleClick = () => {
+    // If user is not logged in, show toast and redirect to login
+    if (!user) {
+      toast.error('Please log in to join events');
+      onLoginRequired();
+      return;
+    }
+
+    // If it's an online event with a link, open the link
+    if (isOnline && meetingLink) {
+      window.open(meetingLink, '_blank', 'noopener,noreferrer');
+    }
+
+    // Toggle attendance (join/leave)
+    onToggleAttendance();
+  };
+
+  // Determine button text and styling based on state
+  const getButtonContent = () => {
+    if (isLoading) {
+      return {
+        text: 'Loading...',
+        className: 'w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-gray-400 cursor-not-allowed transition-all duration-200 text-base',
+      };
+    }
+
+    if (isJoined) {
+      return {
+        text: 'See you there!',
+        className: 'w-full px-6 py-3.5 rounded-lg font-semibold text-gray-700 bg-white border-2 border-green-500 hover:bg-green-50 active:scale-[0.98] transition-all duration-200 text-base flex items-center justify-center gap-2',
+        icon: <Check className="w-5 h-5 text-green-600" />,
+      };
+    }
+
+    return {
+      text: 'Join Event',
+      className: 'w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-blue-700 hover:bg-blue-800 active:scale-[0.98] transition-all duration-200 text-base',
+    };
+  };
+
+  const buttonContent = getButtonContent();
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={isDisabled}
+      className={buttonContent.className}
+    >
+      {buttonContent.icon}
+      {buttonContent.text}
+    </button>
+  );
+}
 
 // Dynamic tag color function - deterministically assigns colors based on tag name
 function getTagColor(tagName) {
@@ -30,6 +94,9 @@ function getTagColor(tagName) {
 
 function EventDetailModal({ isOpen, event, onClose }) {
   const [isAnimating, setIsAnimating] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { isJoined, isLoading, isToggling, toggleAttendance } = useEventAttendance(event?.id);
 
   // Trigger animation when modal opens
   useEffect(() => {
@@ -320,19 +387,15 @@ function EventDetailModal({ isOpen, event, onClose }) {
               )}
 
               {/* Join Event Button */}
-              <button
-                onClick={() => {
-                  if (event.is_online || event.isOnline) {
-                    const link = event.location_link || event.meetingLink;
-                    if (link) {
-                      window.open(link, '_blank', 'noopener,noreferrer');
-                    }
-                  }
-                }}
-                className="w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-blue-700 hover:bg-blue-800 active:scale-[0.98] transition-all duration-200 text-base"
-              >
-                Join Event
-              </button>
+              <JoinEventButton
+                event={event}
+                isJoined={isJoined}
+                isLoading={isLoading}
+                isToggling={isToggling}
+                user={user}
+                onToggleAttendance={toggleAttendance}
+                onLoginRequired={() => navigate('/login')}
+              />
             </div>
           </div>
         </div>
