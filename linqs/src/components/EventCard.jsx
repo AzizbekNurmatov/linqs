@@ -80,13 +80,6 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
   const isSaved = isEventSaved(event);
   const [isBoosted, setIsBoosted] = useState(false);
   const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 91) + 10); // Random count between 10-100
-  
-  // Generate mock avatars for face pile
-  const avatars = [
-    'https://i.pravatar.cc/150?img=1',
-    'https://i.pravatar.cc/150?img=2',
-    'https://i.pravatar.cc/150?img=3',
-  ];
 
   // Format date - handles both formatted strings and Date objects, with date range support
   const formatDate = () => {
@@ -190,16 +183,6 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
     return 'Free';
   };
 
-  // Get attendee count - handles both explicit attendees and mock
-  const getAttendeeCount = () => {
-    // If attendees is explicitly provided (Explore page), use it
-    if (event.attendees !== undefined) {
-      return event.attendees;
-    }
-    
-    // Otherwise, generate mock count (Home page)
-    return Math.floor(Math.random() * 100) + 20;
-  };
 
   // Get image URL - handles both image and imageUrl properties
   const getImageUrl = () => {
@@ -374,28 +357,8 @@ function EventCard({ event, onInterested, onBoost, onCardClick }) {
           </div>
         )}
 
-        {/* Footer - Horizontal attendee avatar stack with category */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="flex -space-x-2">
-              {avatars.map((avatar, index) => (
-                <img
-                  key={index}
-                  src={avatar}
-                  alt={`Attendee ${index + 1}`}
-                  className="w-6 h-6 rounded-full border-2 border-white"
-                  onError={(e) => {
-                    e.target.src = `https://ui-avatars.com/api/?name=User${index + 1}&background=random`;
-                  }}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500 ml-2">
-              {getAttendeeCount()} attendees
-            </span>
-          </div>
-          
-          {/* Category Indicator - Bottom Right */}
+        {/* Footer - Category Indicator */}
+        <div className="flex items-center justify-end">
           {(() => {
             const category = event.category || 'Social Activities';
             const IconComponent = getCategoryIcon(category);
