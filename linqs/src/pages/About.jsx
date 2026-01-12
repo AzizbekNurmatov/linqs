@@ -5,7 +5,9 @@ function About() {
 
   const knownIssues = [
     'Image upload might take a moment',
-    'Mobile navigation is still being optimized',
+    'No mobile version yet, but expected to change with an increase in users',
+    'More communities and events will be added soon',
+    'More features will be added soon',
   ];
 
   return (
