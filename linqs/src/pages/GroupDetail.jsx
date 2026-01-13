@@ -470,9 +470,9 @@ function GroupDetail() {
   };
 
   const tabs = [
-    { id: 'Discussion', label: 'Discussion', icon: MessageSquare },
+    // { id: 'Discussion', label: 'Discussion', icon: MessageSquare }, // Hidden for MVP
     { id: 'Events', label: 'Events', icon: Calendar },
-    { id: 'Members', label: 'Members', icon: Users },
+    // { id: 'Members', label: 'Members', icon: Users }, // Hidden for MVP
     { id: 'Media', label: 'Media', icon: ImageIcon },
   ];
 
