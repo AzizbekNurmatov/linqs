@@ -300,14 +300,14 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
             // Show day pills for recurring events
             const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
             return (
-              <div className="mb-1">
-                <div className="flex gap-1.5">
+              <div className="mb-1 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-1 min-w-max">
                   {dayLabels.map((day) => {
                     const isSelected = recurringDays.includes(day);
                     return (
                       <div
                         key={day}
-                        className={`flex-1 px-2 py-1.5 rounded-full text-xs font-semibold text-center transition-colors ${
+                        className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-semibold text-center transition-colors ${
                           isSelected
                             ? 'bg-blue-600 text-white'
                             : 'bg-gray-100 text-gray-400'

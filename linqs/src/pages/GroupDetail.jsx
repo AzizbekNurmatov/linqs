@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Calendar, MessageSquare, Image as ImageIcon, User, Plus } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, MessageSquare, Image as ImageIcon, User, Plus, Loader2 } from 'lucide-react';
 import EventCard from '../components/EventCard';
 import EventForm from '../components/EventForm';
 import AddMediaModal from '../components/AddMediaModal';
+import EventDetailModal from '../components/EventDetailModal';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { getJoinedEventIds } from '../lib/eventAttendeesService';
@@ -143,6 +144,9 @@ function GroupDetail() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showAddMediaModal, setShowAddMediaModal] = useState(false);
   const [joinedEventIds, setJoinedEventIds] = useState(new Set());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   // Fetch community data from Supabase
   useEffect(() => {
@@ -244,22 +248,33 @@ function GroupDetail() {
 
   const fetchEvents = async () => {
     try {
-      // Fetch events and joined event IDs in parallel
+      setEventsLoading(true);
+      
+      // Verify communityId is defined
+      if (!id) {
+        console.error('fetchEvents: communityId is undefined or null');
+        setUpcomingEvents([]);
+        return;
+      }
+
+      // Fetch events and joined event IDs in parallel - using exact same logic as Explore page
       const [eventsResult, joinedIdsResult] = await Promise.all([
         supabase
           .from('events')
           .select('*')
-          .eq('community_id', id)
-          .gte('start_date', new Date().toISOString().split('T')[0])
-          .order('start_date', { ascending: true })
-          .order('start_time', { ascending: true }),
+          .eq('community_id', id) // CRITICAL: Filter by community_id
+          .order('created_at', { ascending: false }), // Same ordering as Explore page
         user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
       ]);
 
-      const { data: events, error } = eventsResult;
+      const { data: eventsData, error: eventsError } = eventsResult;
       const { data: joinedIds, error: joinedError } = joinedIdsResult;
 
-      if (error) throw error;
+      if (eventsError) {
+        console.error('Error fetching events:', eventsError);
+        setUpcomingEvents([]);
+        return;
+      }
 
       if (joinedError) {
         console.error('Error fetching joined events:', joinedError);
@@ -269,23 +284,73 @@ function GroupDetail() {
       const joinedSet = new Set(joinedIds || []);
       setJoinedEventIds(joinedSet);
 
-      // Transform events to match EventCard format
-      const transformedEvents = (events || []).map((event) => ({
-        id: event.id,
-        title: event.title,
-        description: event.description || '',
-        location: event.address || event.location_link || '',
-        date: event.start_date,
-        time: event.start_time,
-        image: event.image_url,
-        category: event.category || 'Social Activities',
-        price: 'Free', // You can add price field if needed
-        attendees: 0, // You can add attendee count if needed
-      }));
+      // Map snake_case to camelCase for EventCard component - EXACT same mapping as Explore page
+      const mappedEvents = (eventsData || []).map((event) => {
+        // Format time - combine start_time and end_time if both exist
+        let timeDisplay = event.start_time || '';
+        if (event.start_time && event.end_time) {
+          // Format time from HH:MM to readable format
+          const formatTime = (timeStr) => {
+            if (!timeStr) return '';
+            const [hours, minutes] = timeStr.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+          };
+          timeDisplay = `${formatTime(event.start_time)} - ${formatTime(event.end_time)}`;
+        } else if (event.start_time) {
+          const [hours, minutes] = event.start_time.split(':');
+          const hour = parseInt(hours, 10);
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const displayHour = hour % 12 || 12;
+          timeDisplay = `${displayHour}:${minutes} ${ampm}`;
+        }
 
-      setUpcomingEvents(transformedEvents);
+        return {
+          id: event.id,
+          title: event.title,
+          description: event.description || '',
+          // Date mapping - use start_date as date, and end_date if exists
+          date: event.start_date,
+          startDate: event.start_date,
+          endDate: event.end_date || null,
+          // Time mapping
+          time: timeDisplay,
+          startTime: event.start_time || null,
+          endTime: event.end_time || null,
+          // Image mapping
+          image: event.image_url || null,
+          imageUrl: event.image_url || null,
+          // Location mapping
+          location: event.is_online ? null : (event.address || null),
+          meetingLink: event.is_online ? (event.location_link || null) : null,
+          // URL mapping (for clickable links in EventCard)
+          // For online events, location_link is the meeting link
+          // For in-person events, we don't have a separate URL field
+          url: event.location_link || null,
+          website: event.location_link || null,
+          // Category and other fields
+          category: event.category || 'Social Activities',
+          tags: event.tags || [],
+          isOnline: event.is_online || false,
+          // Recurring event fields
+          is_recurring: event.is_recurring || false,
+          isRecurring: event.is_recurring || false,
+          recurring_days: event.recurring_days || null,
+          recurringDays: event.recurring_days || null,
+          // Keep original data for reference
+          ...event,
+        };
+      });
+
+      setUpcomingEvents(mappedEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
+      toast.error('Failed to load events');
+      setUpcomingEvents([]);
+    } finally {
+      setEventsLoading(false);
     }
   };
 
@@ -402,6 +467,24 @@ function GroupDetail() {
     } catch (error) {
       console.error('Error fetching media:', error);
     }
+  };
+
+  const handleCardClick = (event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEvent(null);
+  };
+
+  const handleInterested = (event) => {
+    console.log(`Interested in event: ${event.title}`);
+  };
+
+  const handleBoost = (event) => {
+    console.log(`Boosted event: ${event.title}`);
   };
 
   const handleJoinLeave = async () => {
@@ -659,30 +742,34 @@ function GroupDetail() {
                   </button>
                 )}
                 
-                {/* Events Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {upcomingEvents.length > 0 ? (
-                    upcomingEvents.map((event, index) => {
+                {/* Events Grid - Same layout as Explore page */}
+                {eventsLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                  </div>
+                ) : upcomingEvents.length === 0 ? (
+                  <div className="text-center py-20">
+                    <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 text-lg font-medium mb-2">No events found</p>
+                    <p className="text-gray-400 text-sm">Check back soon for new events!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {upcomingEvents.map((event) => {
                       const isJoined = joinedEventIds.has(event.id);
                       return (
-                        <EventCard
-                          key={event.id || index}
+                        <EventCard 
+                          key={event.id || event.title}
                           event={event}
                           isJoined={isJoined}
-                          onInterested={() => {}}
-                          onBoost={() => {}}
-                          onCardClick={() => {}}
+                          onInterested={() => handleInterested(event)}
+                          onBoost={() => handleBoost(event)}
+                          onCardClick={() => handleCardClick(event)}
                         />
                       );
-                    })
-                  ) : (
-                    <div className="col-span-2 bg-white border border-gray-100 rounded-lg p-12 text-center">
-                      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-500 text-lg font-medium mb-2">No upcoming events</p>
-                      <p className="text-gray-400 text-sm">Check back soon for new events!</p>
-                    </div>
-                  )}
-                </div>
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -813,6 +900,13 @@ function GroupDetail() {
         onClose={() => setShowAddMediaModal(false)}
         communityId={id}
         onUploadSuccess={fetchMedia}
+      />
+
+      {/* Event Detail Modal */}
+      <EventDetailModal 
+        isOpen={isModalOpen}
+        event={selectedEvent}
+        onClose={handleCloseModal}
       />
 
       {/* Hide scrollbar styles */}
