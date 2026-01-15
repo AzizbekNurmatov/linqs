@@ -195,6 +195,7 @@ function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) 
             opacity: 0.6;
             transform: scale(1.05);
           }
+
         }
         
         .animate-pulse-slow {

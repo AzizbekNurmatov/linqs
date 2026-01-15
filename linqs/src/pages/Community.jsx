@@ -104,31 +104,35 @@ function Community() {
     return count.toString();
   };
 
-  // Passion categories for the hero section
+  // Passion categories for the hero section with neon colors
   const passionCategories = [
     {
       id: 'adventurers',
-      label: 'Adventurers',
+      label: 'ADVENTURERS',
       image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&h=400&fit=crop',
-      description: 'Nature, Hiking, Outdoor',
+      description: 'NATURE • HIKING • OUTDOOR',
+      color: '#FFD700', // Neon Yellow
     },
     {
       id: 'creators',
-      label: 'Creators',
+      label: 'CREATORS',
       image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop',
-      description: 'Art, Photography, Design',
+      description: 'ART • PHOTOGRAPHY • DESIGN',
+      color: '#FF006E', // Hot Pink
     },
     {
       id: 'techies',
-      label: 'Techies',
+      label: 'TECHIES',
       image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=600&h=400&fit=crop',
-      description: 'Code, Tech, Innovation',
+      description: 'CODE • TECH • INNOVATION',
+      color: '#0055FF', // Electric Blue
     },
     {
       id: 'socializers',
-      label: 'Socializers',
+      label: 'SOCIALIZERS',
       image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=600&h=400&fit=crop',
-      description: 'Food, Music, Events',
+      description: 'FOOD • MUSIC • EVENTS',
+      color: '#00FF41', // Lime Green
     },
   ];
 
@@ -252,10 +256,22 @@ function Community() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-12 gap-4">
             {/* Left: Title and Subtitle */}
             <div>
-              <h1 className="text-5xl md:text-6xl font-serif font-bold text-black tracking-tight mb-2">
-                Find your <span className="text-blue-600">Tribe</span>
+              <h1 className="text-6xl md:text-8xl font-black text-black tracking-tight mb-4 uppercase relative inline-block">
+                FIND YOUR CREW
+                {/* Jagged underline SVG */}
+                <svg 
+                  className="absolute -bottom-2 left-0 w-full h-4"
+                  viewBox="0 0 400 20"
+                  preserveAspectRatio="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M0,15 L20,5 L40,15 L60,5 L80,15 L100,5 L120,15 L140,5 L160,15 L180,5 L200,15 L220,5 L240,15 L260,5 L280,15 L300,5 L320,15 L340,5 L360,15 L380,5 L400,15 L400,20 L0,20 Z"
+                    fill="black"
+                  />
+                </svg>
               </h1>
-              <p className="text-lg text-gray-600 font-serif">
+              <p className="text-lg text-black font-bold uppercase mt-6">
                 Discover groups or start your own.
               </p>
             </div>
@@ -263,51 +279,51 @@ function Community() {
             {/* Right: Create Community Button */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="rounded-full bg-black text-white px-6 py-3 text-sm font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+              className="bg-black text-white px-6 py-3 text-sm font-black uppercase border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all whitespace-nowrap"
             >
               + Create Community
             </button>
           </div>
           
-          {/* Passion Category Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {passionCategories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
-                className={`
-                  relative aspect-[4/3] rounded-lg overflow-hidden group
-                  transition-all duration-300 ease-out
-                  ${selectedCategory === category.id 
-                    ? 'ring-4 ring-blue-600 ring-offset-2 scale-105' 
-                    : 'hover:scale-105 hover:brightness-110'
-                  }
-                `}
-              >
-                {/* Background Image */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${category.image})` }}
+          {/* Passion Category Trading Cards - Horizontal Scroll */}
+          <div className="overflow-x-auto scrollbar-hide pb-4 -mx-4 sm:mx-0 px-4 sm:px-0">
+            <div className="flex gap-6 min-w-max">
+              {/* Cards */}
+              {passionCategories.map((category, index) => (
+                <button
+                  key={`${category.id}-${index}`}
+                  onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
+                  className={`
+                    relative aspect-[3/4] w-[280px] flex-shrink-0 overflow-hidden group
+                    border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]
+                    transition-all duration-200 ease-out
+                    ${selectedCategory === category.id 
+                      ? 'shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] -translate-y-1' 
+                      : 'hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1'
+                    }
+                  `}
                 >
-                  {/* Dark Overlay */}
-                  <div className={`
-                    absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-black/30
-                    transition-opacity duration-300
-                    ${selectedCategory === category.id ? 'opacity-90' : 'group-hover:opacity-80'}
-                  `} />
-                </div>
-                
-                {/* Content */}
-                <div className="relative h-full flex flex-col items-center justify-center text-white p-4">
-                  <h3 className="text-2xl md:text-3xl font-bold mb-2 text-center">
-                    {category.label}
-                  </h3>
-                  <p className="text-sm text-gray-200 text-center opacity-90">
-                    {category.description}
-                  </p>
-                </div>
-              </button>
-            ))}
+                  {/* Top 70% - Image with grayscale filter */}
+                  <div 
+                    className="relative h-[70%] bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-300"
+                    style={{ backgroundImage: `url(${category.image})` }}
+                  />
+                  
+                  {/* Bottom 30% - Solid neon color background */}
+                  <div 
+                    className="h-[30%] flex flex-col items-center justify-center p-4"
+                    style={{ backgroundColor: category.color }}
+                  >
+                    <h3 className="text-xl font-black text-black uppercase text-center mb-1 leading-tight">
+                      {category.label}
+                    </h3>
+                    <p className="text-xs font-black text-black uppercase text-center leading-tight">
+                      {category.description}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
           
           {/* Clear Filter Button */}
@@ -538,6 +554,18 @@ function Community() {
           </div>
         </div>
       )}
+
+      {/* Custom styles for marquee and scrollbar */}
+      <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+      `}</style>
     </div>
   );
 }
