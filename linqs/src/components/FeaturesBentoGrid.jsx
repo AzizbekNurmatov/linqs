@@ -2,16 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
-// Color palette for tags
-const tagColors = [
-  { border: 'border-orange-400', hash: 'text-orange-600' },
-  { border: 'border-emerald-400', hash: 'text-emerald-600' },
-  { border: 'border-purple-400', hash: 'text-purple-600' },
-  { border: 'border-blue-400', hash: 'text-blue-600' },
-  { border: 'border-rose-400', hash: 'text-rose-600' },
-  { border: 'border-yellow-400', hash: 'text-yellow-600' },
-  { border: 'border-teal-400', hash: 'text-teal-600' },
-];
+// Neon color palette for brutalist tags
+const neonColors = ['bg-yellow-400', 'bg-cyan-400', 'bg-pink-400', 'bg-lime-400'];
 
 // Deterministic color assignment for tags
 function getTagColor(tagString) {
@@ -22,8 +14,8 @@ function getTagColor(tagString) {
     hash = hash & hash; // Convert to 32-bit integer
   }
   
-  const index = Math.abs(hash) % tagColors.length;
-  return tagColors[index];
+  const index = Math.abs(hash) % neonColors.length;
+  return neonColors[index];
 }
 
 function FeaturesBentoGrid() {
@@ -79,35 +71,21 @@ function FeaturesBentoGrid() {
 
   return (
     <section className="w-full py-16">
-      {/* Community Ticker - Single Row */}
-      <section className="w-full bg-[#FDFBF7] overflow-hidden py-8">
-        <div className="flex w-max animate-infinite-scroll">
-          {/* First group of tags */}
-          <div className="flex shrink-0 gap-4">
-            {tags.map((tag, index) => {
-              const colorScheme = getTagColor(tag);
+      {/* Community Ticker - Neo-Brutalist Infinite Marquee */}
+      <section className="w-full bg-white overflow-hidden py-8 border-b-4 border-black">
+        <div className="marquee-container">
+          <div className="marquee-content">
+            {/* Duplicate tags multiple times for seamless infinite loop */}
+            {[...tags, ...tags, ...tags].map((tag, index) => {
+              const bgColor = getTagColor(tag);
+              const tagText = tag.startsWith('#') ? tag : `#${tag}`;
+              
               return (
                 <span
-                  key={`tag-1-${index}`}
-                  className={`px-6 py-2 rounded-full bg-white border ${colorScheme.border} font-mono text-sm font-medium tracking-wide uppercase text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]`}
+                  key={`tag-${index}`}
+                  className={`${bgColor} border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 py-2 mx-4 font-black uppercase text-black whitespace-nowrap transition-all duration-200 marquee-tag`}
                 >
-                  <span className={colorScheme.hash}>#</span>
-                  {tag.substring(1)}
-                </span>
-              );
-            })}
-          </div>
-          {/* Second group of tags (duplicate for seamless loop) */}
-          <div className="flex shrink-0 gap-4">
-            {tags.map((tag, index) => {
-              const colorScheme = getTagColor(tag);
-              return (
-                <span
-                  key={`tag-2-${index}`}
-                  className={`px-6 py-2 rounded-full bg-white border ${colorScheme.border} font-mono text-sm font-medium tracking-wide uppercase text-gray-900 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]`}
-                >
-                  <span className={colorScheme.hash}>#</span>
-                  {tag.substring(1)}
+                  {tagText.toUpperCase()}
                 </span>
               );
             })}
@@ -223,6 +201,38 @@ function FeaturesBentoGrid() {
           </div>
         </div>
       </div>
+
+      {/* Marquee Animation Styles */}
+      <style>{`
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-33.333%);
+          }
+        }
+        
+        .marquee-container {
+          overflow: hidden;
+          position: relative;
+        }
+        
+        .marquee-content {
+          display: flex;
+          animation: marquee 40s linear infinite;
+          width: fit-content;
+        }
+        
+        .marquee-container:hover .marquee-content {
+          animation-play-state: paused;
+        }
+        
+        .marquee-tag:hover {
+          transform: translateY(1px);
+          box-shadow: none !important;
+        }
+      `}</style>
     </section>
   );
 }
