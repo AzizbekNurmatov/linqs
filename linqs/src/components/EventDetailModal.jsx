@@ -32,22 +32,22 @@ function JoinEventButton({ event, isJoined, isLoading, isToggling, user, onToggl
   const getButtonContent = () => {
     if (isLoading) {
       return {
-        text: 'Loading...',
-        className: 'w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-gray-400 cursor-not-allowed transition-all duration-200 text-base',
+        text: 'LOADING...',
+        className: 'w-full py-4 bg-gray-400 text-white font-bold uppercase text-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-not-allowed transition-all duration-200',
       };
     }
 
     if (isJoined) {
       return {
-        text: 'See you there!',
-        className: 'w-full px-6 py-3.5 rounded-lg font-semibold text-gray-700 bg-white border-2 border-green-500 hover:bg-green-50 active:scale-[0.98] transition-all duration-200 text-base flex items-center justify-center gap-2',
-        icon: <Check className="w-5 h-5 text-green-600" />,
+        text: 'SEE YOU THERE!',
+        className: 'w-full py-4 bg-green-600 text-white font-bold uppercase text-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-black hover:translate-y-1 hover:shadow-none transition-all duration-200 flex items-center justify-center gap-2',
+        icon: <Check className="w-5 h-5 text-white" />,
       };
     }
 
     return {
-      text: 'Join Event',
-      className: 'w-full px-6 py-3.5 rounded-lg font-semibold text-white bg-blue-700 hover:bg-blue-800 active:scale-[0.98] transition-all duration-200 text-base',
+      text: 'JOIN EVENT',
+      className: 'w-full py-4 bg-blue-600 text-white font-bold uppercase text-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-black hover:translate-y-1 hover:shadow-none transition-all duration-200',
     };
   };
 
@@ -65,18 +65,18 @@ function JoinEventButton({ event, isJoined, isLoading, isToggling, user, onToggl
   );
 }
 
-// Dynamic tag color function - deterministically assigns colors based on tag name
+// Dynamic tag color function - deterministically assigns neon pastel backgrounds
 function getTagColor(tagName) {
-  // Define color palette with complete Tailwind class mappings
+  // Define neon pastel color palette
   const colorClasses = [
-    'border-emerald-400 text-emerald-600 bg-emerald-50',
-    'border-violet-400 text-violet-600 bg-violet-50',
-    'border-amber-400 text-amber-600 bg-amber-50',
-    'border-rose-400 text-rose-600 bg-rose-50',
-    'border-sky-400 text-sky-600 bg-sky-50',
-    'border-orange-400 text-orange-600 bg-orange-50',
-    'border-indigo-400 text-indigo-600 bg-indigo-50',
-    'border-fuchsia-400 text-fuchsia-600 bg-fuchsia-50',
+    'bg-yellow-200 text-black',
+    'bg-pink-200 text-black',
+    'bg-green-200 text-black',
+    'bg-blue-200 text-black',
+    'bg-purple-200 text-black',
+    'bg-orange-200 text-black',
+    'bg-cyan-200 text-black',
+    'bg-lime-200 text-black',
   ];
   
   // Hash function: sum character codes
@@ -88,7 +88,7 @@ function getTagColor(tagName) {
   // Get index from palette using modulo
   const index = Math.abs(hash) % colorClasses.length;
   
-  // Return Tailwind classes: border, text, and background
+  // Return Tailwind classes: background and text
   return colorClasses[index];
 }
 
@@ -238,18 +238,18 @@ function EventDetailModal({ isOpen, event, onClose }) {
       }`}
       onClick={onClose}
     >
-      {/* Overlay with backdrop blur */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40" />
       
       {/* Modal Panel */}
       <div
-        className={`relative bg-white rounded-lg shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 ease-out ${
-          isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        className={`relative bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-5xl w-full max-h-[90vh] overflow-y-auto transform transition-opacity duration-300 ${
+          isAnimating ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. Hero Banner Section */}
-        <div className="relative h-64 md:h-72 w-full overflow-hidden">
+        <div className="relative h-64 md:h-72 w-full overflow-hidden border-b-4 border-black">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -260,16 +260,16 @@ function EventDetailModal({ isOpen, event, onClose }) {
               }}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600" />
+            <div className="w-full h-full bg-gray-300" />
           )}
           
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           
-          {/* Close Button - Top Right */}
+          {/* Close Button - Top Right - Square */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-gray-900 transition-all duration-200 ease-out active:scale-95 shadow-lg z-10"
+            className="absolute top-4 right-4 w-10 h-10 border-2 border-black bg-white flex items-center justify-center text-black hover:bg-black hover:text-white transition-all duration-200 z-10"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -277,25 +277,25 @@ function EventDetailModal({ isOpen, event, onClose }) {
           
           {/* Title and Host Info - Absolute positioned at bottom-left */}
           <div className="absolute bottom-0 left-0 right-0 p-6 pb-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-lg">
+            <h2 className="text-5xl font-black text-white mb-2 uppercase tracking-tighter drop-shadow-lg">
               {event.title}
             </h2>
-            <p className="text-white/90 text-sm md:text-base drop-shadow-md">
-              Hosted by <span className="font-semibold">{hostName}</span>
+            <p className="text-white/90 text-sm font-mono uppercase drop-shadow-md">
+              HOSTED BY <span className="font-black">{hostName.toUpperCase()}</span>
             </p>
           </div>
         </div>
 
         {/* 2. Tags Row */}
         {tags.length > 0 && (
-          <div className="w-full px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="w-full px-6 py-4 bg-gray-50 border-b-2 border-black">
             <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium border-2 ${getTagColor(tag)} whitespace-nowrap`}
+                  className={`px-3 py-1 border-2 border-black text-xs font-bold uppercase whitespace-nowrap ${getTagColor(tag)}`}
                 >
-                  {tag}
+                  {tag.toUpperCase()}
                 </span>
               ))}
             </div>
@@ -303,36 +303,36 @@ function EventDetailModal({ isOpen, event, onClose }) {
         )}
 
         {/* 3. Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-8 p-6 md:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-0">
           {/* Left Column - About the Event */}
-          <div className="space-y-4">
-            <h3 className="text-xl font-bold text-gray-900">About the Event</h3>
-            <div className="text-gray-700 text-base leading-relaxed whitespace-pre-wrap">
+          <div className="p-6 md:p-8 space-y-4">
+            <h3 className="text-xl font-black text-black uppercase">About the Event</h3>
+            <div className="text-black text-base leading-relaxed whitespace-pre-wrap">
               {description}
             </div>
           </div>
 
-          {/* Right Column - Logistics (Sticky on larger screens) */}
-          <div className="lg:sticky lg:top-6 h-fit">
-            <div className="bg-gray-50 rounded-lg p-6 space-y-6 border border-gray-200">
+          {/* Right Column - Ticket Stub Sidebar */}
+          <div className="lg:sticky lg:top-0 h-fit border-l-4 border-dashed border-black bg-gray-50">
+            <div className="p-6 space-y-6">
               {/* Date & Time */}
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                  <Calendar className="w-6 h-6 text-black flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-500 mb-1">Date</p>
+                    <p className="text-xs font-mono uppercase text-gray-500 mb-1">Date</p>
                     {dateTimeDisplay.isRecurring && dateTimeDisplay.recurringDays.length > 0 ? (
-                      // Show 7-day row for recurring events (matching Preview Card pattern)
-                      <div className="flex gap-1.5 mt-1">
+                      // Show 7-day row for recurring events - Brutalist style
+                      <div className="flex gap-1 mt-1">
                         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => {
                           const isSelected = dateTimeDisplay.recurringDays.includes(day);
                           return (
                             <div
                               key={day}
-                              className={`flex-1 px-2 py-1.5 rounded-full text-xs font-semibold text-center transition-colors ${
+                              className={`flex-1 px-1 py-1 border-2 border-black text-[10px] font-black text-center transition-colors ${
                                 isSelected
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-100 text-gray-400'
+                                  ? 'bg-black text-white'
+                                  : 'bg-white text-black'
                               }`}
                             >
                               {day}
@@ -341,9 +341,9 @@ function EventDetailModal({ isOpen, event, onClose }) {
                         })}
                       </div>
                     ) : (
-                      // Show standard date format for non-recurring events
-                      <p className="text-base text-gray-900 mt-1">
-                        {dateTimeDisplay.date || 'Date TBD'}
+                      // Show standard date format for non-recurring events - Monospace
+                      <p className="text-base font-mono font-black text-black mt-1">
+                        {dateTimeDisplay.date || 'DATE TBD'}
                       </p>
                     )}
                   </div>
@@ -351,10 +351,10 @@ function EventDetailModal({ isOpen, event, onClose }) {
                 
                 {dateTimeDisplay.time && (
                   <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <Clock className="w-6 h-6 text-black flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1">Time</p>
-                      <p className="text-base text-gray-900">{dateTimeDisplay.time}</p>
+                      <p className="text-xs font-mono uppercase text-gray-500 mb-1">Time</p>
+                      <p className="text-base font-mono font-black text-black">{typeof dateTimeDisplay.time === 'string' ? dateTimeDisplay.time.toUpperCase() : dateTimeDisplay.time}</p>
                     </div>
                   </div>
                 )}
@@ -364,23 +364,23 @@ function EventDetailModal({ isOpen, event, onClose }) {
               {location && location !== 'Location TBD' && (
                 <div className="flex items-start gap-3">
                   {event.is_online || event.isOnline ? (
-                    <LinkIcon className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <LinkIcon className="w-6 h-6 text-black flex-shrink-0 mt-0.5" />
                   ) : (
-                    <MapPin className="w-5 h-5 text-gray-500 flex-shrink-0 mt-0.5" />
+                    <MapPin className="w-6 h-6 text-black flex-shrink-0 mt-0.5" />
                   )}
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-500 mb-1">Location</p>
+                    <p className="text-xs font-mono uppercase text-gray-500 mb-1">Location</p>
                     {event.is_online || event.isOnline ? (
                       <a
                         href={event.location_link || event.meetingLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-base text-blue-600 hover:underline break-words"
+                        className="text-base font-mono font-black text-black underline hover:no-underline break-words"
                       >
                         {location}
                       </a>
                     ) : (
-                      <p className="text-base text-gray-900">{location}</p>
+                      <p className="text-base font-mono font-black text-black">{location}</p>
                     )}
                   </div>
                 </div>

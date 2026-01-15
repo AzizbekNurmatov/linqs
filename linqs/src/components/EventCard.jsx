@@ -222,11 +222,11 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
+      className="bg-[#FDFDFD] border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-200 flex flex-col cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Image Section - Sharp corners, aspect-video */}
-      <div className="relative aspect-video bg-gray-200 overflow-hidden">
+      <div className="relative aspect-video bg-gray-200 overflow-hidden border-b-2 border-black">
         {getImageUrl() ? (
           <img 
             src={getImageUrl()} 
@@ -234,24 +234,26 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
             className="w-full h-full object-cover"
             onError={(e) => {
               e.target.style.display = 'none';
-              e.target.parentElement.className += ' bg-gradient-to-br from-gray-300 to-gray-400';
+              e.target.parentElement.className += ' bg-gray-300';
             }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400"></div>
+          <div className="w-full h-full bg-gray-300"></div>
         )}
         
-        {/* Price Badge (Top Left) */}
-        <div className="absolute top-2 left-2 bg-white text-gray-900 text-xs font-semibold px-2 py-1 rounded-sm">
+        {/* Price Sticker (Top Left) - Neon Yellow or Hot Pink */}
+        <div className={`absolute top-2 left-2 border-2 border-black text-black text-xs font-black px-2 py-1 ${
+          getPrice() === 'Free' ? 'bg-[#FFD700]' : 'bg-[#FF006E]'
+        }`}>
           {getPrice()}
         </div>
 
-        {/* Actions (Top Right) */}
+        {/* Actions (Top Right) - Square buttons */}
         <div className="absolute top-2 right-2 flex gap-2">
           <button
             onClick={handleSave}
-            className={`bg-white/90 p-1.5 rounded-full hover:bg-white text-gray-700 transition-colors ${
-              isSaved ? 'text-blue-600' : ''
+            className={`w-8 h-8 border-2 border-black bg-white flex items-center justify-center transition-colors ${
+              isSaved ? 'bg-black text-white' : 'bg-white text-black hover:bg-black hover:text-white'
             }`}
             aria-label="Bookmark event"
           >
@@ -260,12 +262,11 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
           <button
             onClick={handleBoost}
             className={`
-              transition-all duration-300 ease-in-out flex items-center justify-center cursor-pointer rounded-full
+              border-2 border-black bg-white flex items-center justify-center transition-all duration-200
               ${isBoosted 
-                ? 'w-auto px-3 py-1.5 bg-white/90 hover:bg-white backdrop-blur-sm shadow-sm' 
-                : 'w-9 h-9 bg-white/90 hover:bg-white'
+                ? 'w-auto px-2 bg-black text-white' 
+                : 'w-8 h-8 hover:bg-black hover:text-white'
               }
-              active:scale-95
             `}
             aria-label="Boost event"
           >
@@ -273,14 +274,14 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
               className={`
                 w-4 h-4 transition-colors flex-shrink-0
                 ${isBoosted 
-                  ? 'text-yellow-500 fill-yellow-500' 
-                  : 'text-gray-500'
+                  ? 'text-white fill-white' 
+                  : 'text-black'
                 }
               `}
             />
             {isBoosted && (
               <span 
-                className="text-xs font-bold font-mono ml-1.5 text-gray-700"
+                className="text-xs font-black font-mono ml-1.5 text-white"
               >
                 {boostCount}
               </span>
@@ -290,27 +291,27 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
       </div>
 
       {/* Content Section */}
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-1">
         {/* Date or Recurring Days */}
         {(() => {
           const isRecurring = event.is_recurring || event.isRecurring;
           const recurringDays = event.recurring_days || event.recurringDays || [];
           
           if (isRecurring && recurringDays.length > 0) {
-            // Show day pills for recurring events
+            // Show day pills for recurring events - Brutalist style
             const dayLabels = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
             return (
-              <div className="mb-1 overflow-x-auto scrollbar-hide">
+              <div className="mb-2 overflow-x-auto scrollbar-hide">
                 <div className="flex gap-1 min-w-max">
                   {dayLabels.map((day) => {
                     const isSelected = recurringDays.includes(day);
                     return (
                       <div
                         key={day}
-                        className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-semibold text-center transition-colors ${
+                        className={`flex-shrink-0 w-7 h-7 flex items-center justify-center border-2 border-black text-[10px] font-black text-center transition-colors ${
                           isSelected
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-100 text-gray-400'
+                            ? 'bg-black text-white'
+                            : 'bg-white text-black'
                         }`}
                       >
                         {day}
@@ -321,25 +322,25 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
               </div>
             );
           } else {
-            // Show formatted date for non-recurring events
+            // Show formatted date for non-recurring events - Monospace font
             const formattedDate = formatDate();
             // Check if it's a date range (contains " - " and doesn't contain "•")
             const isDateRange = formattedDate.includes(' - ') && !formattedDate.includes('•');
             return (
-              <p className={`text-xs font-bold text-[#7C6F50] tracking-wide mb-1 ${isDateRange ? '' : 'uppercase'}`}>
+              <p className={`text-xs font-black font-mono text-black tracking-wide mb-2 ${isDateRange ? '' : 'uppercase'}`}>
                 {formattedDate}
               </p>
             );
           }
         })()}
 
-        {/* Title - Bolded */}
-        <h3 className="text-base font-bold text-gray-900 leading-tight mb-1 truncate">
+        {/* Title - Uppercase and Bold */}
+        <h3 className="text-base font-black text-black leading-tight mb-2 truncate uppercase">
           {event.title}
         </h3>
 
-        {/* Host Group - "by [Organizer]" subtitle */}
-        <p className="text-sm text-gray-500 mb-3">
+        {/* Host Group - Monospace font */}
+        <p className="text-sm font-mono text-slate-700 mb-3">
           {getHostGroup()}
         </p>
 
@@ -350,15 +351,18 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
               href={getEventUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:underline truncate block"
+              className="text-xs font-mono text-black underline hover:no-underline truncate block"
             >
               {getEventUrl()}
             </a>
           </div>
         )}
 
+        {/* Dashed Divider */}
+        <div className="border-t-2 border-dashed border-black my-3"></div>
+
         {/* Footer - Category Indicator */}
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end mt-auto">
           {(() => {
             const category = event.category || 'Social Activities';
             const IconComponent = getCategoryIcon(category);
@@ -366,8 +370,8 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
             const categoryDisplayName = category === 'Social Activities' ? 'Social' : category;
             return (
               <div className="flex items-center gap-1.5">
-                <IconComponent className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span className="text-xs text-gray-400">{categoryDisplayName}</span>
+                <IconComponent className="w-4 h-4 text-black flex-shrink-0" />
+                <span className="text-xs font-mono font-black text-slate-700 uppercase">{categoryDisplayName}</span>
               </div>
             );
           })()}
