@@ -70,9 +70,9 @@ function FeaturesBentoGrid() {
   }, []);
 
   return (
-    <section className="w-full py-16">
+    <section className="w-full pt-8 pb-16">
       {/* Community Ticker - Neo-Brutalist Infinite Marquee */}
-      <section className="w-full bg-white overflow-hidden py-8 border-b-4 border-black">
+      <section className="w-full bg-white overflow-hidden pt-6 pb-6 mb-6 border-b-4 border-black">
         <div className="marquee-container">
           <div className="marquee-content">
             {/* Duplicate tags multiple times for seamless infinite loop */}
