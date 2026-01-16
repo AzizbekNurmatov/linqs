@@ -28,55 +28,55 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
 
   return (
     <>
-      {/* Floating Navbar */}
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 max-w-5xl w-[90%] h-16 rounded-full bg-white/90 backdrop-blur-md border border-gray-200 shadow-xl z-50">
-        <nav className="flex items-center justify-between px-6 h-full">
+      {/* Floating Navbar - Neo-Brutalist Command Bar */}
+      <header className="fixed top-6 left-1/2 -translate-x-1/2 max-w-5xl w-[90%] h-16 rounded-xl bg-white border-[3px] border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] z-50">
+        <nav className="flex items-center h-full">
           {/* Left: Brand */}
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-indigo-500 to-rose-400"></div>
-            <Link to="/" className="font-bold text-2xl tracking-tighter text-slate-800">
+          <div className="flex items-center gap-2 px-6 h-full border-r-2 border-black">
+            <div className="w-3 h-3 bg-black"></div>
+            <Link to="/" className="font-black text-2xl tracking-tighter text-black uppercase">
               Linqs
             </Link>
           </div>
 
           {/* Center: Navigation Links (Hidden on Mobile) */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6 px-6 h-full border-r-2 border-black">
             <Link 
               to="/" 
-              className={`text-sm font-medium transition-colors duration-200 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 ${
                 location.pathname === '/' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black underline decoration-2 underline-offset-4' 
+                  : 'text-black hover:bg-[#FEF08A] hover:no-underline px-2 py-1 -mx-2 -my-1'
               }`}
             >
               Home
             </Link>
             <Link 
               to="/explore" 
-              className={`text-sm font-medium transition-colors duration-200 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 ${
                 location.pathname === '/explore' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black underline decoration-2 underline-offset-4' 
+                  : 'text-black hover:bg-[#FEF08A] hover:no-underline px-2 py-1 -mx-2 -my-1'
               }`}
             >
               Explore
             </Link>
             <Link 
               to="/community" 
-              className={`text-sm font-medium transition-colors duration-200 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 ${
                 location.pathname === '/community' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black underline decoration-2 underline-offset-4' 
+                  : 'text-black hover:bg-[#FEF08A] hover:no-underline px-2 py-1 -mx-2 -my-1'
               }`}
             >
               Community
             </Link>
             <Link 
               to="/about" 
-              className={`text-sm font-medium transition-colors duration-200 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 ${
                 location.pathname === '/about' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black underline decoration-2 underline-offset-4' 
+                  : 'text-black hover:bg-[#FEF08A] hover:no-underline px-2 py-1 -mx-2 -my-1'
               }`}
             >
               About
@@ -84,13 +84,13 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 px-6 h-full flex-1 justify-end">
             {/* Auth Links (Hidden on Mobile) */}
             {!loading && (
               <>
                 {user ? (
                   <div className="hidden md:flex items-center gap-4">
-                    <span className="text-sm text-slate-600">
+                    <span className="text-sm font-bold text-black uppercase">
                       {user.email?.split('@')[0]}
                     </span>
                     <Logout />
@@ -98,7 +98,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
                 ) : (
                   <Link 
                     to="/login" 
-                    className="hidden md:block text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200"
+                    className="hidden md:block text-sm font-bold text-black uppercase hover:bg-[#FEF08A] px-2 py-1 -mx-2 transition-colors duration-200"
                   >
                     Login
                   </Link>
@@ -110,7 +110,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             {onOpenSavedEvents && (
               <button
                 onClick={onOpenSavedEvents}
-                className="text-slate-600 hover:text-indigo-600 transition-colors duration-200 p-2 rounded-full hover:bg-slate-100 relative"
+                className="text-black hover:bg-[#FEF08A] transition-colors duration-200 p-2 -mx-2"
                 aria-label="View saved events"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" strokeWidth="0">
@@ -122,7 +122,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             {/* Create Event Button */}
             <button
               onClick={handleCreateEventClick}
-              className="bg-gradient-to-r from-indigo-500 to-rose-400 text-white rounded-full px-6 py-2.5 font-bold text-sm flex items-center gap-2 hover:scale-105 active:scale-95 transition-all duration-200 ease-out shadow-lg hover:shadow-xl"
+              className="bg-[#FF69B4] text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] px-6 py-2.5 font-bold text-sm flex items-center gap-2 active:shadow-none active:translate-y-[2px] transition-all duration-100"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
@@ -134,7 +134,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden w-8 h-8 flex items-center justify-center text-slate-600 hover:text-indigo-600 transition-colors duration-200"
+              className="md:hidden w-8 h-8 flex items-center justify-center text-black hover:bg-[#FEF08A] transition-colors duration-200"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -153,14 +153,14 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl bg-white/95 backdrop-blur-md rounded-3xl border border-gray-200 shadow-xl z-40 md:hidden">
-          <nav className="flex flex-col p-4 gap-3">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 w-[90%] max-w-5xl bg-white rounded-xl border-[3px] border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] z-40 md:hidden">
+          <nav className="flex flex-col p-4 gap-2">
             <Link 
               to="/" 
-              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 py-2 px-2 -mx-2 ${
                 location.pathname === '/' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black bg-[#FEF08A]' 
+                  : 'text-black hover:bg-[#FEF08A]'
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -168,10 +168,10 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             </Link>
             <Link 
               to="/explore" 
-              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 py-2 px-2 -mx-2 ${
                 location.pathname === '/explore' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black bg-[#FEF08A]' 
+                  : 'text-black hover:bg-[#FEF08A]'
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -179,10 +179,10 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             </Link>
             <Link 
               to="/community" 
-              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 py-2 px-2 -mx-2 ${
                 location.pathname === '/community' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black bg-[#FEF08A]' 
+                  : 'text-black hover:bg-[#FEF08A]'
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -190,10 +190,10 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
             </Link>
             <Link 
               to="/about" 
-              className={`text-sm font-medium transition-colors duration-200 py-2 ${
+              className={`text-sm font-bold uppercase transition-all duration-200 py-2 px-2 -mx-2 ${
                 location.pathname === '/about' 
-                  ? 'text-black font-bold' 
-                  : 'text-gray-500 hover:text-black'
+                  ? 'text-black bg-[#FEF08A]' 
+                  : 'text-black hover:bg-[#FEF08A]'
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -205,7 +205,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
                   setMobileMenuOpen(false);
                   onOpenSavedEvents();
                 }}
-                className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2 flex items-center gap-2"
+                className="text-sm font-bold uppercase text-black hover:bg-[#FEF08A] transition-colors duration-200 py-2 px-2 -mx-2 flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" strokeWidth="0">
                   <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -217,11 +217,11 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
               <>
                 {user ? (
                   <>
-                    <div className="text-sm text-slate-600 py-2 border-t border-slate-200 pt-3 mt-1">
+                    <div className="text-sm font-bold uppercase text-black py-2 px-2 border-t-2 border-black pt-3 mt-1">
                       {user.email?.split('@')[0]}
                     </div>
                     <div 
-                      className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2"
+                      className="text-sm font-bold uppercase text-black hover:bg-[#FEF08A] transition-colors duration-200 py-2 px-2 -mx-2"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Logout />
@@ -230,7 +230,7 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
                 ) : (
                   <Link 
                     to="/login" 
-                    className="text-sm text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-2 border-t border-slate-200 pt-3 mt-1"
+                    className="text-sm font-bold uppercase text-black hover:bg-[#FEF08A] transition-colors duration-200 py-2 px-2 -mx-2 border-t-2 border-black pt-3 mt-1"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Login
