@@ -317,19 +317,13 @@ function Explore() {
         {/* Header & Filter Section */}
         <div className="mb-8">
           {/* Top Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-gray-900">
               Events near{' '}
               <button className="underline hover:text-gray-700">
                 Charleston, SC
               </button>
             </h1>
-            <div className="flex flex-wrap gap-3">
-              <FilterDropdown label="Day" filterName="day" options={filterOptions.day} />
-              <FilterDropdown label="Type" filterName="type" options={filterOptions.type} />
-              <FilterDropdown label="Distance" filterName="distance" options={filterOptions.distance} />
-              <FilterDropdown label="Price" filterName="price" options={filterOptions.price} />
-            </div>
           </div>
 
           {/* Category Icons Row - Neo-Brutalist Tile Buttons */}

@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Bookmark, Zap, Coffee, Sparkles, Code, Briefcase } from 'lucide-react';
 import { useSavedEvents } from '../context/SavedEventsContext';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 // Custom minimalist SVG icons matching lucide-react style
 const WellnessIcon = ({ className }) => (
@@ -78,10 +80,22 @@ const getCategoryIcon = (categoryName) => {
 function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick, variant = 'default' }) {
   const { toggleSaveEvent, isEventSaved } = useSavedEvents();
   const isSaved = isEventSaved(event);
-  const [isBoosted, setIsBoosted] = useState(false);
-  const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 91) + 10); // Random count between 10-100
+  const [hasBoosted, setHasBoosted] = useState(false);
+  const [boostCount, setBoostCount] = useState(() => {
+    // Get boost count from event data if available, otherwise default to 0
+    return event.boost_count || event.boostCount || 0;
+  });
   
   const isFeatured = variant === 'featured';
+
+  // Check localStorage on mount to see if user has already boosted this event
+  useEffect(() => {
+    const boostedKey = `boosted_event_${event.id}`;
+    const hasBoostedBefore = localStorage.getItem(boostedKey) === 'true';
+    if (hasBoostedBefore) {
+      setHasBoosted(true);
+    }
+  }, [event.id]);
 
   // Format date - handles both formatted strings and Date objects, with date range support
   const formatDate = () => {
@@ -214,9 +228,47 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
     }
   };
 
-  const handleBoost = (e) => {
+  const handleBoost = async (e) => {
     e.stopPropagation();
-    setIsBoosted(!isBoosted);
+    
+    // If already boosted, show toast and return
+    if (hasBoosted) {
+      toast('Already Hyped!', { icon: '⚡' });
+      return;
+    }
+
+    // Optimistic UI update
+    setBoostCount(prev => prev + 1);
+    setHasBoosted(true);
+    
+    // Save to localStorage
+    const boostedKey = `boosted_event_${event.id}`;
+    localStorage.setItem(boostedKey, 'true');
+
+    // Call Supabase RPC function in the background
+    try {
+      const { error } = await supabase.rpc('increment_boost', {
+        row_id: event.id
+      });
+      
+      if (error) {
+        console.error('Error incrementing boost:', error);
+        // Revert optimistic update on error
+        setBoostCount(prev => prev - 1);
+        setHasBoosted(false);
+        localStorage.removeItem(boostedKey);
+        toast.error('Failed to boost event. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error calling increment_boost:', error);
+      // Revert optimistic update on error
+      setBoostCount(prev => prev - 1);
+      setHasBoosted(false);
+      localStorage.removeItem(boostedKey);
+      toast.error('Failed to boost event. Please try again.');
+    }
+
+    // Call the onBoost callback if provided
     if (onBoost) {
       onBoost(event);
     }
@@ -283,30 +335,18 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
           <button
             onClick={handleBoost}
             className={`
-              border-2 border-black bg-white flex items-center justify-center transition-all duration-200
-              ${isBoosted 
-                ? 'w-auto px-2 bg-black text-white' 
-                : 'w-8 h-8 hover:bg-black hover:text-white'
+              border-2 border-black flex items-center gap-2 p-2 transition-all duration-200 active:scale-95
+              ${hasBoosted 
+                ? 'bg-yellow-300 text-black' 
+                : 'bg-white text-black hover:bg-yellow-100'
               }
             `}
             aria-label="Boost event"
           >
-            <Zap 
-              className={`
-                w-4 h-4 transition-colors flex-shrink-0
-                ${isBoosted 
-                  ? 'text-white fill-white' 
-                  : 'text-black'
-                }
-              `}
-            />
-            {isBoosted && (
-              <span 
-                className="text-xs font-black font-mono ml-1.5 text-white"
-              >
-                {boostCount}
-              </span>
-            )}
+            <Zap className="w-4 h-4 flex-shrink-0" />
+            <span className="text-xs font-black font-mono">
+              {boostCount}
+            </span>
           </button>
         </div>
       </div>
