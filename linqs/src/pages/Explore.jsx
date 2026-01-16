@@ -260,7 +260,7 @@ function Explore() {
     }
   }, [openFilter]);
 
-  // FilterDropdown component
+  // FilterDropdown component - Neo-Brutalist Style
   const FilterDropdown = ({ label, filterName, options }) => {
     const isOpen = openFilter === filterName;
     const selectedValue = filters[filterName];
@@ -269,18 +269,22 @@ function Explore() {
       <div className="relative filter-dropdown">
         <button
           onClick={() => handleFilterClick(filterName)}
-          className="flex items-center gap-1 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 px-3 py-2 hover:bg-gray-50"
+          className={`flex items-center gap-1 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-sm font-bold text-black px-3 py-2 transition-all duration-200 ${
+            isOpen ? 'rounded-sm' : 'rounded-sm'
+          } hover:bg-yellow-200`}
         >
           {selectedValue} <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
         {isOpen && (
-          <div className="absolute top-full mt-2 bg-white border border-gray-200 rounded-md shadow-lg z-20 w-48">
+          <div className="absolute top-full mt-2 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] rounded-sm z-20 w-48">
             {options.map((option) => (
               <button
                 key={option}
                 onClick={() => handleFilterSelect(filterName, option)}
-                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                  option === selectedValue ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${
+                  option === selectedValue 
+                    ? 'bg-black text-white' 
+                    : 'text-black hover:bg-yellow-200'
                 }`}
               >
                 {option}
@@ -328,9 +332,9 @@ function Explore() {
             </div>
           </div>
 
-          {/* Category Icons Row */}
+          {/* Category Icons Row - Neo-Brutalist Tile Buttons */}
           <div className="overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
-            <div className="flex gap-6 pb-2">
+            <div className="flex gap-4 pb-2">
               {categories.map((category, index) => {
                 const IconComponent = category.icon;
                 const isActive = activeCategory === category.name;
@@ -338,14 +342,14 @@ function Explore() {
                   <button
                     key={index}
                     onClick={() => handleCategoryClick(category.name)}
-                    className={`flex flex-col items-center gap-2 min-w-[80px] pb-2 transition-colors ${
+                    className={`flex flex-col items-center gap-2 border-2 border-black p-3 min-w-[100px] transition-all duration-200 text-black ${
                       isActive
-                        ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
+                        ? 'bg-yellow-300 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
+                        : 'bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-100 hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]'
                     }`}
                   >
-                    <IconComponent className="w-6 h-6" />
-                    <span className="text-xs font-medium whitespace-nowrap">
+                    <IconComponent className="w-6 h-6 text-current" />
+                    <span className="text-xs font-bold uppercase whitespace-nowrap">
                       {category.name}
                     </span>
                   </button>
