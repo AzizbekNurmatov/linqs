@@ -250,6 +250,17 @@ function Home() {
             />
           </div>
         )}
+        
+        {/* Terminal Style Section Header */}
+        <div className="w-full bg-black text-white font-mono font-bold uppercase p-4 my-8 -mx-6">
+          <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+            <span>&gt; THE LINEUP</span>
+            <span className="text-sm font-mono font-bold uppercase">
+              Showing {loading ? '...' : filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
+            </span>
+          </div>
+        </div>
+        
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
