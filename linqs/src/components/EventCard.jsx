@@ -75,11 +75,13 @@ const getCategoryIcon = (categoryName) => {
   }
 };
 
-function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick }) {
+function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick, variant = 'default' }) {
   const { toggleSaveEvent, isEventSaved } = useSavedEvents();
   const isSaved = isEventSaved(event);
   const [isBoosted, setIsBoosted] = useState(false);
   const [boostCount, setBoostCount] = useState(() => Math.floor(Math.random() * 91) + 10); // Random count between 10-100
+  
+  const isFeatured = variant === 'featured';
 
   // Format date - handles both formatted strings and Date objects, with date range support
   const formatDate = () => {
@@ -222,11 +224,19 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
 
   return (
     <div 
-      className="bg-[#FDFDFD] border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-200 flex flex-col cursor-pointer"
+      className={`bg-white overflow-hidden flex flex-col cursor-pointer ${
+        isFeatured 
+          ? 'border-[3px] border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-4'
+          : 'bg-[#FDFDFD] border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-200'
+      }`}
       onClick={handleCardClick}
     >
-      {/* Image Section - Sharp corners, aspect-video */}
-      <div className="relative aspect-video bg-gray-200 overflow-hidden border-b-2 border-black">
+      {/* Image Section */}
+      <div className={`relative bg-gray-200 overflow-hidden ${
+        isFeatured 
+          ? 'h-80 border-2 border-black mb-4' 
+          : 'aspect-video border-b-2 border-black'
+      }`}>
         {getImageUrl() ? (
           <img 
             src={getImageUrl()} 
@@ -241,12 +251,23 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
           <div className="w-full h-full bg-gray-300"></div>
         )}
         
-        {/* Price Sticker (Top Left) - Neon Yellow or Hot Pink */}
-        <div className={`absolute top-2 left-2 border-2 border-black text-black text-xs font-black px-2 py-1 ${
-          getPrice() === 'Free' ? 'bg-[#FFD700]' : 'bg-[#FF006E]'
-        }`}>
-          {getPrice()}
-        </div>
+        {/* Editor's Pick Badge (Featured variant only) */}
+        {isFeatured && (
+          <div className="absolute top-4 left-4 z-10">
+            <span className="bg-yellow-300 border-2 border-black text-black text-xs font-black uppercase px-3 py-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              EDITOR'S PICK
+            </span>
+          </div>
+        )}
+        
+        {/* Price Sticker (Top Left) - Neon Yellow or Hot Pink - Only show if not featured */}
+        {!isFeatured && (
+          <div className={`absolute top-2 left-2 border-2 border-black text-black text-xs font-black px-2 py-1 ${
+            getPrice() === 'Free' ? 'bg-[#FFD700]' : 'bg-[#FF006E]'
+          }`}>
+            {getPrice()}
+          </div>
+        )}
 
         {/* Actions (Top Right) - Square buttons */}
         <div className="absolute top-2 right-2 flex gap-2">
@@ -291,7 +312,7 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
       </div>
 
       {/* Content Section */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className={`flex flex-col flex-1 ${isFeatured ? 'px-0' : 'p-4'}`}>
         {/* Date or Recurring Days */}
         {(() => {
           const isRecurring = event.is_recurring || event.isRecurring;
@@ -335,7 +356,9 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
         })()}
 
         {/* Title - Uppercase and Bold */}
-        <h3 className="text-base font-black text-black leading-tight mb-2 truncate uppercase">
+        <h3 className={`font-black text-black leading-tight mb-2 truncate uppercase ${
+          isFeatured ? 'text-3xl md:text-4xl' : 'text-base'
+        }`}>
           {event.title}
         </h3>
 

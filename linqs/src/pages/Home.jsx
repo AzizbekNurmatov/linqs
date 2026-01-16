@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import HeroSection from '../components/HeroSection';
 import FeaturesBentoGrid from '../components/FeaturesBentoGrid';
 import EventList from '../components/EventList';
+import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
@@ -11,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 
 function Home() {
   const [events, setEvents] = useState([]);
+  const [featuredEvent, setFeaturedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -49,8 +51,14 @@ function Home() {
       try {
         setLoading(true);
         
-        // Fetch events and joined event IDs in parallel
-        const [eventsResult, joinedIdsResult] = await Promise.all([
+        // Fetch featured pick, events, and joined event IDs in parallel
+        const [featuredResult, eventsResult, joinedIdsResult] = await Promise.all([
+          supabase
+            .from('featured_picks')
+            .select('*, events(*)')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single(),
           supabase
             .from('events')
             .select('*')
@@ -59,8 +67,60 @@ function Home() {
           user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
         ]);
 
+        const { data: featuredData, error: featuredError } = featuredResult;
         const { data: eventsData, error: eventsError } = eventsResult;
         const { data: joinedIds, error: joinedError } = joinedIdsResult;
+
+        // Handle featured pick (ignore error if no featured pick exists)
+        if (!featuredError && featuredData && featuredData.events) {
+          const featuredEventData = featuredData.events;
+          // Transform featured event to match EventCard format
+          let featuredTimeDisplay = featuredEventData.start_time || '';
+          if (featuredEventData.start_time && featuredEventData.end_time) {
+            const formatTime = (timeStr) => {
+              if (!timeStr) return '';
+              const [hours, minutes] = timeStr.split(':');
+              const hour = parseInt(hours, 10);
+              const ampm = hour >= 12 ? 'PM' : 'AM';
+              const displayHour = hour % 12 || 12;
+              return `${displayHour}:${minutes} ${ampm}`;
+            };
+            featuredTimeDisplay = `${formatTime(featuredEventData.start_time)} - ${formatTime(featuredEventData.end_time)}`;
+          } else if (featuredEventData.start_time) {
+            const [hours, minutes] = featuredEventData.start_time.split(':');
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            featuredTimeDisplay = `${displayHour}:${minutes} ${ampm}`;
+          }
+
+          const transformedFeaturedEvent = {
+            id: featuredEventData.id,
+            title: featuredEventData.title,
+            description: featuredEventData.description || '',
+            date: featuredEventData.start_date,
+            startDate: featuredEventData.start_date,
+            endDate: featuredEventData.end_date || null,
+            time: featuredTimeDisplay,
+            startTime: featuredEventData.start_time || null,
+            endTime: featuredEventData.end_time || null,
+            image: featuredEventData.image_url || null,
+            imageUrl: featuredEventData.image_url || null,
+            location: featuredEventData.is_online ? null : (featuredEventData.address || null),
+            meetingLink: featuredEventData.is_online ? (featuredEventData.location_link || null) : null,
+            url: featuredEventData.location_link || null,
+            website: featuredEventData.location_link || null,
+            category: featuredEventData.category || 'Social Activities',
+            tags: featuredEventData.tags || [],
+            isOnline: featuredEventData.is_online || false,
+            is_recurring: featuredEventData.is_recurring || false,
+            isRecurring: featuredEventData.is_recurring || false,
+            recurring_days: featuredEventData.recurring_days || null,
+            recurringDays: featuredEventData.recurring_days || null,
+            ...featuredEventData,
+          };
+          setFeaturedEvent(transformedFeaturedEvent);
+        }
 
         if (eventsError) {
           console.error('Error fetching events:', eventsError);
@@ -141,12 +201,14 @@ function Home() {
     fetchData();
   }, [user?.id]);
 
-  const handleInterested = (index) => {
-    console.log(`Interested in event: ${events[index].title}`);
+  const handleInterested = (eventOrIndex) => {
+    const event = typeof eventOrIndex === 'number' ? events[eventOrIndex] : eventOrIndex;
+    console.log(`Interested in event: ${event?.title || 'Unknown'}`);
   };
 
-  const handleBoost = (index) => {
-    console.log(`Boosted event: ${events[index].title}`);
+  const handleBoost = (eventOrIndex) => {
+    const event = typeof eventOrIndex === 'number' ? events[eventOrIndex] : eventOrIndex;
+    console.log(`Boosted event: ${event?.title || 'Unknown'}`);
   };
 
   // Filter events based on selected categories, but limit to 8 for grid
@@ -175,6 +237,19 @@ function Home() {
       />
       <FeaturesBentoGrid />
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 pb-12">
+        {/* Featured Event - Editor's Pick */}
+        {featuredEvent && (
+          <div className="mb-12">
+            <EventCard
+              event={featuredEvent}
+              variant="featured"
+              isJoined={joinedEventIds.has(featuredEvent.id)}
+              onInterested={() => handleInterested(featuredEvent)}
+              onBoost={() => handleBoost(featuredEvent)}
+              onCardClick={() => handleCardClick(featuredEvent)}
+            />
+          </div>
+        )}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
