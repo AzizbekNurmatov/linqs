@@ -27,6 +27,8 @@ function FeaturesBentoGrid() {
 
   // Fetch trending communities from Supabase
   useEffect(() => {
+    let isMounted = true; // Cleanup flag
+    
     const fetchTrendingGroups = async () => {
       try {
         setLoading(true);
@@ -38,6 +40,9 @@ function FeaturesBentoGrid() {
           .limit(4);
 
         if (error) throw error;
+        
+        // Only update state if component is still mounted
+        if (!isMounted) return;
 
         // Transform communities to match component structure
         const transformedGroups = await Promise.all(
@@ -57,16 +62,23 @@ function FeaturesBentoGrid() {
           })
         );
 
-        setTrendingGroups(transformedGroups);
+        if (isMounted) {
+          setTrendingGroups(transformedGroups);
+        }
       } catch (error) {
         console.error('Error fetching trending groups:', error);
-        setTrendingGroups([]);
+        if (isMounted) setTrendingGroups([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchTrendingGroups();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (

@@ -1,6 +1,6 @@
 import EventCard from './EventCard';
 
-function EventList({ events, joinedEventIds, onInterested, onBoost, onCardClick }) {
+function EventList({ events, joinedEventIds, onInterested, onBoost, onCardClick, onDelete }) {
   // Create array of 8 slots, filling with events and null for empty slots
   const gridSlots = Array.from({ length: 8 }, (_, index) => events[index] || null);
 
@@ -22,6 +22,7 @@ function EventList({ events, joinedEventIds, onInterested, onBoost, onCardClick 
             onInterested={() => onInterested(events.indexOf(event))}
             onBoost={() => onBoost(events.indexOf(event))}
             onCardClick={() => onCardClick(event)}
+            onDelete={onDelete}
           />
         );
       })}

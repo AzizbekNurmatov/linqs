@@ -47,6 +47,8 @@ function Home() {
 
   // Fetch events and joined status from Supabase
   useEffect(() => {
+    let isMounted = true; // Cleanup flag
+    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -66,6 +68,9 @@ function Home() {
             .limit(8),
           user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
         ]);
+
+        // Only update state if component is still mounted
+        if (!isMounted) return;
 
         const { data: featuredData, error: featuredError } = featuredResult;
         const { data: eventsData, error: eventsError } = eventsResult;
@@ -189,16 +194,23 @@ function Home() {
           };
         });
 
-        setEvents(mappedEvents);
+        if (isMounted) {
+          setEvents(mappedEvents);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setEvents([]);
+        if (isMounted) setEvents([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [user?.id]);
 
   const handleInterested = (eventOrIndex) => {
@@ -209,6 +221,16 @@ function Home() {
   const handleBoost = (eventOrIndex) => {
     const event = typeof eventOrIndex === 'number' ? events[eventOrIndex] : eventOrIndex;
     console.log(`Boosted event: ${event?.title || 'Unknown'}`);
+  };
+
+  const handleDelete = (eventId) => {
+    // Optimistically remove the event from the UI
+    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+    
+    // Also remove from featured event if it's the featured one
+    if (featuredEvent && featuredEvent.id === eventId) {
+      setFeaturedEvent(null);
+    }
   };
 
   // Filter events based on selected categories, but limit to 8 for grid
@@ -247,6 +269,7 @@ function Home() {
               onInterested={() => handleInterested(featuredEvent)}
               onBoost={() => handleBoost(featuredEvent)}
               onCardClick={() => handleCardClick(featuredEvent)}
+              onDelete={handleDelete}
             />
           </div>
         )}
@@ -280,6 +303,7 @@ function Home() {
             onInterested={handleInterested}
             onBoost={handleBoost}
             onCardClick={handleCardClick}
+            onDelete={handleDelete}
           />
         )}
       </main>

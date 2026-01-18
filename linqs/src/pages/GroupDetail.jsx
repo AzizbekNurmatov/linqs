@@ -150,101 +150,116 @@ function GroupDetail() {
 
   // Fetch community data from Supabase
   useEffect(() => {
-    if (id) {
-      fetchCommunityData();
-    }
-  }, [id, user?.id]);
+    if (!id) return;
+    
+    let isMounted = true; // Cleanup flag
+    
+    const fetchCommunityData = async () => {
+      try {
+        if (!isMounted) return;
+        setLoading(true);
 
-  const fetchCommunityData = async () => {
-    try {
-      setLoading(true);
-
-      // Fetch community
-      const { data: community, error: communityError } = await supabase
-        .from('communities')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (communityError) throw communityError;
-      if (!community) {
-        toast.error('Community not found');
-        navigate('/community');
-        return;
-      }
-
-      // Fetch host profile
-      const { data: hostProfile } = await supabase
-        .from('profiles')
-        .select('username, avatar_url')
-        .eq('id', community.host_user_id)
-        .single();
-
-      // Fetch member count
-      const { count: memberCount } = await supabase
-        .from('community_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('community_id', id);
-
-      // Fetch events this week
-      const startOfWeek = new Date();
-      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-      const { count: eventsThisWeek } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true })
-        .eq('community_id', id)
-        .gte('start_date', startOfWeek.toISOString().split('T')[0]);
-
-      // Check if user is a member
-      if (user) {
-        const { data: memberCheck } = await supabase
-          .from('community_members')
+        // Fetch community
+        const { data: community, error: communityError } = await supabase
+          .from('communities')
           .select('*')
-          .eq('community_id', id)
-          .eq('user_id', user.id)
+          .eq('id', id)
           .single();
-        setIsJoined(!!memberCheck);
+
+        if (!isMounted) return;
+        
+        if (communityError) throw communityError;
+        if (!community) {
+          toast.error('Community not found');
+          navigate('/community');
+          return;
+        }
+
+        // Fetch host profile
+        const { data: hostProfile } = await supabase
+          .from('profiles')
+          .select('username, avatar_url')
+          .eq('id', community.host_user_id)
+          .single();
+
+        // Fetch member count
+        const { count: memberCount } = await supabase
+          .from('community_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('community_id', id);
+
+        // Fetch events this week
+        const startOfWeek = new Date();
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        const { count: eventsThisWeek } = await supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('community_id', id)
+          .gte('start_date', startOfWeek.toISOString().split('T')[0]);
+
+        if (!isMounted) return;
+
+        // Check if user is a member
+        if (user) {
+          const { data: memberCheck } = await supabase
+            .from('community_members')
+            .select('*')
+            .eq('community_id', id)
+            .eq('user_id', user.id)
+            .single();
+          if (isMounted) setIsJoined(!!memberCheck);
+        }
+
+        // Set group data
+        if (isMounted) {
+          setGroupData({
+            id: community.id,
+            name: community.name,
+            description: community.short_description || '',
+            coverImage: community.banner_image_url,
+            logo: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
+            memberCount: memberCount || 0,
+            eventsThisWeek: eventsThisWeek || 0,
+            isPublic: true,
+            location: 'Charleston, SC', // You can add location to communities table if needed
+            organizer: {
+              name: hostProfile?.username || 'Unknown',
+              avatar: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
+            },
+            details: community.long_description || community.short_description || '', // Use long_description for details, fallback to short_description
+            rules: [
+              'Be respectful to all members',
+              'No spam or self-promotion',
+              'Keep discussions relevant',
+              'Follow community guidelines',
+            ],
+          });
+        }
+
+        // Fetch events
+        if (isMounted) await fetchEvents();
+        // Fetch discussion posts
+        if (isMounted) await fetchDiscussionPosts();
+        // Fetch members
+        if (isMounted) await fetchMembers();
+        // Fetch media
+        if (isMounted) await fetchMedia();
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('Error fetching community:', error);
+        toast.error('Failed to load community');
+      } finally {
+        if (isMounted) setLoading(false);
       }
+    };
 
-      // Set group data
-      setGroupData({
-        id: community.id,
-        name: community.name,
-        description: community.short_description || '',
-        coverImage: community.banner_image_url,
-        logo: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
-        memberCount: memberCount || 0,
-        eventsThisWeek: eventsThisWeek || 0,
-        isPublic: true,
-        location: 'Charleston, SC', // You can add location to communities table if needed
-        organizer: {
-          name: hostProfile?.username || 'Unknown',
-          avatar: hostProfile?.avatar_url || 'https://i.pravatar.cc/150?img=15',
-        },
-        details: community.long_description || community.short_description || '', // Use long_description for details, fallback to short_description
-        rules: [
-          'Be respectful to all members',
-          'No spam or self-promotion',
-          'Keep discussions relevant',
-          'Follow community guidelines',
-        ],
-      });
-
-      // Fetch events
-      await fetchEvents();
-      // Fetch discussion posts
-      await fetchDiscussionPosts();
-      // Fetch members
-      await fetchMembers();
-      // Fetch media
-      await fetchMedia();
-    } catch (error) {
-      console.error('Error fetching community:', error);
-      toast.error('Failed to load community');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchCommunityData();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [id, user?.id]);
 
   const fetchEvents = async () => {
     try {

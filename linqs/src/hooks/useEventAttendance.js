@@ -21,9 +21,14 @@ export function useEventAttendance(eventId) {
       return;
     }
 
+    let isMounted = true; // Cleanup flag
+
     const checkAttendance = async () => {
       setIsLoading(true);
       const { data, error } = await checkEventAttendance(eventId);
+      
+      // Only update state if component is still mounted
+      if (!isMounted) return;
       
       if (error) {
         console.error('Error checking attendance:', error);
@@ -35,6 +40,11 @@ export function useEventAttendance(eventId) {
     };
 
     checkAttendance();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [eventId, user?.id]);
 
   /**

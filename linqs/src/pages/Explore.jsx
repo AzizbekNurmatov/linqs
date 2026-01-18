@@ -90,8 +90,15 @@ function Explore() {
     console.log(`Boosted event: ${event.title}`);
   };
 
+  const handleDelete = (eventId) => {
+    // Optimistically remove the event from the UI
+    setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+  };
+
   // Fetch events and joined status from Supabase
   useEffect(() => {
+    let isMounted = true; // Cleanup flag
+    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -104,6 +111,9 @@ function Explore() {
             .order('created_at', { ascending: false }),
           user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
         ]);
+
+        // Only update state if component is still mounted
+        if (!isMounted) return;
 
         const { data: eventsData, error: eventsError } = eventsResult;
         const { data: joinedIds, error: joinedError } = joinedIdsResult;
@@ -182,16 +192,23 @@ function Explore() {
           };
         });
 
-        setEvents(mappedEvents);
+        if (isMounted) {
+          setEvents(mappedEvents);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setEvents([]);
+        if (isMounted) setEvents([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
   }, [user?.id]);
 
   // Dummy events data - commented out (keeping for reference)
@@ -378,6 +395,7 @@ function Explore() {
                   onInterested={() => handleInterested(event)}
                   onBoost={() => handleBoost(event)}
                   onCardClick={() => handleCardClick(event)}
+                  onDelete={handleDelete}
                 />
               );
             })}

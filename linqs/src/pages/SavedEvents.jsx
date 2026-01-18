@@ -18,6 +18,8 @@ function SavedEvents() {
 
   // Fetch saved events and joined status from Supabase
   useEffect(() => {
+    let isMounted = true; // Cleanup flag
+    
     const fetchSavedEvents = async () => {
       try {
         setLoading(true);
@@ -28,12 +30,15 @@ function SavedEvents() {
           user ? getJoinedEventIds() : Promise.resolve({ data: [], error: null })
         ]);
         
+        // Only update state if component is still mounted
+        if (!isMounted) return;
+        
         const { data, error } = savedEventsResult;
         const { data: joinedIds, error: joinedError } = joinedIdsResult;
         
         if (error) {
           console.error('Error fetching saved events:', error);
-          setEvents([]);
+          if (isMounted) setEvents([]);
           return;
         }
 
@@ -43,19 +48,25 @@ function SavedEvents() {
 
         // Create Set of joined event IDs for O(1) lookup
         const joinedSet = new Set(joinedIds || []);
-        setJoinedEventIds(joinedSet);
-
-        setEvents(data || []);
+        if (isMounted) {
+          setJoinedEventIds(joinedSet);
+          setEvents(data || []);
+        }
       } catch (error) {
         console.error('Error fetching saved events:', error);
-        setEvents([]);
+        if (isMounted) setEvents([]);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchSavedEvents();
-  }, [contextSavedEvents, user?.id]); // Re-fetch when context saved events or user changes
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]); // Only depend on user?.id - contextSavedEvents changes are handled by context
 
   const handleEventClick = (event) => {
     setSelectedEvent(event);

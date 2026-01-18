@@ -22,18 +22,20 @@ function Community() {
 
   // Fetch communities from Supabase
   useEffect(() => {
-    fetchCommunities();
-  }, []);
+    let isMounted = true; // Cleanup flag
+    
+    const fetchCommunities = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('communities')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-  const fetchCommunities = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('communities')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+        if (error) throw error;
+        
+        // Only update state if component is still mounted
+        if (!isMounted) return;
 
       // Transform data to match component structure
       const transformedGroups = await Promise.all(
@@ -76,14 +78,24 @@ function Community() {
         })
       );
 
-      setGroups(transformedGroups);
-    } catch (error) {
-      console.error('Error fetching communities:', error);
-      toast.error('Failed to load communities');
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (isMounted) {
+          setGroups(transformedGroups);
+        }
+      } catch (error) {
+        console.error('Error fetching communities:', error);
+        if (isMounted) toast.error('Failed to load communities');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchCommunities();
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleJoinGroup = (groupId) => {
     setJoinedGroups(prev => {

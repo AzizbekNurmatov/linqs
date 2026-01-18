@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Bookmark, Zap, Coffee, Sparkles, Code, Briefcase } from 'lucide-react';
+import { Bookmark, Zap, Coffee, Sparkles, Code, Briefcase, Loader2 } from 'lucide-react';
 import { useSavedEvents } from '../context/SavedEventsContext';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 // Custom minimalist SVG icons matching lucide-react style
 const WellnessIcon = ({ className }) => (
@@ -54,6 +56,43 @@ const FoodIcon = ({ className }) => (
   </svg>
 );
 
+// Trash can icon - closed state
+const TrashIconClosed = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+  </svg>
+);
+
+// Trash can icon - open state (lid lifted)
+const TrashIconOpen = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    <path d="M3 6l2-2M21 6l-2-2" />
+  </svg>
+);
+
 // Get category icon component
 const getCategoryIcon = (categoryName) => {
   const category = categoryName || 'Social Activities';
@@ -77,16 +116,25 @@ const getCategoryIcon = (categoryName) => {
   }
 };
 
-function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick, variant = 'default' }) {
+function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick, onDelete, variant = 'default' }) {
   const { toggleSaveEvent, isEventSaved } = useSavedEvents();
+  const { user } = useAuth();
   const isSaved = isEventSaved(event);
   const [hasBoosted, setHasBoosted] = useState(false);
   const [boostCount, setBoostCount] = useState(() => {
     // Get boost count from event data if available, otherwise default to 0
     return event.boost_count || event.boostCount || 0;
   });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
   const isFeatured = variant === 'featured';
+  
+  // Check if current user is the event owner
+  const currentUserId = user?.id;
+  const eventUserId = event.user_id || event.userId;
+  const canDelete = currentUserId && eventUserId && currentUserId === eventUserId;
 
   // Check localStorage on mount to see if user has already boosted this event
   useEffect(() => {
@@ -274,6 +322,50 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
     }
   };
 
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', event.id);
+
+      if (error) {
+        console.error('Error deleting event:', error);
+        toast.error('Failed to delete event. Please try again.');
+        setIsDeleting(false);
+        return;
+      }
+
+      // Close modal
+      setShowDeleteModal(false);
+
+      // Call onDelete callback to remove from UI
+      if (onDelete) {
+        onDelete(event.id);
+      }
+
+      toast.success('Event deleted successfully');
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Failed to delete event. Please try again.');
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (!isDeleting) {
+      setShowDeleteModal(false);
+    }
+  };
+
   return (
     <div 
       className={`bg-white overflow-hidden flex flex-col cursor-pointer ${
@@ -424,22 +516,51 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
         {/* Dashed Divider */}
         <div className="border-t-2 border-dashed border-black my-3"></div>
 
-        {/* Footer - Category Indicator */}
-        <div className="flex items-center justify-end mt-auto">
-          {(() => {
-            const category = event.category || 'Social Activities';
-            const IconComponent = getCategoryIcon(category);
-            // Get display name (remove "Activities" from "Social Activities")
-            const categoryDisplayName = category === 'Social Activities' ? 'Social' : category;
-            return (
-              <div className="flex items-center gap-1.5">
-                <IconComponent className="w-4 h-4 text-black flex-shrink-0" />
-                <span className="text-xs font-mono font-black text-slate-700 uppercase">{categoryDisplayName}</span>
-              </div>
-            );
-          })()}
+        {/* Footer - Delete Button (left) and Category Indicator (right) */}
+        <div className={`flex items-center mt-auto ${canDelete ? 'justify-between' : 'justify-end'}`}>
+          {/* Delete Button - Bottom Left */}
+          {canDelete && (
+            <button
+              onClick={handleDeleteClick}
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              className="flex items-center justify-center w-6 h-6 text-black hover:text-red-600 transition-colors"
+              aria-label="Delete event"
+              disabled={isDeleting}
+            >
+              {isHovering ? (
+                <TrashIconOpen className="w-4 h-4" />
+              ) : (
+                <TrashIconClosed className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          
+          {/* Category Indicator - Bottom Right */}
+          <div className="flex items-center justify-end">
+            {(() => {
+              const category = event.category || 'Social Activities';
+              const IconComponent = getCategoryIcon(category);
+              // Get display name (remove "Activities" from "Social Activities")
+              const categoryDisplayName = category === 'Social Activities' ? 'Social' : category;
+              return (
+                <div className="flex items-center gap-1.5">
+                  <IconComponent className="w-4 h-4 text-black flex-shrink-0" />
+                  <span className="text-xs font-mono font-black text-slate-700 uppercase">{categoryDisplayName}</span>
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }
