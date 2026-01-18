@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bookmark, Zap, Coffee, Sparkles, Code, Briefcase, Loader2 } from 'lucide-react';
 import { useSavedEvents } from '../context/SavedEventsContext';
 import { useAuth } from '../context/AuthContext';
@@ -135,6 +135,15 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
   const currentUserId = user?.id;
   const eventUserId = event.user_id || event.userId;
   const canDelete = currentUserId && eventUserId && currentUserId === eventUserId;
+
+  // Memory leak protection: track if component is mounted
+  const isMountedRef = useRef(true);
+  
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Check localStorage on mount to see if user has already boosted this event
   useEffect(() => {
@@ -339,10 +348,15 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
 
       if (error) {
         console.error('Error deleting event:', error);
-        toast.error('Failed to delete event. Please try again.');
-        setIsDeleting(false);
+        if (isMountedRef.current) {
+          toast.error('Failed to delete event. Please try again.');
+          setIsDeleting(false);
+        }
         return;
       }
+
+      // Only update state if component is still mounted
+      if (!isMountedRef.current) return;
 
       // Close modal
       setShowDeleteModal(false);
@@ -355,8 +369,10 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
       toast.success('Event deleted successfully');
     } catch (error) {
       console.error('Error deleting event:', error);
-      toast.error('Failed to delete event. Please try again.');
-      setIsDeleting(false);
+      if (isMountedRef.current) {
+        toast.error('Failed to delete event. Please try again.');
+        setIsDeleting(false);
+      }
     }
   };
 
