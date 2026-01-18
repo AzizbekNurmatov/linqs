@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { Analytics } from '@vercel/analytics/react';
 import { EventsProvider } from './context/EventsContext';
 import { SavedEventsProvider } from './context/SavedEventsContext';
 import { AuthProvider } from './context/AuthContext';
@@ -52,6 +53,7 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
+        <Analytics />
         </SavedEventsProvider>
       </EventsProvider>
     </AuthProvider>
