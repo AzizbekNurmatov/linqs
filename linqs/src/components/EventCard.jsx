@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Bookmark, Zap, Coffee, Sparkles, Code, Briefcase, Loader2 } from 'lucide-react';
 import { useSavedEvents } from '../context/SavedEventsContext';
 import { useAuth } from '../context/AuthContext';
@@ -135,15 +135,6 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
   const currentUserId = user?.id;
   const eventUserId = event.user_id || event.userId;
   const canDelete = currentUserId && eventUserId && currentUserId === eventUserId;
-
-  // Memory leak protection: track if component is mounted
-  const isMountedRef = useRef(true);
-  
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   // Check localStorage on mount to see if user has already boosted this event
   useEffect(() => {
@@ -337,42 +328,36 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
   };
 
   const handleConfirmDelete = async () => {
+    // Step 1: Set loading state to show spinner
     setIsDeleting(true);
 
     try {
-      // Delete from Supabase
+      // Step 2: Perform Supabase delete call
       const { error } = await supabase
         .from('events')
         .delete()
         .eq('id', event.id);
 
       if (error) {
+        // Error Handling: Only set isDeleting(false) if there was an error
         console.error('Error deleting event:', error);
-        if (isMountedRef.current) {
-          toast.error('Failed to delete event. Please try again.');
-          setIsDeleting(false);
-        }
+        toast.error('Failed to delete event. Please try again.');
+        setIsDeleting(false);
         return;
       }
 
-      // Only update state if component is still mounted
-      if (!isMountedRef.current) return;
-
-      // Close modal
-      setShowDeleteModal(false);
-
-      // Call onDelete callback to remove from UI
+      // Step 3: CRITICAL - If successful, call onDelete and STOP
+      // Do NOT set isDeleting(false), do NOT close modal
+      // The component is about to unmount, so updating state causes glitches
       if (onDelete) {
         onDelete(event.id);
       }
-
-      toast.success('Event deleted successfully');
+      // STOP HERE - component will unmount, no further state updates
     } catch (error) {
+      // Error Handling: Only set isDeleting(false) if there was an error
       console.error('Error deleting event:', error);
-      if (isMountedRef.current) {
-        toast.error('Failed to delete event. Please try again.');
-        setIsDeleting(false);
-      }
+      toast.error('Failed to delete event. Please try again.');
+      setIsDeleting(false);
     }
   };
 

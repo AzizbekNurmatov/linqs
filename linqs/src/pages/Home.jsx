@@ -215,12 +215,12 @@ function Home() {
 
   const handleInterested = (eventOrIndex) => {
     const event = typeof eventOrIndex === 'number' ? events[eventOrIndex] : eventOrIndex;
-    // Event interested handler
+    console.log(`Interested in event: ${event?.title || 'Unknown'}`);
   };
 
   const handleBoost = (eventOrIndex) => {
     const event = typeof eventOrIndex === 'number' ? events[eventOrIndex] : eventOrIndex;
-    // Event boost handler
+    console.log(`Boosted event: ${event?.title || 'Unknown'}`);
   };
 
   const handleDelete = (eventId) => {

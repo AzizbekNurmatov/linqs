@@ -83,11 +83,11 @@ function Explore() {
   };
 
   const handleInterested = (event) => {
-    // Event interested handler
+    console.log(`Interested in event: ${event.title}`);
   };
 
   const handleBoost = (event) => {
-    // Event boost handler
+    console.log(`Boosted event: ${event.title}`);
   };
 
   const handleDelete = (eventId) => {
