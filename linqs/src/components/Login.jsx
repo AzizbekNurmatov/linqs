@@ -27,12 +27,12 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-rose-50 px-4 py-12">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 border border-gray-100 relative">
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F7F8] px-4 py-12">
+      <div className="max-w-md w-full bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-8 relative">
         {/* Home Button - Top Left */}
         <Link
           to="/"
-          className="absolute top-4 left-4 text-gray-500 hover:text-indigo-600 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
+          className="absolute top-4 left-4 text-black hover:bg-yellow-200 transition-colors duration-200 p-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white"
           aria-label="Go to home"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,24 +40,24 @@ function Login() {
           </svg>
         </Link>
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-rose-400 mx-auto mb-4 flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 border-2 border-black bg-yellow-400 mx-auto mb-4 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome Back</h1>
-          <p className="text-slate-500">Sign in to your account to continue</p>
+          <h1 className="text-3xl font-bold text-black mb-2">WELCOME BACK</h1>
+          <p className="text-black font-medium">Sign in to your account to continue</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <div className="mb-6 p-4 bg-red-100 border-2 border-black text-black text-sm font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-bold text-black mb-2 uppercase">
               Email Address
             </label>
             <input
@@ -66,13 +66,13 @@ function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-bold text-black mb-2 uppercase">
               Password
             </label>
             <div className="relative">
@@ -82,13 +82,13 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                className="w-full px-4 py-3 pr-12 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
                 placeholder="••••••••"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-indigo-600 transition-colors duration-200 p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-black hover:text-black transition-colors duration-200 p-1"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
@@ -108,16 +108,16 @@ function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-500 to-rose-400 text-white rounded-xl py-3 font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-out shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-yellow-400 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-3 font-bold text-sm uppercase transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-black font-medium">
             Don't have an account?{' '}
-            <Link to="/register" className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+            <Link to="/register" className="text-black font-bold underline hover:no-underline transition-all">
               Sign up
             </Link>
           </p>

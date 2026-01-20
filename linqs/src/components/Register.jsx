@@ -64,12 +64,12 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-rose-50 px-4 py-12">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 border border-gray-100 relative">
+    <div className="min-h-screen flex items-center justify-center bg-[#F6F7F8] px-4 py-12">
+      <div className="max-w-md w-full bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-8 relative">
         {/* Home Button - Top Left */}
         <Link
           to="/"
-          className="absolute top-4 left-4 text-gray-500 hover:text-indigo-600 transition-colors duration-200 p-2 rounded-full hover:bg-gray-100"
+          className="absolute top-4 left-4 text-black hover:bg-yellow-200 transition-colors duration-200 p-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-white"
           aria-label="Go to home"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,17 +77,17 @@ function Register() {
           </svg>
         </Link>
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-rose-400 mx-auto mb-4 flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 border-2 border-black bg-yellow-400 mx-auto mb-4 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Create Account</h1>
-          <p className="text-slate-500">Sign up to get started with Linqs</p>
+          <h1 className="text-3xl font-bold text-black mb-2">CREATE ACCOUNT</h1>
+          <p className="text-black font-medium">Sign up to get started with Linqs</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <div className="mb-6 p-4 bg-red-100 border-2 border-black text-black text-sm font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             {error}
           </div>
         )}
@@ -95,7 +95,7 @@ function Register() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="firstName" className="block text-sm font-bold text-black mb-2 uppercase">
                 First Name
               </label>
               <input
@@ -104,12 +104,12 @@ function Register() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
                 placeholder="John"
               />
             </div>
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-2">
+              <label htmlFor="lastName" className="block text-sm font-bold text-black mb-2 uppercase">
                 Last Name
               </label>
               <input
@@ -118,14 +118,14 @@ function Register() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+                className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
                 placeholder="Doe"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="username" className="block text-sm font-bold text-black mb-2 uppercase">
               Username
             </label>
             <input
@@ -134,13 +134,13 @@ function Register() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
               placeholder="johndoe"
             />
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-bold text-black mb-2 uppercase">
               Email Address
             </label>
             <input
@@ -149,13 +149,13 @@ function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-bold text-black mb-2 uppercase">
               Password
             </label>
             <input
@@ -165,14 +165,14 @@ function Register() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
               placeholder="••••••••"
             />
-            <p className="mt-1 text-xs text-slate-500">Must be at least 6 characters</p>
+            <p className="mt-1 text-xs text-black font-medium">Must be at least 6 characters</p>
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-bold text-black mb-2 uppercase">
               Confirm Password
             </label>
             <input
@@ -182,7 +182,7 @@ function Register() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all duration-200"
+              className="w-full px-4 py-3 border-2 border-black focus:border-black focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] outline-none transition-all duration-200 bg-white text-black font-medium"
               placeholder="••••••••"
             />
           </div>
@@ -190,16 +190,16 @@ function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-indigo-500 to-rose-400 text-white rounded-xl py-3 font-bold text-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 ease-out shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-yellow-400 text-black border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-3 font-bold text-sm uppercase transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
           >
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-black font-medium">
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+            <Link to="/login" className="text-black font-bold underline hover:no-underline transition-all">
               Sign in
             </Link>
           </p>
