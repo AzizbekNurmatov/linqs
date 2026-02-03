@@ -171,7 +171,7 @@ function GroupDetail() {
         if (communityError) throw communityError;
         if (!community) {
           toast.error('Community not found');
-          navigate('/community');
+          navigate('/board');
           return;
         }
 

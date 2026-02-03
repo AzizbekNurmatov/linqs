@@ -204,7 +204,7 @@ function FeaturesBentoGrid() {
             {/* Footer Link */}
             <div className="mt-6 pt-6 border-t-2 border-black">
               <Link 
-                to="/community"
+                to="/board"
                 className="block w-full text-center bg-white border-2 border-black px-4 py-2 text-sm font-black uppercase text-black hover:bg-pink-300 transition-colors"
               >
                 View all groups →

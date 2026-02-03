@@ -62,14 +62,14 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
               Explore
             </Link>
             <Link 
-              to="/community" 
+              to="/board" 
               className={`text-sm font-bold uppercase transition-all duration-200 ${
-                location.pathname === '/community' 
+                location.pathname === '/board' 
                   ? 'text-black underline decoration-2 underline-offset-4' 
                   : 'text-black hover:bg-[#FEF08A] hover:no-underline px-2 py-1 -mx-2 -my-1'
               }`}
             >
-              Community
+              The Board
             </Link>
             <Link 
               to="/about" 
@@ -178,15 +178,15 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
               Explore
             </Link>
             <Link 
-              to="/community" 
+              to="/board" 
               className={`text-sm font-bold uppercase transition-all duration-200 py-2 px-2 -mx-2 ${
-                location.pathname === '/community' 
+                location.pathname === '/board' 
                   ? 'text-black bg-[#FEF08A]' 
                   : 'text-black hover:bg-[#FEF08A]'
               }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Community
+              The Board
             </Link>
             <Link 
               to="/about" 

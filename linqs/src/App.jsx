@@ -8,7 +8,9 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import GenreDetail from './pages/GenreDetail';
-import Community from './pages/Community';
+// Community feature preserved for reference - commented out during pivot to Bulletin Board
+// import Community from './pages/Community';
+import Board from './pages/Board';
 import GroupDetail from './pages/GroupDetail';
 import SavedEvents from './pages/SavedEvents';
 import About from './pages/About';
@@ -46,7 +48,9 @@ function App() {
               <Route index element={<Home />} />
               <Route path="explore" element={<Explore />} />
               <Route path="explore/:genre" element={<GenreDetail />} />
-              <Route path="community" element={<Community />} />
+              {/* Community route preserved for reference - commented out during pivot to Bulletin Board */}
+              {/* <Route path="community" element={<Community />} /> */}
+              <Route path="board" element={<Board />} />
               <Route path="group/:id" element={<GroupDetail />} />
               <Route path="saved" element={<SavedEvents />} />
               <Route path="about" element={<About />} />
