@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { MessageSquare, Zap, RefreshCw, UtensilsCrossed } from 'lucide-react';
+import { YapModal } from './YapModal';
 
 function BoardFilters() {
   const [activeFilter, setActiveFilter] = useState(null);
+  const [isYapModalOpen, setIsYapModalOpen] = useState(false);
 
   const filters = [
     {
@@ -40,11 +42,20 @@ function BoardFilters() {
   ];
 
   const handleFilterClick = (filterId) => {
+    if (filterId === 'yap') {
+      setIsYapModalOpen(true);
+      return;
+    }
     setActiveFilter(activeFilter === filterId ? null : filterId);
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <>
+      <YapModal
+        isOpen={isYapModalOpen}
+        onClose={() => setIsYapModalOpen(false)}
+      />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {filters.map((filter) => {
         const Icon = filter.icon;
         const isActive = activeFilter === filter.id;
@@ -78,6 +89,7 @@ function BoardFilters() {
         );
       })}
     </div>
+    </>
   );
 }
 
