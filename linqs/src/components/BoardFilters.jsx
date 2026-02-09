@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { MessageSquare, Zap, RefreshCw, UtensilsCrossed } from 'lucide-react';
 import { YapModal } from './YapModal';
+import { FlashModal } from './FlashModal';
 
 function BoardFilters() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [isYapModalOpen, setIsYapModalOpen] = useState(false);
+  const [isFlashOpen, setIsFlashOpen] = useState(false);
 
   const filters = [
     {
@@ -46,6 +48,10 @@ function BoardFilters() {
       setIsYapModalOpen(true);
       return;
     }
+    if (filterId === 'flash') {
+      setIsFlashOpen(true);
+      return;
+    }
     setActiveFilter(activeFilter === filterId ? null : filterId);
   };
 
@@ -55,6 +61,12 @@ function BoardFilters() {
         isOpen={isYapModalOpen}
         onClose={() => setIsYapModalOpen(false)}
       />
+      {isFlashOpen && (
+        <FlashModal
+          isOpen={isFlashOpen}
+          onClose={() => setIsFlashOpen(false)}
+        />
+      )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {filters.map((filter) => {
         const Icon = filter.icon;
