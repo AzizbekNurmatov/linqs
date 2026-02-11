@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { MessageSquare, Zap, RefreshCw, UtensilsCrossed } from 'lucide-react';
 import { YapModal } from './YapModal';
 import { FlashModal } from './FlashModal';
+import { BarterModal } from './BarterModal';
 
 function BoardFilters() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [isYapModalOpen, setIsYapModalOpen] = useState(false);
   const [isFlashOpen, setIsFlashOpen] = useState(false);
+  const [isBarterOpen, setIsBarterOpen] = useState(false);
 
   const filters = [
     {
@@ -52,6 +54,10 @@ function BoardFilters() {
       setIsFlashOpen(true);
       return;
     }
+    if (filterId === 'barter') {
+      setIsBarterOpen(true);
+      return;
+    }
     setActiveFilter(activeFilter === filterId ? null : filterId);
   };
 
@@ -67,6 +73,10 @@ function BoardFilters() {
           onClose={() => setIsFlashOpen(false)}
         />
       )}
+      <BarterModal
+        isOpen={isBarterOpen}
+        onClose={() => setIsBarterOpen(false)}
+      />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {filters.map((filter) => {
         const Icon = filter.icon;
