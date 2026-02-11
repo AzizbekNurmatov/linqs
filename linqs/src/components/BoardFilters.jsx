@@ -3,12 +3,14 @@ import { MessageSquare, Zap, RefreshCw, UtensilsCrossed } from 'lucide-react';
 import { YapModal } from './YapModal';
 import { FlashModal } from './FlashModal';
 import { BarterModal } from './BarterModal';
+import { BitesModal } from './BitesModal';
 
 function BoardFilters() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [isYapModalOpen, setIsYapModalOpen] = useState(false);
   const [isFlashOpen, setIsFlashOpen] = useState(false);
   const [isBarterOpen, setIsBarterOpen] = useState(false);
+  const [isBitesOpen, setIsBitesOpen] = useState(false);
 
   const filters = [
     {
@@ -58,6 +60,10 @@ function BoardFilters() {
       setIsBarterOpen(true);
       return;
     }
+    if (filterId === 'bites') {
+      setIsBitesOpen(true);
+      return;
+    }
     setActiveFilter(activeFilter === filterId ? null : filterId);
   };
 
@@ -76,6 +82,10 @@ function BoardFilters() {
       <BarterModal
         isOpen={isBarterOpen}
         onClose={() => setIsBarterOpen(false)}
+      />
+      <BitesModal
+        isOpen={isBitesOpen}
+        onClose={() => setIsBitesOpen(false)}
       />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {filters.map((filter) => {
