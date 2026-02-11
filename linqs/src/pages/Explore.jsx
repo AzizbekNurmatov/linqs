@@ -38,6 +38,56 @@ const CultureIcon = ({ className }) => (
   </svg>
 );
 
+/**
+ * Checks if an event date falls within the given date filter range.
+ * @param {string} eventDate - Event date (ISO string or YYYY-MM-DD)
+ * @param {string} filterType - 'any' | 'today' | 'this_week' | 'this_weekend'
+ * @returns {boolean}
+ */
+function isDateInRange(eventDate, filterType) {
+  if (!eventDate || filterType === 'any') return true;
+
+  const date = new Date(eventDate);
+  if (isNaN(date.getTime())) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const eventDay = new Date(date);
+  eventDay.setHours(0, 0, 0, 0);
+
+  if (filterType === 'today') {
+    return eventDay.getTime() === today.getTime();
+  }
+
+  if (filterType === 'this_week') {
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() + mondayOffset);
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+    return eventDay >= weekStart && eventDay <= weekEnd;
+  }
+
+  if (filterType === 'this_weekend') {
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    return eventDay >= friday && eventDay <= sunday;
+  }
+
+  return false;
+}
+
 const FoodIcon = ({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +113,7 @@ function Explore() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
   const [activeCategory, setActiveCategory] = useState('All events');
+  const [dateFilter, setDateFilter] = useState('any');
   const [joinedEventIds, setJoinedEventIds] = useState(new Set());
   const { user } = useAuth();
   const [filters, setFilters] = useState({
@@ -313,20 +364,30 @@ function Explore() {
     );
   };
 
-  // Filter events based on active category
-  const filteredEvents = activeCategory === 'All events'
-    ? events
-    : activeCategory === 'New Groups'
-    ? events // For now, show all events for 'New Groups' (can be customized later)
-    : events.filter(event => {
-        const eventCategory = (event.category || '').toLowerCase().trim();
-        const activeCategoryLower = activeCategory.toLowerCase().trim();
-        
-        // Exact match or partial match (e.g., 'Social' matches 'Social Activities')
-        return eventCategory === activeCategoryLower || 
-               eventCategory.includes(activeCategoryLower) ||
-               activeCategoryLower.includes(eventCategory);
-      });
+  // Filter events based on active category AND date filter
+  const filteredEvents = events.filter((event) => {
+    // Check 1: Category filter
+    const categoryMatch =
+      activeCategory === 'All events'
+        ? true
+        : activeCategory === 'New Groups'
+        ? true
+        : (() => {
+            const eventCategory = (event.category || '').toLowerCase().trim();
+            const activeCategoryLower = activeCategory.toLowerCase().trim();
+            return (
+              eventCategory === activeCategoryLower ||
+              eventCategory.includes(activeCategoryLower) ||
+              activeCategoryLower.includes(eventCategory)
+            );
+          })();
+
+    // Check 2: Date filter
+    const eventDate = event.startDate || event.date;
+    const dateMatch = isDateInRange(eventDate, dateFilter);
+
+    return categoryMatch && dateMatch;
+  });
 
   return (
     <div className="bg-[#F6F7F8] pt-32 pb-16 min-h-screen">
@@ -368,6 +429,32 @@ function Explore() {
               })}
             </div>
           </div>
+
+          {/* Date Filter Row */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {[
+              { value: 'any', label: 'Any Time' },
+              { value: 'today', label: 'Today' },
+              { value: 'this_week', label: 'This Week' },
+              { value: 'this_weekend', label: 'This Weekend' },
+            ].map(({ value, label }) => {
+              const isActive = dateFilter === value;
+              return (
+                <button
+                  key={value}
+                  onClick={() => setDateFilter(value)}
+                  className={`px-4 py-2 text-sm font-bold uppercase border-[2px] border-black transition-all duration-200 ${
+                    isActive
+                      ? 'bg-black text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                      : 'bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]'
+                  }`}
+                  style={{ borderRadius: '2px' }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -378,9 +465,9 @@ function Explore() {
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-500 text-lg">
-              {events.length === 0 
-                ? 'No events found' 
-                : `No ${activeCategory === 'All events' ? '' : activeCategory.toLowerCase()} events found`}
+              {events.length === 0
+                ? 'No events found'
+                : `No ${activeCategory === 'All events' ? '' : activeCategory.toLowerCase() + ' '}events found${dateFilter !== 'any' ? ` for ${dateFilter === 'today' ? 'Today' : dateFilter === 'this_week' ? 'This Week' : 'This Weekend'}` : ''}.`}
             </p>
           </div>
         ) : (
