@@ -6,11 +6,12 @@ const BARTER_BLUE = '#589BF2';
 export interface BarterModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit?: (post: { type: 'barter'; mode: BarterMode; haveInput: string; wantInput: string }) => void;
 }
 
 type BarterMode = 'goods' | 'favors';
 
-export function BarterModal({ isOpen, onClose }: BarterModalProps) {
+export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
   const [mode, setMode] = useState<BarterMode>('goods');
   const [haveInput, setHaveInput] = useState('');
   const [wantInput, setWantInput] = useState('');
@@ -41,11 +42,15 @@ export function BarterModal({ isOpen, onClose }: BarterModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (haveInput && wantInput) {
-      // Add your barter post logic here
-      console.log({ mode, haveInput, wantInput });
-      onClose();
+      onSubmit?.({
+        type: 'barter',
+        mode,
+        haveInput,
+        wantInput,
+      });
       setHaveInput('');
       setWantInput('');
+      onClose();
     }
   };
 

@@ -4,11 +4,12 @@ import { MapPin } from 'lucide-react';
 export interface FlashModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit?: (post: { type: 'flash'; activity: string; location: string; timeFrame: string }) => void;
 }
 
 const ACTIVITIES = ['Study', 'Eat', 'Gym', 'Party', 'Coffee', 'Walk'];
 
-export function FlashModal({ isOpen, onClose }: FlashModalProps) {
+export function FlashModal({ isOpen, onClose, onSubmit }: FlashModalProps) {
   const [activity, setActivity] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [timeFrame, setTimeFrame] = useState<string>('now');
@@ -39,13 +40,16 @@ export function FlashModal({ isOpen, onClose }: FlashModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (activity && location) {
-      // Add your flash broadcast logic here
-      console.log({ activity, location, timeFrame });
-      onClose();
-      // Reset form
+      onSubmit?.({
+        type: 'flash',
+        activity,
+        location,
+        timeFrame,
+      });
       setActivity('');
       setLocation('');
       setTimeFrame('now');
+      onClose();
     }
   };
 

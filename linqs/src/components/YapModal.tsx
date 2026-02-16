@@ -5,9 +5,10 @@ const MAX_CHARS = 280;
 export interface YapModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit?: (post: { type: 'yap'; content: string; isAnonymous: boolean }) => void;
 }
 
-export function YapModal({ isOpen, onClose }: YapModalProps) {
+export function YapModal({ isOpen, onClose, onSubmit }: YapModalProps) {
   const [content, setContent] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
 
@@ -36,7 +37,15 @@ export function YapModal({ isOpen, onClose }: YapModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Add your post logic here
+    if (content.trim()) {
+      onSubmit?.({
+        type: 'yap',
+        content: content.trim(),
+        isAnonymous,
+      });
+      setContent('');
+      setIsAnonymous(false);
+    }
     onClose();
   };
 

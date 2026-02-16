@@ -6,11 +6,19 @@ const BITES_ORANGE = '#FF9F43';
 export interface BitesModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit?: (post: {
+    type: 'bites';
+    biteKind: BiteType;
+    whatInput: string;
+    whereInput: string;
+    untilGone?: boolean;
+    endsAt?: string;
+  }) => void;
 }
 
 type BiteType = 'free' | 'deal';
 
-export function BitesModal({ isOpen, onClose }: BitesModalProps) {
+export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
   const [type, setType] = useState<BiteType>('free');
   const [whatInput, setWhatInput] = useState('');
   const [whereInput, setWhereInput] = useState('');
@@ -45,12 +53,19 @@ export function BitesModal({ isOpen, onClose }: BitesModalProps) {
     const validFree = type === 'free' && untilGone;
     const validDeal = type === 'deal' && endsAt;
     if (whatInput && whereInput && (validFree || validDeal)) {
-      console.log({ type, whatInput, whereInput, untilGone, endsAt });
-      onClose();
+      onSubmit?.({
+        type: 'bites',
+        biteKind: type,
+        whatInput,
+        whereInput,
+        untilGone: type === 'free' ? untilGone : undefined,
+        endsAt: type === 'deal' ? endsAt : undefined,
+      });
       setWhatInput('');
       setWhereInput('');
       setUntilGone(false);
       setEndsAt('');
+      onClose();
     }
   };
 
