@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Masonry from 'react-masonry-css';
 import BoardFilters from './BoardFilters';
 import YapCard from './YapCard';
 import FlashCard from './FlashCard';
 import BarterCard from './BarterCard';
 import BiteCard from './BiteCard';
+import { fetchAllPosts } from '../lib/boardService';
 
 const MASONRY_BREAKPOINTS = {
   default: 4,
@@ -86,16 +87,33 @@ function generateDummyPosts() {
 
 function TheBoard() {
   const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch posts from Supabase on mount
+  useEffect(() => {
+    loadPosts();
+  }, []);
+
+  const loadPosts = async () => {
+    setIsLoading(true);
+    const fetchedPosts = await fetchAllPosts();
+    setPosts(fetchedPosts);
+    setIsLoading(false);
+  };
 
   const handleAddPost = (newPost) => {
-    const post = {
-      ...newPost,
-      id: newPost.id ?? `post-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    };
-    setPosts((prev) => [post, ...prev]);
+    // This is called for backward compatibility, but we refresh from DB instead
+    // The modal already saves to DB, so we just refresh
+    loadPosts();
+  };
+
+  const handlePostCreated = () => {
+    // Refresh posts after a new post is created
+    loadPosts();
   };
 
   const handleSimulateTraffic = () => {
+    // Keep this for testing, but it won't persist to DB
     const dummy = generateDummyPosts();
     setPosts((prev) => [...dummy, ...prev]);
   };
@@ -120,7 +138,7 @@ function TheBoard() {
       {/* Top Navigation - Centered and Constrained */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-12">
-          <BoardFilters onAddPost={handleAddPost} />
+          <BoardFilters onAddPost={handleAddPost} onPostCreated={handlePostCreated} />
 
           <div className="mt-6 mb-4">
             <button
@@ -136,7 +154,11 @@ function TheBoard() {
 
       {/* Masonry Grid - Full Width */}
       <div className="px-4 sm:px-6">
-        {posts.length === 0 ? (
+        {isLoading ? (
+          <div className="max-w-7xl mx-auto">
+            <p className="text-gray-500 font-medium py-8">Loading posts...</p>
+          </div>
+        ) : posts.length === 0 ? (
           <div className="max-w-7xl mx-auto">
             <p className="text-gray-500 font-medium py-8">
               No posts yet. Click a tile above to post, or use Simulate Traffic to fill the grid.

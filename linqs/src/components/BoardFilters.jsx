@@ -5,7 +5,7 @@ import { FlashModal } from './FlashModal';
 import { BarterModal } from './BarterModal';
 import { BitesModal } from './BitesModal';
 
-function BoardFilters({ onAddPost }) {
+function BoardFilters({ onAddPost, onPostCreated }) {
   const [activeFilter, setActiveFilter] = useState(null);
   const [isYapModalOpen, setIsYapModalOpen] = useState(false);
   const [isFlashOpen, setIsFlashOpen] = useState(false);
@@ -73,23 +73,27 @@ function BoardFilters({ onAddPost }) {
         isOpen={isYapModalOpen}
         onClose={() => setIsYapModalOpen(false)}
         onSubmit={onAddPost}
+        onPostCreated={onPostCreated}
       />
       {isFlashOpen && (
         <FlashModal
           isOpen={isFlashOpen}
           onClose={() => setIsFlashOpen(false)}
           onSubmit={onAddPost}
+          onPostCreated={onPostCreated}
         />
       )}
       <BarterModal
         isOpen={isBarterOpen}
         onClose={() => setIsBarterOpen(false)}
         onSubmit={onAddPost}
+        onPostCreated={onPostCreated}
       />
       <BitesModal
         isOpen={isBitesOpen}
         onClose={() => setIsBitesOpen(false)}
         onSubmit={onAddPost}
+        onPostCreated={onPostCreated}
       />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {filters.map((filter) => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Camera, Clock } from 'lucide-react';
+import { createBite } from '../lib/boardService';
 
 const BITES_ORANGE = '#FF9F43';
 
@@ -15,17 +16,19 @@ export interface BitesModalProps {
     endsAt?: string;
     proofFile?: File | null;
   }) => void;
+  onPostCreated?: () => void;
 }
 
 type BiteType = 'free' | 'deal';
 
-export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
+export function BitesModal({ isOpen, onClose, onSubmit, onPostCreated }: BitesModalProps) {
   const [type, setType] = useState<BiteType>('free');
   const [whatInput, setWhatInput] = useState('');
   const [whereInput, setWhereInput] = useState('');
   const [untilGone, setUntilGone] = useState(false);
   const [endsAt, setEndsAt] = useState('');
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const proofInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,11 +56,18 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validFree = type === 'free' && untilGone;
     const validDeal = type === 'deal' && endsAt;
-    if (whatInput && whereInput && (validFree || validDeal)) {
+    if (!whatInput || !whereInput || !(validFree || validDeal) || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const endTime = type === 'deal' ? endsAt : null;
+    const result = await createBite(type, whatInput, whereInput, endTime, proofFile);
+    
+    if (result) {
+      // Call onSubmit with transformed data for backward compatibility
       onSubmit?.({
         type: 'bites',
         biteKind: type,
@@ -67,6 +77,8 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
         endsAt: type === 'deal' ? endsAt : undefined,
         proofFile: proofFile ?? undefined,
       });
+      // Call refresh callback
+      onPostCreated?.();
       setWhatInput('');
       setWhereInput('');
       setUntilGone(false);
@@ -74,6 +86,8 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
       setProofFile(null);
       onClose();
     }
+    
+    setIsSubmitting(false);
   };
 
   const handlePhotoUpload = () => {
@@ -259,12 +273,13 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
                 !whatInput ||
                 !whereInput ||
                 (type === 'free' && !untilGone) ||
-                (type === 'deal' && !endsAt)
+                (type === 'deal' && !endsAt) ||
+                isSubmitting
               }
               className="w-full py-3 font-bold uppercase border-[2px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-100 ease-out disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               style={{ backgroundColor: BITES_ORANGE, borderRadius: '2px' }}
             >
-              BLAST BITE
+              {isSubmitting ? 'Posting...' : 'BLAST BITE'}
             </button>
           </div>
         </form>

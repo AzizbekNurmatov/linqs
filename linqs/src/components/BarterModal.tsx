@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Camera } from 'lucide-react';
+import { createBarter } from '../lib/boardService';
 
 const BARTER_BLUE = '#589BF2';
 
@@ -13,15 +14,17 @@ export interface BarterModalProps {
     wantInput: string;
     proofFile?: File | null;
   }) => void;
+  onPostCreated?: () => void;
 }
 
 type BarterMode = 'goods' | 'favors';
 
-export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
+export function BarterModal({ isOpen, onClose, onSubmit, onPostCreated }: BarterModalProps) {
   const [mode, setMode] = useState<BarterMode>('goods');
   const [haveInput, setHaveInput] = useState('');
   const [wantInput, setWantInput] = useState('');
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const proofInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,21 +52,32 @@ export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (haveInput && wantInput) {
+    if (!haveInput || !wantInput || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const imageFile = mode === 'goods' ? proofFile : null;
+    const result = await createBarter(mode, haveInput, wantInput, imageFile);
+    
+    if (result) {
+      // Call onSubmit with transformed data for backward compatibility
       onSubmit?.({
         type: 'barter',
         mode,
         haveInput,
         wantInput,
-        proofFile: mode === 'goods' ? (proofFile ?? undefined) : undefined,
+        proofFile: imageFile ?? undefined,
       });
+      // Call refresh callback
+      onPostCreated?.();
       setHaveInput('');
       setWantInput('');
       setProofFile(null);
       onClose();
     }
+    
+    setIsSubmitting(false);
   };
 
   const handlePhotoUpload = () => {
@@ -213,11 +227,11 @@ export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={!haveInput || !wantInput}
+              disabled={!haveInput || !wantInput || isSubmitting}
               className="w-full py-3 font-bold uppercase border-[2px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-100 ease-out disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               style={{ backgroundColor: BARTER_BLUE, borderRadius: '2px' }}
             >
-              POST TRADE
+              {isSubmitting ? 'Posting...' : 'POST TRADE'}
             </button>
           </div>
         </form>

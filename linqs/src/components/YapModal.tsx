@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createYap } from '../lib/boardService';
 
 const MAX_CHARS = 280;
 
@@ -6,11 +7,13 @@ export interface YapModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (post: { type: 'yap'; content: string; isAnonymous: boolean }) => void;
+  onPostCreated?: () => void;
 }
 
-export function YapModal({ isOpen, onClose, onSubmit }: YapModalProps) {
+export function YapModal({ isOpen, onClose, onSubmit, onPostCreated }: YapModalProps) {
   const [content, setContent] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -35,18 +38,28 @@ export function YapModal({ isOpen, onClose, onSubmit }: YapModalProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (content.trim()) {
+    if (!content.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const result = await createYap(content.trim(), isAnonymous);
+    
+    if (result) {
+      // Call onSubmit with transformed data for backward compatibility
       onSubmit?.({
         type: 'yap',
-        content: content.trim(),
-        isAnonymous,
+        content: result.content,
+        isAnonymous: result.is_anonymous,
       });
+      // Call refresh callback
+      onPostCreated?.();
       setContent('');
       setIsAnonymous(false);
+      onClose();
     }
-    onClose();
+    
+    setIsSubmitting(false);
   };
 
   if (!isOpen) return null;
@@ -116,9 +129,10 @@ export function YapModal({ isOpen, onClose, onSubmit }: YapModalProps) {
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3 bg-[#F472B6] text-black font-bold uppercase border-[2px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all duration-100 ease-out"
+              disabled={isSubmitting || !content.trim()}
+              className="w-full py-3 bg-[#F472B6] text-black font-bold uppercase border-[2px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all duration-100 ease-out disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
             >
-              Post Yap
+              {isSubmitting ? 'Posting...' : 'Post Yap'}
             </button>
           </div>
         </form>

@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
+import { createFlash } from '../lib/boardService';
 
 export interface FlashModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (post: { type: 'flash'; activity: string; location: string; timeFrame: string }) => void;
+  onPostCreated?: () => void;
 }
 
 const ACTIVITIES = ['Study', 'Eat', 'Gym', 'Party', 'Coffee', 'Walk'];
 
-export function FlashModal({ isOpen, onClose, onSubmit }: FlashModalProps) {
+export function FlashModal({ isOpen, onClose, onSubmit, onPostCreated }: FlashModalProps) {
   const [activity, setActivity] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [timeFrame, setTimeFrame] = useState<string>('now');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -37,20 +40,30 @@ export function FlashModal({ isOpen, onClose, onSubmit }: FlashModalProps) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (activity && location) {
+    if (!activity || !location || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const result = await createFlash(activity, location, timeFrame);
+    
+    if (result) {
+      // Call onSubmit with transformed data for backward compatibility
       onSubmit?.({
         type: 'flash',
         activity,
         location,
         timeFrame,
       });
+      // Call refresh callback
+      onPostCreated?.();
       setActivity('');
       setLocation('');
       setTimeFrame('now');
       onClose();
     }
+    
+    setIsSubmitting(false);
   };
 
   if (!isOpen) return null;
@@ -179,11 +192,11 @@ export function FlashModal({ isOpen, onClose, onSubmit }: FlashModalProps) {
           <div className="pt-2">
             <button
               type="submit"
-              disabled={!activity || !location}
+              disabled={!activity || !location || isSubmitting}
               className="w-full py-3 bg-black text-white font-bold uppercase border-[2px] border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-100 ease-out disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               style={{ borderRadius: '2px' }}
             >
-              Broadcast
+              {isSubmitting ? 'Broadcasting...' : 'Broadcast'}
             </button>
           </div>
         </form>
