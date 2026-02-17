@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Camera, Clock } from 'lucide-react';
 
 const BITES_ORANGE = '#FF9F43';
@@ -13,6 +13,7 @@ export interface BitesModalProps {
     whereInput: string;
     untilGone?: boolean;
     endsAt?: string;
+    proofFile?: File | null;
   }) => void;
 }
 
@@ -24,10 +25,14 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
   const [whereInput, setWhereInput] = useState('');
   const [untilGone, setUntilGone] = useState(false);
   const [endsAt, setEndsAt] = useState('');
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+    } else {
+      setProofFile(null);
     }
     return () => {
       document.body.style.overflow = 'unset';
@@ -60,17 +65,27 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
         whereInput,
         untilGone: type === 'free' ? untilGone : undefined,
         endsAt: type === 'deal' ? endsAt : undefined,
+        proofFile: proofFile ?? undefined,
       });
       setWhatInput('');
       setWhereInput('');
       setUntilGone(false);
       setEndsAt('');
+      setProofFile(null);
       onClose();
     }
   };
 
   const handlePhotoUpload = () => {
-    console.log('Add proof - photo upload triggered');
+    proofInputRef.current?.click();
+  };
+
+  const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setProofFile(file);
+    }
+    e.target.value = '';
   };
 
   if (!isOpen) return null;
@@ -204,21 +219,36 @@ export function BitesModal({ isOpen, onClose, onSubmit }: BitesModalProps) {
             )}
           </div>
 
-          {/* Add Proof - Image Upload */}
+          {/* Add Proof - Image Upload (available for both Free Drop and Deal/Promo) */}
           <div>
             <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
               Add Proof
             </label>
-            <button
-              type="button"
-              onClick={handlePhotoUpload}
-              className="w-14 h-14 flex flex-col items-center justify-center gap-1 bg-white border-[2px] border-black text-black hover:opacity-80 transition-opacity shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-              style={{ borderRadius: '2px' }}
-              aria-label="Add proof photo"
-            >
-              <Camera className="w-6 h-6" strokeWidth={2.5} />
-              <span className="text-[10px] font-bold uppercase">Proof</span>
-            </button>
+            <input
+              ref={proofInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleProofChange}
+              className="hidden"
+              aria-hidden="true"
+            />
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handlePhotoUpload}
+                className="w-14 h-14 flex flex-col items-center justify-center gap-1 bg-white border-[2px] border-black text-black hover:opacity-80 transition-opacity shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0"
+                style={{ borderRadius: '2px' }}
+                aria-label="Add proof photo"
+              >
+                <Camera className="w-6 h-6" strokeWidth={2.5} />
+                <span className="text-[10px] font-bold uppercase">Proof</span>
+              </button>
+              {proofFile && (
+                <span className="text-xs font-bold text-black uppercase border-2 border-black px-2 py-1 bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  {proofFile.name}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Footer - BLAST BITE Button */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Camera } from 'lucide-react';
 
 const BARTER_BLUE = '#589BF2';
@@ -6,7 +6,13 @@ const BARTER_BLUE = '#589BF2';
 export interface BarterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (post: { type: 'barter'; mode: BarterMode; haveInput: string; wantInput: string }) => void;
+  onSubmit?: (post: {
+    type: 'barter';
+    mode: BarterMode;
+    haveInput: string;
+    wantInput: string;
+    proofFile?: File | null;
+  }) => void;
 }
 
 type BarterMode = 'goods' | 'favors';
@@ -15,10 +21,14 @@ export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
   const [mode, setMode] = useState<BarterMode>('goods');
   const [haveInput, setHaveInput] = useState('');
   const [wantInput, setWantInput] = useState('');
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+    } else {
+      setProofFile(null);
     }
     return () => {
       document.body.style.overflow = 'unset';
@@ -47,16 +57,25 @@ export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
         mode,
         haveInput,
         wantInput,
+        proofFile: mode === 'goods' ? (proofFile ?? undefined) : undefined,
       });
       setHaveInput('');
       setWantInput('');
+      setProofFile(null);
       onClose();
     }
   };
 
   const handlePhotoUpload = () => {
-    // Add photo upload logic here
-    console.log('Photo upload triggered');
+    proofInputRef.current?.click();
+  };
+
+  const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setProofFile(file);
+    }
+    e.target.value = '';
   };
 
   if (!isOpen) return null;
@@ -129,29 +148,50 @@ export function BarterModal({ isOpen, onClose, onSubmit }: BarterModalProps) {
             <label htmlFor="barter-have" className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
               I HAVE...
             </label>
-            <div className="flex gap-2 flex-wrap">
+            <input
+              id="barter-have"
+              type="text"
+              value={haveInput}
+              onChange={(e) => setHaveInput(e.target.value)}
+              placeholder="What are you trading?"
+              className="w-full px-4 py-3 bg-white border-[2px] border-black text-black font-medium placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              style={{ borderRadius: '2px' }}
+            />
+          </div>
+
+          {/* Add Proof - Image Upload (Goods tab only) */}
+          {mode === 'goods' && (
+            <div>
+              <label className="block text-sm font-bold text-black mb-3 uppercase tracking-wide">
+                Add Proof
+              </label>
               <input
-                id="barter-have"
-                type="text"
-                value={haveInput}
-                onChange={(e) => setHaveInput(e.target.value)}
-                placeholder="What are you trading?"
-                className="flex-1 min-w-[200px] px-4 py-3 bg-white border-[2px] border-black text-black font-medium placeholder:text-gray-500 focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                style={{ borderRadius: '2px' }}
+                ref={proofInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleProofChange}
+                className="hidden"
+                aria-hidden="true"
               />
-              {mode === 'goods' && (
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={handlePhotoUpload}
-                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-white border-[2px] border-black text-black hover:opacity-80 transition-opacity shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                  className="w-14 h-14 flex flex-col items-center justify-center gap-1 bg-white border-[2px] border-black text-black hover:opacity-80 transition-opacity shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0"
                   style={{ borderRadius: '2px' }}
-                  aria-label="Upload photo"
+                  aria-label="Add proof photo"
                 >
-                  <Camera className="w-5 h-5" strokeWidth={2.5} />
+                  <Camera className="w-6 h-6" strokeWidth={2.5} />
+                  <span className="text-[10px] font-bold uppercase">Proof</span>
                 </button>
-              )}
+                {proofFile && (
+                  <span className="text-xs font-bold text-black uppercase border-2 border-black px-2 py-1 bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    {proofFile.name}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* I WANT... Section */}
           <div>

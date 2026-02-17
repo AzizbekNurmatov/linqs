@@ -1,3 +1,5 @@
+import { MapPin } from 'lucide-react';
+
 function FlashCard({ post }) {
   const activity = post.activity || '';
   const location = post.location || '';
@@ -13,7 +15,12 @@ function FlashCard({ post }) {
       {/* Content Body */}
       <div className="p-4">
         <p className="text-black font-black text-lg uppercase">{activity}</p>
-        <p className="text-black font-medium text-sm mt-1">{location}</p>
+        {location ? (
+          <p className="text-black font-medium text-sm mt-1 flex items-center gap-1.5">
+            <MapPin className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
+            <span>{location}</span>
+          </p>
+        ) : null}
         <p className="text-xs font-bold uppercase text-black/80 mt-2">{timeLabel}</p>
       </div>
     </div>

@@ -35,7 +35,7 @@ const DUMMY_BARTERS = [
 
 const DUMMY_BITES = [
   { biteKind: 'free', what: 'Pizza in the lounge', where: 'Main dorm lounge' },
-  { biteKind: 'deal', what: '2-for-1 drinks', where: 'Downtown bar' },
+  { biteKind: 'deal', what: '2-for-1 drinks', where: 'Downtown bar', endsAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString().slice(0, 16) },
 ];
 
 function generateDummyPosts() {
@@ -77,6 +77,7 @@ function generateDummyPosts() {
         biteKind: b.biteKind,
         whatInput: b.what,
         whereInput: b.where,
+        ...(b.endsAt && { endsAt: b.endsAt }),
       });
     }
   }
