@@ -1,15 +1,14 @@
 import { supabase } from './supabase';
 import toast from 'react-hot-toast';
 
-const STORAGE_BUCKET = 'board-images';
+const STORAGE_BUCKET = 'board-uploads';
 
 /**
  * Upload image to Supabase Storage
  * @param {File} file - Image file to upload
- * @param {string} folder - Folder path (e.g., 'bites', 'barters')
  * @returns {Promise<string|null>} Public URL or null on error
  */
-async function uploadImage(file, folder) {
+async function uploadImage(file) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -17,9 +16,9 @@ async function uploadImage(file, folder) {
       return null;
     }
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-    const filePath = `${folder}/${user.id}/${fileName}`;
+    // Generate unique file path: public/{timestamp}_{filename}
+    const fileName = `${Date.now()}_${file.name}`;
+    const filePath = `public/${fileName}`;
 
     // Upload to storage
     const { error: uploadError } = await supabase.storage
@@ -167,10 +166,11 @@ export async function createBite(biteType, title, location, endTime = null, imag
     // Upload image if provided
     let imageUrl = null;
     if (imageFile) {
-      imageUrl = await uploadImage(imageFile, 'bites');
+      imageUrl = await uploadImage(imageFile);
       if (!imageUrl) {
-        // Continue even if image upload fails
-        console.warn('Image upload failed, continuing without image');
+        // If upload fails, don't proceed with post creation
+        toast.error('Failed to upload image. Please try again.');
+        return null;
       }
     }
 
@@ -221,9 +221,11 @@ export async function createBarter(tradeType, itemHave, itemWant, imageFile = nu
     // Upload image if provided (only for goods)
     let imageUrl = null;
     if (imageFile && tradeType === 'goods') {
-      imageUrl = await uploadImage(imageFile, 'barters');
+      imageUrl = await uploadImage(imageFile);
       if (!imageUrl) {
-        console.warn('Image upload failed, continuing without image');
+        // If upload fails, don't proceed with post creation
+        toast.error('Failed to upload image. Please try again.');
+        return null;
       }
     }
 
@@ -261,8 +263,18 @@ export async function createBarter(tradeType, itemHave, itemWant, imageFile = nu
 export async function fetchAllPosts() {
   try {
     // Fetch all posts in parallel
+    // For yaps, join with profiles to get username and avatar_url
     const [yapsResult, flashesResult, bitesResult, bartersResult] = await Promise.all([
-      supabase.from('yaps').select('*').order('created_at', { ascending: false }),
+      supabase
+        .from('yaps')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false }),
       supabase.from('flashes').select('*').order('created_at', { ascending: false }),
       supabase.from('bites').select('*').order('created_at', { ascending: false }).eq('is_active', true),
       supabase.from('barters').select('*').order('created_at', { ascending: false }).eq('is_completed', false)
@@ -273,11 +285,15 @@ export async function fetchAllPosts() {
     // Transform yaps
     if (yapsResult.data) {
       yapsResult.data.forEach(yap => {
+        const profile = yap.profiles || {};
         posts.push({
           id: yap.id,
           type: 'yap',
           content: yap.content,
           isAnonymous: yap.is_anonymous,
+          userId: yap.user_id,
+          username: profile.username || null,
+          avatarUrl: profile.avatar_url || null,
           createdAt: yap.created_at
         });
       });

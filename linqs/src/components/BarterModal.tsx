@@ -15,11 +15,22 @@ export interface BarterModalProps {
     proofFile?: File | null;
   }) => void;
   onPostCreated?: () => void;
+  onOptimisticPost?: (post: any) => string;
+  onReplaceOptimisticPost?: (tempId: string, realPost: any) => void;
+  onRemoveOptimisticPost?: (tempId: string) => void;
 }
 
 type BarterMode = 'goods' | 'favors';
 
-export function BarterModal({ isOpen, onClose, onSubmit, onPostCreated }: BarterModalProps) {
+export function BarterModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  onPostCreated,
+  onOptimisticPost,
+  onReplaceOptimisticPost,
+  onRemoveOptimisticPost
+}: BarterModalProps) {
   const [mode, setMode] = useState<BarterMode>('goods');
   const [haveInput, setHaveInput] = useState('');
   const [wantInput, setWantInput] = useState('');
@@ -57,27 +68,82 @@ export function BarterModal({ isOpen, onClose, onSubmit, onPostCreated }: Barter
     if (!haveInput || !wantInput || isSubmitting) return;
 
     setIsSubmitting(true);
-    const imageFile = mode === 'goods' ? proofFile : null;
-    const result = await createBarter(mode, haveInput, wantInput, imageFile);
     
-    if (result) {
-      // Call onSubmit with transformed data for backward compatibility
-      onSubmit?.({
+    // Capture form values before clearing
+    const capturedHaveInput = haveInput;
+    const capturedWantInput = wantInput;
+    const imageFile = mode === 'goods' ? proofFile : null;
+    
+    // Create optimistic post with image preview (only for goods)
+    let tempId: string | null = null;
+    let imagePreview: string | null = null;
+    if (onOptimisticPost) {
+      imagePreview = (mode === 'goods' && proofFile) ? URL.createObjectURL(proofFile) : null;
+      const tempPost = {
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         type: 'barter',
         mode,
-        haveInput,
-        wantInput,
-        proofFile: imageFile ?? undefined,
-      });
-      // Call refresh callback
-      onPostCreated?.();
-      setHaveInput('');
-      setWantInput('');
-      setProofFile(null);
-      onClose();
+        haveInput: capturedHaveInput,
+        wantInput: capturedWantInput,
+        imageUrl: imagePreview,
+        createdAt: new Date().toISOString(),
+        isOptimistic: true
+      };
+      tempId = onOptimisticPost(tempPost);
     }
-    
-    setIsSubmitting(false);
+
+    // Close modal immediately for better UX
+    setHaveInput('');
+    setWantInput('');
+    setProofFile(null);
+    onClose();
+
+    // Now do the actual upload and insert
+    try {
+      const result = await createBarter(mode, capturedHaveInput, capturedWantInput, imageFile);
+      
+      if (result && tempId && onReplaceOptimisticPost) {
+        // Transform DB result to match frontend format
+        const realPost = {
+          id: result.id,
+          type: 'barter',
+          mode: result.trade_type,
+          haveInput: result.item_have,
+          wantInput: result.item_want,
+          imageUrl: result.image_url,
+          createdAt: result.created_at
+        };
+        onReplaceOptimisticPost(tempId, realPost);
+        
+        // Clean up blob URL
+        if (imagePreview) {
+          URL.revokeObjectURL(imagePreview);
+        }
+      } else if (tempId && onRemoveOptimisticPost) {
+        // If insert failed, remove optimistic post
+        onRemoveOptimisticPost(tempId);
+      }
+
+      // Call onSubmit with transformed data for backward compatibility
+      if (result) {
+        onSubmit?.({
+          type: 'barter',
+          mode,
+          haveInput: capturedHaveInput,
+          wantInput: capturedWantInput,
+          proofFile: imageFile ?? undefined,
+        });
+        // Call refresh callback as fallback
+        onPostCreated?.();
+      }
+    } catch (error) {
+      // If error, remove optimistic post
+      if (tempId && onRemoveOptimisticPost) {
+        onRemoveOptimisticPost(tempId);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePhotoUpload = () => {

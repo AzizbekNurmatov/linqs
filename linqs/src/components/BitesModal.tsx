@@ -17,11 +17,22 @@ export interface BitesModalProps {
     proofFile?: File | null;
   }) => void;
   onPostCreated?: () => void;
+  onOptimisticPost?: (post: any) => string;
+  onReplaceOptimisticPost?: (tempId: string, realPost: any) => void;
+  onRemoveOptimisticPost?: (tempId: string) => void;
 }
 
 type BiteType = 'free' | 'deal';
 
-export function BitesModal({ isOpen, onClose, onSubmit, onPostCreated }: BitesModalProps) {
+export function BitesModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  onPostCreated,
+  onOptimisticPost,
+  onReplaceOptimisticPost,
+  onRemoveOptimisticPost
+}: BitesModalProps) {
   const [type, setType] = useState<BiteType>('free');
   const [whatInput, setWhatInput] = useState('');
   const [whereInput, setWhereInput] = useState('');
@@ -64,30 +75,88 @@ export function BitesModal({ isOpen, onClose, onSubmit, onPostCreated }: BitesMo
 
     setIsSubmitting(true);
     const endTime = type === 'deal' ? endsAt : null;
-    const result = await createBite(type, whatInput, whereInput, endTime, proofFile);
     
-    if (result) {
-      // Call onSubmit with transformed data for backward compatibility
-      onSubmit?.({
+    // Capture form values before clearing
+    const capturedWhatInput = whatInput;
+    const capturedWhereInput = whereInput;
+    const fileToUpload = proofFile;
+    
+    // Create optimistic post with image preview
+    let tempId: string | null = null;
+    let imagePreview: string | null = null;
+    if (onOptimisticPost) {
+      imagePreview = proofFile ? URL.createObjectURL(proofFile) : null;
+      const tempPost = {
+        id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         type: 'bites',
         biteKind: type,
-        whatInput,
-        whereInput,
-        untilGone: type === 'free' ? untilGone : undefined,
-        endsAt: type === 'deal' ? endsAt : undefined,
-        proofFile: proofFile ?? undefined,
-      });
-      // Call refresh callback
-      onPostCreated?.();
-      setWhatInput('');
-      setWhereInput('');
-      setUntilGone(false);
-      setEndsAt('');
-      setProofFile(null);
-      onClose();
+        whatInput: capturedWhatInput,
+        whereInput: capturedWhereInput,
+        endsAt: endTime,
+        imageUrl: imagePreview,
+        createdAt: new Date().toISOString(),
+        isOptimistic: true
+      };
+      tempId = onOptimisticPost(tempPost);
     }
-    
-    setIsSubmitting(false);
+
+    // Close modal immediately for better UX
+    setWhatInput('');
+    setWhereInput('');
+    setUntilGone(false);
+    setEndsAt('');
+    setProofFile(null);
+    onClose();
+
+    // Now do the actual upload and insert
+    try {
+      const result = await createBite(type, capturedWhatInput, capturedWhereInput, endTime, fileToUpload);
+      
+      if (result && tempId && onReplaceOptimisticPost) {
+        // Transform DB result to match frontend format
+        const realPost = {
+          id: result.id,
+          type: 'bites',
+          biteKind: type === 'free' ? 'free' : 'deal',
+          whatInput: result.title,
+          whereInput: result.location,
+          endsAt: result.end_time,
+          imageUrl: result.image_url,
+          createdAt: result.created_at
+        };
+        onReplaceOptimisticPost(tempId, realPost);
+        
+        // Clean up blob URL
+        if (imagePreview) {
+          URL.revokeObjectURL(imagePreview);
+        }
+      } else if (tempId && onRemoveOptimisticPost) {
+        // If insert failed, remove optimistic post
+        onRemoveOptimisticPost(tempId);
+      }
+
+      // Call onSubmit with transformed data for backward compatibility
+      if (result) {
+        onSubmit?.({
+          type: 'bites',
+          biteKind: type,
+          whatInput: capturedWhatInput,
+          whereInput: capturedWhereInput,
+          untilGone: type === 'free' ? untilGone : undefined,
+          endsAt: type === 'deal' ? result.end_time : undefined,
+          proofFile: fileToUpload ?? undefined,
+        });
+        // Call refresh callback as fallback
+        onPostCreated?.();
+      }
+    } catch (error) {
+      // If error, remove optimistic post
+      if (tempId && onRemoveOptimisticPost) {
+        onRemoveOptimisticPost(tempId);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePhotoUpload = () => {

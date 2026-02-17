@@ -112,6 +112,22 @@ function TheBoard() {
     loadPosts();
   };
 
+  // Optimistic UI: Add temporary post immediately, then replace with real data
+  const addOptimisticPost = (tempPost) => {
+    setPosts((prev) => [tempPost, ...prev]);
+    return tempPost.id; // Return temp ID for later replacement
+  };
+
+  const replaceOptimisticPost = (tempId, realPost) => {
+    setPosts((prev) => 
+      prev.map((post) => (post.id === tempId ? realPost : post))
+    );
+  };
+
+  const removeOptimisticPost = (tempId) => {
+    setPosts((prev) => prev.filter((post) => post.id !== tempId));
+  };
+
   const handleSimulateTraffic = () => {
     // Keep this for testing, but it won't persist to DB
     const dummy = generateDummyPosts();
@@ -138,7 +154,13 @@ function TheBoard() {
       {/* Top Navigation - Centered and Constrained */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-12">
-          <BoardFilters onAddPost={handleAddPost} onPostCreated={handlePostCreated} />
+          <BoardFilters 
+            onAddPost={handleAddPost} 
+            onPostCreated={handlePostCreated}
+            onOptimisticPost={addOptimisticPost}
+            onReplaceOptimisticPost={replaceOptimisticPost}
+            onRemoveOptimisticPost={removeOptimisticPost}
+          />
 
           <div className="mt-6 mb-4">
             <button

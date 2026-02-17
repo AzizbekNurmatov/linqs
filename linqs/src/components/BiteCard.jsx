@@ -17,6 +17,7 @@ function BiteCard({ post }) {
   const location = post.whereInput || '';
   const isFree = post.biteKind === 'free';
   const endsAt = post.endsAt || '';
+  const imageUrl = post.imageUrl || post.image_url || null;
 
   return (
     <div className="bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] break-inside-avoid">
@@ -27,6 +28,20 @@ function BiteCard({ post }) {
           {isFree ? 'FREE DROP' : 'DEAL'}
         </span>
       </div>
+      {/* Image - Top of content */}
+      {imageUrl && (
+        <div className="w-full border-b-2 border-black">
+          <img
+            src={imageUrl}
+            alt={what}
+            className="w-full h-48 object-cover border-2 border-black"
+            onError={(e) => {
+              // Hide image on error
+              e.target.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
       {/* Content Body */}
       <div className="p-4">
         <p className="text-black font-black text-sm uppercase">{what}</p>
