@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, ChevronDown } from 'lucide-react';
+import GiantReceipt from './GiantReceipt';
 
 // Mock data for live activity (clearly labeled)
 const MOCK_LIVE_DATA = {
@@ -114,62 +115,9 @@ function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) 
           </div>
         </div>
 
-        {/* Right Column: Flat Browser Window */}
+        {/* Right Column: Giant Receipt */}
         <div className="relative w-full flex items-center justify-center">
-          {/* Browser Window Container */}
-          <div className="border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] w-full max-w-[600px]">
-            {/* Fake Window Header Bar */}
-            <div className="bg-black h-8 flex items-center gap-2 px-3">
-              {/* Window Controls - 3 circles */}
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 bg-white"></div>
-                <div className="w-3 h-3 bg-white"></div>
-                <div className="w-3 h-3 bg-white"></div>
-              </div>
-            </div>
-            
-            {/* Images Container */}
-            <div className="flex">
-              {/* Image 1 (Left) - Live Music */}
-              <div className="w-[200px] aspect-[2/3] bg-gray-300 flex-shrink-0 relative overflow-hidden border-r-4 border-black">
-                <img 
-                  src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=450&fit=crop"
-                  alt="Live Music Event"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.parentElement.className += ' bg-gray-400';
-                  }}
-                />
-              </div>
-              
-              {/* Image 2 (Middle) - Food Scene */}
-              <div className="w-[200px] aspect-[2/3] bg-gray-400 flex-shrink-0 relative overflow-hidden border-r-4 border-black">
-                <img 
-                  src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=300&h=450&fit=crop"
-                  alt="Food Scene"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.parentElement.className += ' bg-gray-500';
-                  }}
-                />
-              </div>
-              
-              {/* Image 3 (Right) - Nightlife */}
-              <div className="w-[200px] aspect-[2/3] bg-gray-500 flex-shrink-0 relative overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=450&fit=crop"
-                  alt="Nightlife Scene"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.parentElement.className += ' bg-gray-600';
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+          <GiantReceipt />
         </div>
       </div>
       </div>
