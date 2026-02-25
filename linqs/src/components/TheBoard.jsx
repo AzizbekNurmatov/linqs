@@ -14,17 +14,6 @@ const MASONRY_BREAKPOINTS = {
   500: 1,
 };
 
-const DUMMY_YAPS = [
-  'Anyone know where the best coffee on campus is?',
-  'Study group for CS midterm tomorrow at the lib',
-  'Free furniture near Stern – DM if you want it',
-  'Who’s going to the game this weekend??',
-];
-
-
-
-
-
 function TheBoard() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
