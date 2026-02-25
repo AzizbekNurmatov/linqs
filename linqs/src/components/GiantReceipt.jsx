@@ -1,6 +1,6 @@
-function Highlighter({ children }) {
+function Highlighter({ children, colorClass = 'bg-lime-300' }) {
   return (
-    <span className="bg-lime-300 px-1 text-black">
+    <span className={`${colorClass} px-1 text-black`}>
       {children}
     </span>
   );
@@ -44,26 +44,26 @@ function GiantReceipt() {
         <div className="space-y-2 text-xs relative">
           {line(
             <>
-              1x <Highlighter>Underground Vinyl Mkt</Highlighter>
+              1x <Highlighter colorClass="bg-lime-300">Underground Vinyl Mkt</Highlighter>
+            </>,
+            <span className="font-bold tracking-tight">FREE</span>
+          )}
+          {line(
+            <>
+              1x <Highlighter colorClass="bg-yellow-300">C You At The Cistern!</Highlighter>
             </>,
             'FREE'
           )}
           {line(
             <>
-              1x <Highlighter>C You At The Cistern!</Highlighter>
-            </>,
-            'FREE'
-          )}
-          {line(
-            <>
-              1x <Highlighter>Global Game Jam</Highlighter>
+              1x <Highlighter colorClass="bg-pink-400">Global Game Jam</Highlighter>
             </>,
             'FREE'
           )}
 
           {/* Hand-drawn circle around first FREE */}
-          <div className="pointer-events-none absolute right-0 top-0 translate-x-4 translate-y-2">
-            <div className="w-16 h-8 border-2 border-lime-400 rounded-[55%_45%_60%_40%/50%_60%_40%_50%] -rotate-12" />
+          <div className="pointer-events-none absolute right-0 top-0 translate-x-5 translate-y-1">
+            <div className="w-20 h-9 border-[3px] border-lime-400 rounded-[55%_45%_60%_40%/50%_60%_40%_50%] -rotate-12" />
           </div>
         </div>
 
