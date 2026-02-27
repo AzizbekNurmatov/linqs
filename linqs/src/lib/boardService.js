@@ -91,9 +91,10 @@ export async function createYap(content, isAnonymous = false) {
  * @param {string} activity - Activity status (e.g., 'Study', 'Eat')
  * @param {string} location - Location
  * @param {string} timeFrame - 'now', '1h', or 'tonight'
+ * @param {string} [details] - Optional extra details/caption
  * @returns {Promise<object|null>} Created flash or null on error
  */
-export async function createFlash(activity, location, timeFrame) {
+export async function createFlash(activity, location, timeFrame, details = '') {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -123,7 +124,8 @@ export async function createFlash(activity, location, timeFrame) {
         user_id: user.id,
         status,
         location: location.trim() || null,
-        expires_at: expiresAt
+        expires_at: expiresAt,
+        details: details && details.trim() ? details.trim() : null
       })
       .select()
       .single();
@@ -331,6 +333,7 @@ export async function fetchAllPosts() {
           activity,
           location: flash.location,
           timeFrame,
+          details: flash.details || null,
           createdAt: flash.created_at
         });
       });

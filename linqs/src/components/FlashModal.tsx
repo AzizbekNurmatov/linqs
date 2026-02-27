@@ -5,7 +5,7 @@ import { createFlash } from '../lib/boardService';
 export interface FlashModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: (post: { type: 'flash'; activity: string; location: string; timeFrame: string }) => void;
+  onSubmit?: (post: { type: 'flash'; activity: string; location: string; timeFrame: string; details?: string }) => void;
   onPostCreated?: () => void;
 }
 
@@ -15,6 +15,7 @@ export function FlashModal({ isOpen, onClose, onSubmit, onPostCreated }: FlashMo
   const [activity, setActivity] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [timeFrame, setTimeFrame] = useState<string>('now');
+  const [details, setDetails] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export function FlashModal({ isOpen, onClose, onSubmit, onPostCreated }: FlashMo
     if (!activity || !location || isSubmitting) return;
 
     setIsSubmitting(true);
-    const result = await createFlash(activity, location, timeFrame);
+    const result = await createFlash(activity, location, timeFrame, details);
     
     if (result) {
       // Call onSubmit with transformed data for backward compatibility
@@ -54,12 +55,14 @@ export function FlashModal({ isOpen, onClose, onSubmit, onPostCreated }: FlashMo
         activity,
         location,
         timeFrame,
+        details,
       });
       // Call refresh callback
       onPostCreated?.();
       setActivity('');
       setLocation('');
       setTimeFrame('now');
+      setDetails('');
       onClose();
     }
     
@@ -141,6 +144,24 @@ export function FlashModal({ isOpen, onClose, onSubmit, onPostCreated }: FlashMo
                 style={{ borderRadius: '2px' }}
               />
             </div>
+          </div>
+
+          {/* Details Input (Optional) */}
+          <div>
+            <label
+              htmlFor="flash-details"
+              className="block text-sm font-bold text-black mb-3 uppercase tracking-wide"
+            >
+              Details (Optional)
+            </label>
+            <textarea
+              id="flash-details"
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              placeholder="e.g., Need a spotter, bringing snacks..."
+              className="w-full min-h-[80px] bg-white border-[2px] border-black text-black font-medium placeholder:text-gray-500 px-3 py-2 focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+              style={{ borderRadius: '2px', resize: 'vertical' }}
+            />
           </div>
 
           {/* Time Selection */}

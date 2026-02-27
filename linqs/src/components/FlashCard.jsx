@@ -4,6 +4,7 @@ function FlashCard({ post }) {
   const activity = post.activity || '';
   const location = post.location || '';
   const timeFrame = post.timeFrame || 'now';
+  const details = post.details || '';
   const timeLabel = timeFrame === 'now' ? 'NOW ⚡' : timeFrame === '1h' ? 'IN 1 HR' : 'TONIGHT';
 
   return (
@@ -19,6 +20,11 @@ function FlashCard({ post }) {
           <p className="text-black font-medium text-sm mt-1 flex items-center gap-1.5">
             <MapPin className="w-4 h-4 flex-shrink-0" strokeWidth={2.5} />
             <span>{location}</span>
+          </p>
+        ) : null}
+        {details && details.trim().length > 0 ? (
+          <p className="text-black font-medium text-sm mt-2 whitespace-pre-wrap">
+            {details}
           </p>
         ) : null}
         <p className="text-xs font-bold uppercase text-black/80 mt-2">{timeLabel}</p>
