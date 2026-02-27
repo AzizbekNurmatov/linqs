@@ -267,17 +267,22 @@ export async function fetchAllPosts() {
     const [yapsResult, flashesResult, bitesResult, bartersResult] = await Promise.all([
       supabase
         .from('yaps')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
+        .select('id, content, is_anonymous, user_id, created_at')
         .order('created_at', { ascending: false }),
-      supabase.from('flashes').select('*').order('created_at', { ascending: false }),
-      supabase.from('bites').select('*').order('created_at', { ascending: false }).eq('is_active', true),
-      supabase.from('barters').select('*').order('created_at', { ascending: false }).eq('is_completed', false)
+      supabase
+        .from('flashes')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('bites')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .eq('is_active', true),
+      supabase
+        .from('barters')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .eq('is_completed', false)
     ]);
 
     const posts = [];
@@ -285,15 +290,14 @@ export async function fetchAllPosts() {
     // Transform yaps
     if (yapsResult.data) {
       yapsResult.data.forEach(yap => {
-        const profile = yap.profiles || {};
         posts.push({
           id: yap.id,
           type: 'yap',
           content: yap.content,
           isAnonymous: yap.is_anonymous,
           userId: yap.user_id,
-          username: profile.username || null,
-          avatarUrl: profile.avatar_url || null,
+          username: null,
+          avatarUrl: null,
           createdAt: yap.created_at
         });
       });
