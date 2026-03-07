@@ -4,6 +4,7 @@ import FeaturesBentoGrid from '../components/FeaturesBentoGrid';
 import EventList from '../components/EventList';
 import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
+import ScrollCTA from '../components/ScrollCTA';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import { getJoinedEventIds } from '../lib/eventAttendeesService';
@@ -307,6 +308,7 @@ function Home() {
           />
         )}
       </main>
+      <ScrollCTA />
       <Footer />
       <EventDetailModal 
         isOpen={isModalOpen}
