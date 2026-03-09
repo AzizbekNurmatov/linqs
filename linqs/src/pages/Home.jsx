@@ -309,8 +309,8 @@ function Home() {
           />
         )}
       </main>
-      <ScrollCTA />
       <TestimonialMarquee />
+      <ScrollCTA />
       <Footer />
       <EventDetailModal 
         isOpen={isModalOpen}

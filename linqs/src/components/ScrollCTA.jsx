@@ -4,6 +4,20 @@ import { Link } from 'react-router-dom';
 const NEON_PINK = '#FF2D92';
 const NEON_YELLOW = '#FFE135';
 
+const bracketOutlineStyle = { WebkitTextStroke: '4px black', paintOrder: 'stroke fill' };
+
+function Bracket({ char, colorClass, large }) {
+  return (
+    <span
+      className={`font-black select-none flex-shrink-0 ${large ? 'text-8xl md:text-[12rem]' : 'text-6xl sm:text-7xl md:text-8xl'} ${colorClass}`}
+      style={bracketOutlineStyle}
+      aria-hidden
+    >
+      {char}
+    </span>
+  );
+}
+
 function CheckIcon() {
   return (
     <svg className="w-5 h-5 flex-shrink-0 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square">
@@ -51,20 +65,24 @@ export default function ScrollCTA() {
         Why Linqs — find the move or make it
       </h2>
 
-      {/* Block 1: The Pain Point */}
+      {/* Block 1: The Pain Point — Pink CTA */}
       <div
         ref={block1Ref}
         className={`${reveal} ${revealIn(block1Visible)}`}
         style={{ backgroundColor: NEON_PINK }}
       >
-        <div className="w-full border-b-4 border-black py-20 sm:py-24 md:py-28 lg:py-32 px-6 sm:px-8 md:px-12">
-          <div className="max-w-5xl mx-auto text-center">
-            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-black leading-[0.95]">
-              The group chat is dead tonight.
-            </h3>
-            <p className="mt-6 sm:mt-8 text-lg sm:text-xl md:text-2xl font-bold text-black/90 max-w-2xl mx-auto">
-              Stop asking &quot;what&apos;s the move?&quot; and waiting 45 minutes for a text back. The city is already moving.
-            </p>
+        <div className="w-full border-b-4 border-black py-32 md:py-40 px-6 sm:px-8 md:px-12">
+          <div className="max-w-5xl mx-auto flex flex-row items-center justify-center gap-12">
+            <Bracket char="[" colorClass="text-white" large />
+            <div className="text-center">
+              <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-black leading-[0.95]">
+                The group chat is dead tonight.
+              </h3>
+              <p className="mt-6 sm:mt-8 text-lg sm:text-xl md:text-2xl font-bold text-black/90 max-w-2xl mx-auto">
+                Stop asking &quot;what&apos;s the move?&quot; and waiting 45 minutes for a text back. The city is already moving.
+              </p>
+            </div>
+            <Bracket char="]" colorClass="text-white" large />
           </div>
         </div>
       </div>
@@ -76,12 +94,18 @@ export default function ScrollCTA() {
       >
         <div className="px-6 sm:px-8 md:px-12">
           <div className="max-w-4xl w-full mr-auto ml-0 border-4 border-black bg-white p-8 sm:p-10 md:p-12 lg:p-14 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black uppercase tracking-tighter text-black leading-tight">
-              We don&apos;t do FOMO.
-            </h3>
-            <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl font-bold text-black/90 max-w-xl">
-              From basement DJ sets to rooftop socials and campus tailgates. No gatekeeping. If it&apos;s worth your time, it&apos;s right here.
-            </p>
+            <div className="flex flex-row items-center justify-center gap-3 sm:gap-4">
+              <Bracket char="[" colorClass="text-[#FFE135]" />
+              <div className="text-center">
+                <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black uppercase tracking-tighter text-black leading-tight">
+                  We don&apos;t do FOMO.
+                </h3>
+                <p className="mt-5 sm:mt-6 text-base sm:text-lg md:text-xl font-bold text-black/90 max-w-xl mx-auto">
+                  From basement DJ sets to rooftop socials and campus tailgates. No gatekeeping. If it&apos;s worth your time, it&apos;s right here.
+                </p>
+              </div>
+              <Bracket char="]" colorClass="text-[#FFE135]" />
+            </div>
             <div className="mt-8 sm:mt-10">
               <Link
                 to="/explore"
@@ -94,18 +118,33 @@ export default function ScrollCTA() {
         </div>
       </div>
 
-      {/* Block 3: The Pivot — full width black */}
+      {/* Block 3: The Pivot — full width black + Social Oracle */}
       <div
         ref={block3Ref}
-        className={`${reveal} ${revealIn(block3Visible)} border-b-4 border-black bg-black py-20 sm:py-24 md:py-28 lg:py-32 px-6 sm:px-8 md:px-12`}
+        className={`${reveal} ${revealIn(block3Visible)} border-b-4 border-black bg-black py-32 px-6 sm:px-8 md:px-12 relative`}
       >
-        <div className="max-w-5xl mx-auto text-center">
-          <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-white leading-[0.95]">
-            Tired of chasing the vibe?
-          </h3>
-          <p className="mt-6 sm:mt-8 text-lg sm:text-xl md:text-2xl font-bold text-white/90 max-w-2xl mx-auto">
-            Then be the center of it. Got a venue? Got the aux? Got a terribly brilliant idea for a Thursday night?
-          </p>
+        {/* Blueprint grid pattern */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)
+            `,
+            backgroundSize: '24px 24px',
+          }}
+        />
+        <div className="max-w-5xl mx-auto flex flex-row items-center justify-center gap-4 sm:gap-6 relative z-10">
+          <Bracket char="[" colorClass="text-[#6B21A8]" />
+          <div className="text-center">
+            <h3 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black uppercase tracking-tighter text-white leading-[0.95]">
+              Tired of chasing the vibe?
+            </h3>
+            <p className="mt-6 sm:mt-8 text-lg sm:text-xl md:text-2xl font-bold text-white/90 max-w-2xl mx-auto">
+              Help us build the first student-driven Social Oracle. We&apos;re using real-time data to predict where the city is actually moving. Drop a venue, build the hype.
+            </p>
+          </div>
+          <Bracket char="]" colorClass="text-[#6B21A8]" />
         </div>
       </div>
 
