@@ -488,9 +488,9 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
           }
         })()}
 
-        {/* Title - Uppercase and Bold */}
-        <h3 className={`font-black text-black leading-tight mb-2 truncate uppercase ${
-          isFeatured ? 'text-3xl md:text-4xl' : 'text-base'
+        {/* Title - Uppercase and Bold, up to 2 lines */}
+        <h3 className={`font-black text-black leading-tight mb-2 line-clamp-2 uppercase ${
+          isFeatured ? 'text-3xl md:text-4xl' : 'text-lg md:text-xl'
         }`}>
           {event.title}
         </h3>
@@ -517,11 +517,8 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
           </div>
         )}
 
-        {/* Dashed Divider */}
-        <div className="border-t-2 border-dashed border-black my-3"></div>
-
         {/* Footer - Delete Button (left) and Category Indicator (right) */}
-        <div className={`flex items-center mt-auto ${canDelete ? 'justify-between' : 'justify-end'}`}>
+        <div className={`border-t-4 border-black pt-3 mt-4 flex items-center mt-auto ${canDelete ? 'justify-between' : 'justify-end'}`}>
           {/* Delete Button - Bottom Left */}
           {canDelete && (
             <button
