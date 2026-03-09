@@ -495,10 +495,13 @@ function EventCard({ event, isJoined = false, onInterested, onBoost, onCardClick
           {event.title}
         </h3>
 
-        {/* Host Group - Monospace font */}
-        <p className="text-sm font-mono text-slate-700 mb-3">
-          {getHostGroup()}
-        </p>
+        {/* Location — full width Neo-Brutalist label */}
+        <div className="mt-2 mb-3 w-full">
+          <span className="flex-shrink-0" aria-hidden>📍</span>
+          <span className="font-bold text-xs uppercase tracking-wide text-gray-600 break-words">
+            {event.address || event.location || 'Location TBD'}
+          </span>
+        </div>
 
         {/* Event URL - Clickable link */}
         {getEventUrl() && (
