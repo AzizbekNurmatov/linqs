@@ -110,3 +110,26 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Modal scroll area - thin, subtle scrollbar */
+.modal-scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(108, 92, 231, 0.35); /* subtle brand purple */
+  border-radius: 9999px;
+}
+
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 92, 231, 0.55);
+}

@@ -245,8 +245,10 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
       {/* Event Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <EventForm onAddEvent={onAddEvent} onClose={() => setShowForm(false)} />
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+            <div className="modal-scroll p-6 w-full">
+              <EventForm onAddEvent={onAddEvent} onClose={() => setShowForm(false)} />
+            </div>
           </div>
         </div>
       )}
