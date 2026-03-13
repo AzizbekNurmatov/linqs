@@ -502,6 +502,22 @@ function GroupDetail() {
     console.log(`Boosted event: ${event.title}`);
   };
 
+  const handleCloseEventForm = () => {
+    setShowEventForm(false);
+  };
+
+  // Close Create Event modal on Escape
+  useEffect(() => {
+    if (!showEventForm) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleCloseEventForm();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showEventForm]);
+
   const handleJoinLeave = async () => {
     if (!user) {
       toast.error('Please sign in to join communities');
@@ -894,16 +910,22 @@ function GroupDetail() {
 
       {/* Event Form Modal */}
       {showEventForm && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={handleCloseEventForm}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-scroll p-6 w-full">
               <EventForm 
                 onAddEvent={() => {
                   fetchEvents();
-                  setShowEventForm(false);
+                  handleCloseEventForm();
                   toast.success('Event created!');
                 }} 
-                onClose={() => setShowEventForm(false)}
+                onClose={handleCloseEventForm}
                 communityId={id}
               />
             </div>

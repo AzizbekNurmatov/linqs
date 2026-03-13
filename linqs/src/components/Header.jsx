@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import EventForm from './EventForm';
@@ -25,6 +25,23 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
     // If logged in, open the form
     setShowForm(true);
   };
+
+  // Close modal helper
+  const handleCloseForm = () => {
+    setShowForm(false);
+  };
+
+  // Close on Escape key when form is open
+  useEffect(() => {
+    if (!showForm) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleCloseForm();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showForm]);
 
   return (
     <>
@@ -244,10 +261,16 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
 
       {/* Event Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={handleCloseForm}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-scroll p-6 w-full">
-              <EventForm onAddEvent={onAddEvent} onClose={() => setShowForm(false)} />
+              <EventForm onAddEvent={onAddEvent} onClose={handleCloseForm} />
             </div>
           </div>
         </div>
