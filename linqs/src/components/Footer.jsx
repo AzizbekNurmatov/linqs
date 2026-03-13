@@ -1,6 +1,6 @@
 function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-200 h-24 flex items-center mt-auto">
+    <footer className="bg-white border-t-2 border-gray-300 h-24 flex items-center mt-auto">
       <div className="max-w-7xl mx-auto w-full px-4 flex flex-col md:flex-row justify-between items-center gap-4">
         <p className="text-[#636E72] text-sm">
           &copy; 2025 Linqs. All rights reserved.

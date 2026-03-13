@@ -6,7 +6,6 @@ import EventCard from '../components/EventCard';
 import EventDetailModal from '../components/EventDetailModal';
 import ScrollCTA from '../components/ScrollCTA';
 import TestimonialMarquee from '../components/TestimonialMarquee';
-import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import { getJoinedEventIds } from '../lib/eventAttendeesService';
 import { useAuth } from '../context/AuthContext';
@@ -311,7 +310,6 @@ function Home() {
       </main>
       <TestimonialMarquee />
       <ScrollCTA />
-      <Footer />
       <EventDetailModal 
         isOpen={isModalOpen}
         event={selectedEvent}

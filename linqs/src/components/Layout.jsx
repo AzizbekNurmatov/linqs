@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import SavedEventsDrawer from './SavedEventsDrawer';
+import Footer from './Footer';
 import { useEvents } from '../context/EventsContext';
 
 function Layout() {
@@ -12,10 +13,11 @@ function Layout() {
     <div className="min-h-screen flex flex-col">
       <Header onAddEvent={handleAddEvent} onOpenSavedEvents={() => setIsDrawerOpen(true)} />
       <Outlet />
+      <Footer />
       <SavedEventsDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
     </div>
   );
 }
 
 export default Layout;
-
+ 

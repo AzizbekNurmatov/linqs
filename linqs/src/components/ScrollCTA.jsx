@@ -151,7 +151,7 @@ export default function ScrollCTA() {
       {/* Block 4: The Action — card offset right */}
       <div
         ref={block4Ref}
-        className={`${reveal} ${revealIn(block4Visible)} border-b-4 border-black py-20 sm:py-24 md:py-28 bg-[#FAFAFA]`}
+        className={`${reveal} ${revealIn(block4Visible)} py-20 sm:py-24 md:py-28 bg-[#FAFAFA]`}
       >
         <div className="px-6 sm:px-8 md:px-12 flex justify-end">
           <div
