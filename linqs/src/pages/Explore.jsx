@@ -112,7 +112,7 @@ function Explore() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openFilter, setOpenFilter] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All events');
+  const [activeCategory, setActiveCategory] = useState('All Events');
   const [dateFilter, setDateFilter] = useState('any');
   const [joinedEventIds, setJoinedEventIds] = useState(new Set());
   const { user } = useAuth();
@@ -277,15 +277,14 @@ function Explore() {
 
   // Category icons
   const categories = [
-    { name: 'All events', icon: Calendar },
-    { name: 'New Groups', icon: Users },
-    { name: 'Social Activities', icon: Coffee },
-    { name: 'Hobbies', icon: Sparkles },
-    { name: 'Tech', icon: Code },
-    { name: 'Business', icon: Briefcase },
+    { name: 'All Events', icon: Calendar },
+    { name: 'Food & Drink', icon: FoodIcon },
+    { name: 'Nightlife', icon: Sparkles },
+    { name: 'Sports & Rec', icon: Users },
+    { name: 'Music & Arts', icon: CultureIcon },
+    { name: 'Tech & AI', icon: Code },
     { name: 'Wellness', icon: WellnessIcon },
-    { name: 'Culture', icon: CultureIcon },
-    { name: 'Food', icon: FoodIcon },
+    { name: 'Networking', icon: Briefcase },
   ];
 
   const handleCategoryClick = (categoryName) => {
@@ -366,21 +365,27 @@ function Explore() {
 
   // Filter events based on active category AND date filter
   const filteredEvents = events.filter((event) => {
-    // Check 1: Category filter
-    const categoryMatch =
-      activeCategory === 'All events'
-        ? true
-        : activeCategory === 'New Groups'
-        ? true
-        : (() => {
-            const eventCategory = (event.category || '').toLowerCase().trim();
-            const activeCategoryLower = activeCategory.toLowerCase().trim();
-            return (
-              eventCategory === activeCategoryLower ||
-              eventCategory.includes(activeCategoryLower) ||
-              activeCategoryLower.includes(eventCategory)
-            );
-          })();
+    // Check 1: Category filter (maps new UI labels to stored event categories)
+    const categoryMatch = (() => {
+      if (activeCategory === 'All Events') return true;
+
+      const eventCategory = (event.category || '').toLowerCase().trim();
+
+      const categoryFilters = {
+        'Food & Drink': ['food', 'dining', 'restaurant'],
+        Nightlife: ['nightlife', 'party', 'club', 'social activities'],
+        'Sports & Rec': ['sports', 'rec', 'recreation', 'hobbies'],
+        'Music & Arts': ['music', 'arts', 'art', 'culture'],
+        'Tech & AI': ['tech', 'ai'],
+        Wellness: ['wellness'],
+        Networking: ['networking', 'business'],
+      };
+
+      const terms = categoryFilters[activeCategory] || [];
+      if (!terms.length) return true;
+
+      return terms.some((term) => eventCategory.includes(term));
+    })();
 
     // Check 2: Date filter
     const eventDate = event.startDate || event.date;
@@ -467,7 +472,7 @@ function Explore() {
             <p className="text-gray-500 text-lg">
               {events.length === 0
                 ? 'No events found'
-                : `No ${activeCategory === 'All events' ? '' : activeCategory.toLowerCase() + ' '}events found${dateFilter !== 'any' ? ` for ${dateFilter === 'today' ? 'Today' : dateFilter === 'this_week' ? 'This Week' : 'This Weekend'}` : ''}.`}
+                : `No ${activeCategory === 'All Events' ? '' : activeCategory.toLowerCase() + ' '}events found${dateFilter !== 'any' ? ` for ${dateFilter === 'today' ? 'Today' : dateFilter === 'this_week' ? 'This Week' : 'This Weekend'}` : ''}.`}
             </p>
           </div>
         ) : (

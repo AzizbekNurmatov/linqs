@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react';
+import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2, CheckCircle2, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 // Helpers for converting between 24h time strings and 12h parts
@@ -212,15 +212,15 @@ const FoodIcon = ({ className }) => (
   </svg>
 );
 
-// Category definitions
+// Category definitions (aligned with Explore filters)
 const categories = [
-  { name: 'Social Activities', icon: Coffee, value: 'Social Activities' },
-  { name: 'Hobbies', icon: Sparkles, value: 'Hobbies' },
+  { name: 'Food & Drink', icon: FoodIcon, value: 'Food & Drink' },
+  { name: 'Nightlife', icon: Sparkles, value: 'Nightlife' },
+  { name: 'Sports & Rec', icon: Users, value: 'Sports & Rec' },
+  { name: 'Music & Arts', icon: CultureIcon, value: 'Music & Arts' },
+  { name: 'Tech & AI', icon: Code, value: 'Tech & AI' },
   { name: 'Wellness', icon: WellnessIcon, value: 'Wellness' },
-  { name: 'Tech', icon: Code, value: 'Tech' },
-  { name: 'Business', icon: Briefcase, value: 'Business' },
-  { name: 'Culture', icon: CultureIcon, value: 'Culture' },
-  { name: 'Food', icon: FoodIcon, value: 'Food' },
+  { name: 'Networking', icon: Briefcase, value: 'Networking' },
 ];
 
 // Tag color function matching FeaturesBentoGrid
@@ -256,7 +256,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
     image: '',
     tags: [],
     isOnline: false,
-    category: 'Social Activities', // Default to Social
+    category: 'Food & Drink',
   });
   
   const [hasEndDate, setHasEndDate] = useState(false);
@@ -511,7 +511,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         image: '',
         tags: [],
         isOnline: false,
-        category: 'Social Activities',
+        category: 'Food & Drink',
       });
       setHasEndDate(false);
       setHasEndTime(false);
