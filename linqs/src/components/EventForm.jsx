@@ -2,6 +2,166 @@ import { useState, useRef, useEffect } from 'react';
 import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
+// Helpers for converting between 24h time strings and 12h parts
+function parseTimeToParts(timeStr) {
+  if (!timeStr) return { hour: null, minute: null, period: 'PM' };
+  const [hStr, mStr] = timeStr.split(':');
+  let hour24 = parseInt(hStr, 10);
+  if (Number.isNaN(hour24)) return { hour: null, minute: null, period: 'PM' };
+  const minute = parseInt(mStr || '0', 10);
+  const period = hour24 >= 12 ? 'PM' : 'AM';
+  let hour12 = hour24 % 12;
+  if (hour12 === 0) hour12 = 12;
+  return { hour: hour12, minute, period };
+}
+
+function partsToTimeString24(hour12, minute, period) {
+  if (!hour12 && hour12 !== 0) return '';
+  let h = hour12 % 12;
+  if (period === 'PM') {
+    h = (h + 12) % 24;
+  }
+  const hStr = h.toString().padStart(2, '0');
+  const mStr = minute.toString().padStart(2, '0');
+  return `${hStr}:${mStr}`;
+}
+
+function isTimeBefore(a, b) {
+  if (!a || !b) return false;
+  return a < b; // safe because both are HH:MM 24h strings
+}
+
+function TimePickerGrid({ label, value, onChange, min }) {
+  const { hour: initialHour, minute: initialMinute, period: initialPeriod } = parseTimeToParts(value);
+  const [selectedHour, setSelectedHour] = useState(initialHour);
+  const [selectedMinute, setSelectedMinute] = useState(
+    initialMinute !== null ? initialMinute : 0
+  );
+  const [selectedPeriod, setSelectedPeriod] = useState(initialPeriod || 'PM');
+
+  const hours = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const minutes = [0, 15, 30, 45];
+
+  const commitTime = (nextHour, nextMinute, nextPeriod) => {
+    const h = nextHour ?? selectedHour;
+    const m = nextMinute ?? selectedMinute;
+    const p = nextPeriod ?? selectedPeriod;
+    if (h == null || m == null || !p) return;
+    const time24 = partsToTimeString24(h, m, p);
+    if (min && isTimeBefore(time24, min)) {
+      // Do not allow selecting a time before min
+      return;
+    }
+    onChange(time24);
+  };
+
+  const handleHourClick = (h) => {
+    setSelectedHour(h);
+    commitTime(h, null, null);
+  };
+
+  const handleMinuteClick = (m) => {
+    setSelectedMinute(m);
+    commitTime(null, m, null);
+  };
+
+  const handlePeriodClick = (p) => {
+    setSelectedPeriod(p);
+    commitTime(null, null, p);
+  };
+
+  const displayValue = (() => {
+    if (selectedHour == null || selectedMinute == null || !selectedPeriod) return 'Select time';
+    const minuteStr = selectedMinute.toString().padStart(2, '0');
+    return `${selectedHour}:${minuteStr} ${selectedPeriod}`;
+  })();
+
+  return (
+    <div className="w-full">
+      <div className="flex items-start gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 bg-white">
+        <Clock className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs text-gray-500 font-medium">{label}</span>
+            <span className="text-xs text-gray-700 font-semibold">{displayValue}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Hours column */}
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hour</p>
+              <div className="grid grid-cols-3 gap-2">
+                {hours.map((h) => {
+                  const isActive = h === selectedHour;
+                  return (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => handleHourClick(h)}
+                      className={`text-xs font-medium rounded-md border px-2 py-1.5 transition-colors ${
+                        isActive
+                          ? 'bg-gray-900 text-white border-gray-900'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {h}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Minutes column */}
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Minute</p>
+              <div className="grid grid-cols-2 gap-2">
+                {minutes.map((m) => {
+                  const isActive = m === selectedMinute;
+                  const labelMinutes = m.toString().padStart(2, '0');
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => handleMinuteClick(m)}
+                      className={`text-xs font-medium rounded-md border px-2 py-1.5 transition-colors ${
+                        isActive
+                          ? 'bg-gray-900 text-white border-gray-900'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {labelMinutes}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* AM / PM toggle */}
+          <div className="mt-3 inline-flex rounded-full border border-gray-200 bg-gray-50 p-1">
+            {['AM', 'PM'].map((p) => {
+              const isActive = p === selectedPeriod;
+              return (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => handlePeriodClick(p)}
+                  className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+                    isActive
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-600 hover:bg-white'
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Custom minimalist SVG icons matching lucide-react style
 const WellnessIcon = ({ className }) => (
   <svg
@@ -115,8 +275,6 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
   const dropZoneRef = useRef(null);
   const dateInputRef = useRef(null);
   const endDateInputRef = useRef(null);
-  const timeInputRef = useRef(null);
-  const endTimeInputRef = useRef(null);
   const categoryDropdownRef = useRef(null);
 
   // Close category dropdown when clicking outside
@@ -630,61 +788,35 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
             </div>
             
             {/* Time Row (for recurring events) */}
-            <div className="flex items-center gap-2">
-              <div 
-                onClick={() => {
-                  timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
-                }}
-                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-              >
-                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-                <div className="flex-1 flex items-center gap-2">
-                  <span className="text-xs text-gray-500 font-medium">Start Time</span>
-                  <input
-                    ref={timeInputRef}
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    required
-                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <TimePickerGrid
+                  label="Start Time"
+                  value={formData.time}
+                  onChange={(newTime) =>
+                    setFormData((prev) => ({ ...prev, time: newTime }))
+                  }
+                />
               </div>
               {hasEndTime ? (
-                <div 
-                  onClick={() => {
-                    endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.click();
-                  }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-                >
-                  <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-xs text-gray-500 font-medium">End Time</span>
-                    <input
-                      ref={endTimeInputRef}
-                      type="time"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      required={hasEndTime}
-                      min={getEndTimeMin()}
-                      className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
+                <div className="flex-1">
+                  <TimePickerGrid
+                    label="End Time"
+                    value={formData.endTime}
+                    min={getEndTimeMin()}
+                    onChange={(newTime) =>
+                      setFormData((prev) => ({ ...prev, endTime: newTime }))
+                    }
+                  />
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       setHasEndTime(false);
-                      setFormData(prev => ({ ...prev, endTime: '' }));
+                      setFormData((prev) => ({ ...prev, endTime: '' }));
                     }}
-                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                    aria-label="Remove end time"
+                    className="mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    Remove end time
                   </button>
                 </div>
               ) : (
@@ -725,27 +857,13 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
                   />
                 </div>
               </div>
-              <div 
-                onClick={() => {
-                  timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
-                }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-              >
-                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-                <div className="flex-1 flex items-center gap-2">
-                  <span className="text-xs text-gray-500 font-medium">Start Time</span>
-                  <input
-                    ref={timeInputRef}
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    required
-                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-              </div>
+              <TimePickerGrid
+                label="Start Time"
+                value={formData.time}
+                onChange={(newTime) =>
+                  setFormData((prev) => ({ ...prev, time: newTime }))
+                }
+              />
             </div>
 
             {/* Row 2: End Date + End Time */}
@@ -784,57 +902,41 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <div 
-                onClick={() => {
-                  if (hasEndTime) {
-                    endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.click();
-                  }
-                }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-              >
-                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-                <div className="flex-1 flex items-center gap-2">
-                  <span className="text-xs text-gray-500 font-medium">End Time</span>
-                  {hasEndTime ? (
-                    <>
-                      <input
-                        ref={endTimeInputRef}
-                        type="time"
-                        name="endTime"
-                        value={formData.endTime}
-                        onChange={handleChange}
-                        required={hasEndTime}
-                        min={getEndTimeMin()}
-                        className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setHasEndTime(false);
-                          setFormData(prev => ({ ...prev, endTime: '' }));
-                        }}
-                        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                        aria-label="Remove end time"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
+              <div>
+                {hasEndTime ? (
+                  <>
+                    <TimePickerGrid
+                      label="End Time"
+                      value={formData.endTime}
+                      min={getEndTimeMin()}
+                      onChange={(newTime) =>
+                        setFormData((prev) => ({ ...prev, endTime: newTime }))
+                      }
+                    />
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setHasEndTime(true);
+                      onClick={() => {
+                        setHasEndTime(false);
+                        setFormData((prev) => ({ ...prev, endTime: '' }));
                       }}
-                      className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                      className="mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add end time</span>
+                      Remove end time
                     </button>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHasEndTime(true);
+                    }}
+                    className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add end time</span>
+                  </button>
+                )}
               </div>
             </div>
           </>
@@ -872,63 +974,35 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
             </div>
 
             {/* Time Row */}
-            <div className="flex items-center gap-2">
-              <div 
-                onClick={() => {
-                  timeInputRef.current?.showPicker?.() || timeInputRef.current?.click();
-                }}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer ${
-                  hasEndTime ? 'flex-1' : 'flex-1'
-                }`}
-              >
-                <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-                <div className="flex-1 flex items-center gap-2">
-                  <span className="text-xs text-gray-500 font-medium">Start Time</span>
-                  <input
-                    ref={timeInputRef}
-                    type="time"
-                    name="time"
-                    value={formData.time}
-                    onChange={handleChange}
-                    required
-                    className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <TimePickerGrid
+                  label="Start Time"
+                  value={formData.time}
+                  onChange={(newTime) =>
+                    setFormData((prev) => ({ ...prev, time: newTime }))
+                  }
+                />
               </div>
               {hasEndTime ? (
-                <div 
-                  onClick={() => {
-                    endTimeInputRef.current?.showPicker?.() || endTimeInputRef.current?.click();
-                  }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200 group cursor-pointer"
-                >
-                  <Clock className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0 pointer-events-none" />
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="text-xs text-gray-500 font-medium">End Time</span>
-                    <input
-                      ref={endTimeInputRef}
-                      type="time"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      required={hasEndTime}
-                      min={getEndTimeMin()}
-                      className="flex-1 bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </div>
+                <div className="flex-1">
+                  <TimePickerGrid
+                    label="End Time"
+                    value={formData.endTime}
+                    min={getEndTimeMin()}
+                    onChange={(newTime) =>
+                      setFormData((prev) => ({ ...prev, endTime: newTime }))
+                    }
+                  />
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={() => {
                       setHasEndTime(false);
-                      setFormData(prev => ({ ...prev, endTime: '' }));
+                      setFormData((prev) => ({ ...prev, endTime: '' }));
                     }}
-                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                    aria-label="Remove end time"
+                    className="mt-2 text-xs text-gray-500 hover:text-gray-700 transition-colors whitespace-nowrap"
                   >
-                    <X className="w-4 h-4" />
+                    Remove end time
                   </button>
                 </div>
               ) : (
