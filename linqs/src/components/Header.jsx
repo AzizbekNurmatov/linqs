@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import EventForm from './EventForm';
 import Logout from './Logout';
 import toast from 'react-hot-toast';
+import NotificationBell from './NotificationBell';
 
 function Header({ onAddEvent, onOpenSavedEvents }) {
   const [showForm, setShowForm] = useState(false);
@@ -135,6 +136,11 @@ function Header({ onAddEvent, onOpenSavedEvents }) {
                 </svg>
               </button>
             )}
+
+            {/* Notifications */}
+            <div className="ml-1">
+              <NotificationBell />
+            </div>
 
             {/* Create Event Button */}
             <button
