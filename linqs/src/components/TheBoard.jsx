@@ -8,10 +8,10 @@ import BiteCard from './BiteCard';
 import { fetchAllPosts } from '../lib/boardService';
 
 const MASONRY_BREAKPOINTS = {
-  default: 4,
-  1100: 3,
-  700: 2,
-  500: 1,
+  default: 4,   // desktop
+  1100: 3,      // desktop (narrow)
+  1024: 2,      // tablet
+  767: 1,       // mobile (<768px)
 };
 
 function TheBoard() {
@@ -102,11 +102,11 @@ function TheBoard() {
         ) : (
           <Masonry
             breakpointCols={MASONRY_BREAKPOINTS}
-            className="flex -ml-4 w-auto"
-            columnClassName="pl-4 bg-clip-padding"
+            className="flex -ml-2 md:-ml-4 w-auto"
+            columnClassName="pl-2 md:pl-4 bg-clip-padding"
           >
             {posts.map((post) => (
-              <div key={post.id} className="mb-4">
+              <div key={post.id} className="mb-2 md:mb-4">
                 {renderCard(post)}
               </div>
             ))}

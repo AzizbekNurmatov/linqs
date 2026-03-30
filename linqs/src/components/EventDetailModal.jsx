@@ -233,7 +233,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-2 md:p-4 transition-opacity duration-300 ${
         isAnimating ? 'opacity-100' : 'opacity-0'
       }`}
       onClick={onClose}
@@ -243,13 +243,13 @@ function EventDetailModal({ isOpen, event, onClose }) {
       
       {/* Modal Panel */}
       <div
-        className={`relative bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-5xl w-full max-h-[90vh] overflow-y-auto transform transition-opacity duration-300 ${
+        className={`relative bg-white border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-5xl w-[95vw] md:w-full max-h-[90vh] overflow-y-auto transform transition-opacity duration-300 ${
           isAnimating ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. Hero Banner Section */}
-        <div className="relative h-64 md:h-72 w-full overflow-hidden border-b-4 border-black">
+        <div className="relative h-56 md:h-72 w-full overflow-hidden border-b-4 border-black">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -276,7 +276,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
           </button>
           
           {/* Title and Host Info - Absolute positioned at bottom-left */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 pb-8">
+          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 pb-6 md:pb-8">
             <h2 className="text-5xl font-black text-white mb-2 uppercase tracking-tighter drop-shadow-lg">
               {event.title}
             </h2>
@@ -288,7 +288,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
 
         {/* 2. Tags Row */}
         {tags.length > 0 && (
-          <div className="w-full px-6 py-4 bg-gray-50 border-b-2 border-black">
+          <div className="w-full px-4 md:px-6 py-3 md:py-4 bg-gray-50 border-b-2 border-black">
             <div className="flex flex-wrap items-center gap-2 overflow-x-auto">
               {tags.map((tag, index) => (
                 <span
@@ -305,7 +305,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
         {/* 3. Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[65%_35%] gap-0">
           {/* Left Column - About the Event */}
-          <div className="p-6 md:p-8 space-y-4">
+          <div className="p-4 md:p-8 space-y-4">
             <h3 className="text-xl font-black text-black uppercase">About the Event</h3>
             <div className="text-black text-base leading-relaxed whitespace-pre-wrap">
               {description}
@@ -314,7 +314,7 @@ function EventDetailModal({ isOpen, event, onClose }) {
 
           {/* Right Column - Ticket Stub Sidebar */}
           <div className="lg:sticky lg:top-0 h-fit border-l-4 border-dashed border-black bg-gray-50">
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-6">
               {/* Date & Time */}
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
