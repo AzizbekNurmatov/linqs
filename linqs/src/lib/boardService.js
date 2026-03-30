@@ -1,3 +1,8 @@
+/**
+ * Server-side integration layer for the Bulletin Board: creates posts in separate tables
+ * (`yaps`, `flashes`, `bites`, `barters`) and aggregates them into a single normalized feed for the UI.
+ * Storage uploads use the `board-uploads` bucket; RLS on each table and policies on Storage gate writes.
+ */
 import { supabase } from './supabase';
 import toast from 'react-hot-toast';
 
@@ -8,6 +13,7 @@ const STORAGE_BUCKET = 'board-uploads';
  * @param {File} file - Image file to upload
  * @returns {Promise<string|null>} Public URL or null on error
  */
+/** Writes to Storage bucket `board-uploads` under `public/...`; upload policy typically requires auth.uid(). */
 async function uploadImage(file) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -61,6 +67,7 @@ export async function createYap(content, isAnonymous = false) {
       return null;
     }
 
+    /** Table `yaps`: short text posts; `user_id` must match auth.uid() for inserts under typical RLS. */
     const { data, error } = await supabase
       .from('yaps')
       .insert({
@@ -118,6 +125,7 @@ export async function createFlash(activity, location, timeFrame, details = '') {
       expiresAt = tonight;
     }
 
+    /** Table `flashes`: ephemeral status; `expires_at` computed server-side from business rules below. */
     const { data, error } = await supabase
       .from('flashes')
       .insert({
@@ -176,6 +184,7 @@ export async function createBite(biteType, title, location, endTime = null, imag
       }
     }
 
+    /** Table `bites`: deals/free drops; optional image URL from Storage before insert. */
     const { data, error } = await supabase
       .from('bites')
       .insert({
@@ -231,6 +240,7 @@ export async function createBarter(tradeType, itemHave, itemWant, imageFile = nu
       }
     }
 
+    /** Table `barters`: trade goods/favors; image optional and only for goods in this flow. */
     const { data, error } = await supabase
       .from('barters')
       .insert({
@@ -264,8 +274,11 @@ export async function createBarter(tradeType, itemHave, itemWant, imageFile = nu
  */
 export async function fetchAllPosts() {
   try {
-    // Fetch all posts in parallel
-    // For yaps, join with profiles to get username and avatar_url
+    /**
+     * Four parallel selects (no SQL join across types): each table is independent. RLS returns only rows
+     * the anon/authenticated role may read. Results are normalized into a shared `{ type, createdAt, ... }`
+     * shape so `TheBoard` can render one Masonry list with discriminated cards.
+     */
     const [yapsResult, flashesResult, bitesResult, bartersResult] = await Promise.all([
       supabase
         .from('yaps')
@@ -289,7 +302,7 @@ export async function fetchAllPosts() {
 
     const posts = [];
 
-    // Transform yaps
+    /** Yap shape: `type: 'yap'` — username/avatar left null here (profile join not in this query). */
     if (yapsResult.data) {
       yapsResult.data.forEach(yap => {
         posts.push({
@@ -305,7 +318,10 @@ export async function fetchAllPosts() {
       });
     }
 
-    // Transform flashes
+    /**
+     * Flash shape: `type: 'flash'` — derives display `timeFrame` from `expires_at` vs clock for card UI
+     * (not stored as an enum on the row).
+     */
     if (flashesResult.data) {
       flashesResult.data.forEach(flash => {
         // Calculate timeFrame from expires_at
@@ -339,7 +355,7 @@ export async function fetchAllPosts() {
       });
     }
 
-    // Transform bites
+    /** Bite shape: `type: 'bites'` — maps DB `bite_type` enum to frontend `biteKind` ('free' | 'deal'). */
     if (bitesResult.data) {
       bitesResult.data.forEach(bite => {
         // Map DB bite_type to frontend biteKind
@@ -358,7 +374,7 @@ export async function fetchAllPosts() {
       });
     }
 
-    // Transform barters
+    /** Barter shape: `type: 'barter'` — maps `trade_type` to `mode` for `BarterCard`. */
     if (bartersResult.data) {
       bartersResult.data.forEach(barter => {
         posts.push({
@@ -373,7 +389,7 @@ export async function fetchAllPosts() {
       });
     }
 
-    // Sort by created_at descending
+    /** Global ordering: merge four sources then sort by normalized `createdAt` (ISO strings). */
     posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     return posts;

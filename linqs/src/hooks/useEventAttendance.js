@@ -1,33 +1,40 @@
+/**
+ * Encapsulates per-event join/leave attendance: reads `event_attendees` via the service layer,
+ * and coordinates optimistic UI with rollback when Supabase rejects the mutation (RLS or network).
+ */
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { checkEventAttendance, joinEvent, leaveEvent } from '../lib/eventAttendeesService';
 import toast from 'react-hot-toast';
 
 /**
- * Custom hook to manage event attendance (join/leave) state
  * @param {string} eventId - The UUID of the event
- * @returns {Object} { isJoined, isLoading, toggleAttendance }
+ * @returns {Object} { isJoined, isLoading, isToggling, toggleAttendance }
  */
 export function useEventAttendance(eventId) {
   const { user } = useAuth();
   const [isJoined, setIsJoined] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  /** Tracks in-flight mutation so callers can disable buttons while the server confirms. */
   const [isToggling, setIsToggling] = useState(false);
 
-  // Check initial attendance status when component mounts or eventId/user changes
+  /**
+   * Side effect: load whether the current user has a row in `event_attendees` for this event.
+   * Re-runs when `eventId` or `user?.id` changes (different event or login/logout).
+   * `isMounted` prevents setState after unmount if the async read resolves late (avoids leaks + React warnings).
+   */
   useEffect(() => {
     if (!eventId) {
       setIsLoading(false);
       return;
     }
 
-    let isMounted = true; // Cleanup flag
+    let isMounted = true;
 
     const checkAttendance = async () => {
       setIsLoading(true);
       const { data, error } = await checkEventAttendance(eventId);
       
-      // Only update state if component is still mounted
       if (!isMounted) return;
       
       if (error) {
@@ -41,18 +48,16 @@ export function useEventAttendance(eventId) {
 
     checkAttendance();
     
-    // Cleanup function
     return () => {
       isMounted = false;
     };
   }, [eventId, user?.id]);
 
   /**
-   * Toggle attendance (join if not joined, leave if joined)
-   * Implements optimistic UI updates
+   * Optimistic path: flip `isJoined` immediately, then call `leaveEvent` / `joinEvent`.
+   * On error, roll back to `previousState` and surface toast—RLS (e.g. insert denied) surfaces here as `error`.
    */
   const toggleAttendance = async () => {
-    // Check if user is logged in
     if (!user) {
       toast.error('Please log in to join events');
       return;
@@ -65,29 +70,23 @@ export function useEventAttendance(eventId) {
 
     // Store previous state for rollback
     const previousState = isJoined;
-    
-    // Optimistic update: immediately change UI state
     setIsJoined(!previousState);
     setIsToggling(true);
 
     try {
       if (previousState) {
-        // User is leaving the event
         const { error } = await leaveEvent(eventId);
         
         if (error) {
-          // Rollback on error
           setIsJoined(previousState);
           toast.error('Failed to leave event. Please try again.');
         } else {
           toast.success('You left the event');
         }
       } else {
-        // User is joining the event
         const { error } = await joinEvent(eventId);
         
         if (error) {
-          // Rollback on error
           setIsJoined(previousState);
           toast.error('Failed to join event. Please try again.');
         } else {
@@ -95,7 +94,6 @@ export function useEventAttendance(eventId) {
         }
       }
     } catch (error) {
-      // Rollback on error
       setIsJoined(previousState);
       console.error('Error toggling attendance:', error);
       toast.error('Something went wrong. Please try again.');

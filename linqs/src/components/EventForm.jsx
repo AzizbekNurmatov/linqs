@@ -1,8 +1,13 @@
+/**
+ * Multi-step create-event flow: collects UI-friendly state (12h time grid, recurring day pills, optional banner file),
+ * uploads images to the `event-banners` Storage bucket, then inserts one row into `events` with columns aligned to
+ * the Supabase schema. RLS on `events` and Storage policies determine whether the insert succeeds for the session.
+ */
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, MapPin, X, Link as LinkIcon, Upload, Clock, Plus, Coffee, Sparkles, Code, Briefcase, ChevronDown, Loader2, CheckCircle2, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-// Helpers for converting between 24h time strings and 12h parts
+/** DB stores `start_time` / `end_time` as 24h `HH:MM`; the grid UI edits 12h parts and these helpers bridge the two. */
 function parseTimeToParts(timeStr) {
   if (!timeStr) return { hour: null, minute: null, period: 'PM' };
   const [hStr, mStr] = timeStr.split(':');
@@ -31,6 +36,9 @@ function isTimeBefore(a, b) {
   return a < b; // safe because both are HH:MM 24h strings
 }
 
+/**
+ * Brutalist time grid: commits 24h strings upward so parent validation (`isTimeBefore`) can compare start/end on one plane.
+ */
 function TimePickerGrid({ label, value, onChange, min }) {
   const { hour: initialHour, minute: initialMinute, period: initialPeriod } = parseTimeToParts(value);
   const [selectedHour, setSelectedHour] = useState(initialHour);
@@ -244,6 +252,7 @@ function getTagColor(tagString) {
 }
 
 function EventForm({ onAddEvent, onClose, communityId = null }) {
+  /** Single object for controlled fields; online vs in-person toggles which column (`address` vs `location_link`) is sent. */
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -277,7 +286,10 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
   const endDateInputRef = useRef(null);
   const categoryDropdownRef = useRef(null);
 
-  // Close category dropdown when clicking outside
+  /**
+   * Side effect: dismiss category popover on outside click. Subscribes only while `isCategoryOpen` is true;
+   * cleanup removes the listener to avoid duplicate handlers on repeated opens.
+   */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(e.target)) {
@@ -408,6 +420,12 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
     return formattedStart;
   };
 
+  /**
+   * Submit pipeline: (1) resolve current user via `auth.getUser()`, (2) optional Storage upload to `event-banners`,
+   * (3) `insert` into `events` with snake_case payload. On success we reset local state and show success UI;
+   * `onAddEvent` from parent is not always invoked — list refresh often happens via full page reload in success handlers.
+   * Errors surface via `alert` / thrown errors from Supabase (RLS violations return `insertError`).
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isValid = formData.title && 
@@ -422,7 +440,6 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
     setIsSubmitting(true);
 
     try {
-      // Step A: Get Current User
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
       if (userError || !user) {
@@ -434,13 +451,12 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
       const userId = user.id;
       let imageUrl = null;
 
-      // Step B: Handle Image Upload (If exists)
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `public/${userId}/${fileName}`;
 
-        // Upload to event-banners bucket
+        /** Storage path scoped by `user.id` so policies can restrict writes to the owner's folder. */
         const { error: uploadError } = await supabase.storage
           .from('event-banners')
           .upload(filePath, imageFile, {
@@ -464,7 +480,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         imageUrl = formData.image;
       }
 
-      // Step C: Insert Event Record
+      /** Row for `events`: `user_id` ties ownership; RLS typically allows insert only for `user_id = auth.uid()`. */
       const eventData = {
         user_id: userId,
         title: formData.title,
@@ -494,7 +510,6 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         throw insertError;
       }
 
-      // Step D: Success - Show success state
       const newEventId = insertedData?.[0]?.id;
       setCreatedEventId(newEventId);
       
@@ -525,7 +540,6 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
       setIsSuccess(true);
       
     } catch (error) {
-      // Step D: Error Handling
       console.error('Error posting event:', error);
       alert(`Error posting event: ${error.message || 'Please try again'}`);
     } finally {
@@ -533,6 +547,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
     }
   };
 
+  /** Derived gate for the submit button — mirrors the same rules as `handleSubmit` early return. */
   const isFormValid = formData.title && 
                       formData.time && 
                       ((!isRecurring && formData.date) || (isRecurring && recurringDays.length > 0)) &&
@@ -540,7 +555,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
                       (!hasEndTime || formData.endTime) &&
                       (formData.isOnline ? formData.meetingLink : formData.location);
 
-  // Calculate min values for validation
+  /** Feeds `<input type="date" min>` and end-time floor so users cannot pick impossible ranges client-side. */
   const getEndDateMin = () => {
     // Only return min date if we have a start date (non-recurring events)
     if (!isRecurring && formData.date) {
@@ -559,7 +574,10 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
     return '';
   };
 
-  // Success state UI
+  /**
+   * Success branch: intentionally uses `window.location.reload()` so home/explore lists re-query Supabase without
+   * wiring a global event cache invalidation — tradeoff of simplicity vs SPA-style refetch.
+   */
   if (isSuccess) {
     return (
       <div className="bg-white relative rounded-3xl p-12">
@@ -719,6 +737,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         />
       </div>
 
+      {/* Recurring vs single-day: toggling clears incompatible fields so we never send conflicting date + recurring_days. */}
       {/* Weekly Recurring Event Toggle */}
       <div className="mb-6">
         <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors duration-200">
@@ -752,6 +771,7 @@ function EventForm({ onAddEvent, onClose, communityId = null }) {
         </div>
       </div>
 
+      {/* Three layout variants: recurring week pills, multi-day grid, or single-day — all funnel into the same `eventData` shape on submit. */}
       {/* Date & Time Section - Context-Aware Layout */}
       <div className="mb-6 space-y-4">
         {isRecurring ? (

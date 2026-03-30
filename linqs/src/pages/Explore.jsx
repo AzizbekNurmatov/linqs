@@ -1,3 +1,7 @@
+/**
+ * Event discovery page: loads public `events` rows from Supabase, maps DB columns into card-friendly props,
+ * and applies category + date filters client-side. Join state comes from `event_attendees` for the logged-in user.
+ */
 import { useState, useEffect } from 'react';
 import { Calendar, Users, Sparkles, Coffee, Code, Briefcase, ChevronDown, Loader2 } from 'lucide-react';
 import EventCard from '../components/EventCard';
@@ -39,7 +43,7 @@ const CultureIcon = ({ className }) => (
 );
 
 /**
- * Checks if an event date falls within the given date filter range.
+ * Pure date math for chip filters: interprets "this week" as Mon–Sun in local time (same as many calendar UIs).
  * @param {string} eventDate - Event date (ISO string or YYYY-MM-DD)
  * @param {string} filterType - 'any' | 'today' | 'this_week' | 'this_weekend'
  * @returns {boolean}
@@ -107,6 +111,7 @@ const FoodIcon = ({ className }) => (
 );
 
 function Explore() {
+  /** Raw list after DB fetch + mapping; filters below derive `filteredEvents` without a second network round-trip. */
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -114,8 +119,10 @@ function Explore() {
   const [openFilter, setOpenFilter] = useState('');
   const [activeCategory, setActiveCategory] = useState('All Events');
   const [dateFilter, setDateFilter] = useState('any');
+  /** Set of event IDs the user joined — O(1) lookup when rendering cards. */
   const [joinedEventIds, setJoinedEventIds] = useState(new Set());
   const { user } = useAuth();
+  /** Reserved for future filter dropdowns (day/type/distance/price); category + date chips drive filtering today. */
   const [filters, setFilters] = useState({
     day: 'Any day',
     type: 'Any type',
@@ -142,19 +149,23 @@ function Explore() {
   };
 
   const handleDelete = (eventId) => {
-    // Optimistically remove the event from the UI
+    /** Optimistic list removal after a successful delete elsewhere — keeps grid in sync before refetch. */
     setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
   };
 
-  // Fetch events and joined status from Supabase
+  /**
+   * Side effect: initial load and whenever `user?.id` changes (login/logout). Parallel fetch:
+   * - `events`: all columns; RLS defines which rows are visible to anon vs authenticated users.
+   * - `getJoinedEventIds()`: reads `event_attendees` for the current user (empty when logged out).
+   * `isMounted` avoids setState after unmount if navigation happens mid-request.
+   */
   useEffect(() => {
-    let isMounted = true; // Cleanup flag
+    let isMounted = true;
     
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Fetch events and joined event IDs in parallel
         const [eventsResult, joinedIdsResult] = await Promise.all([
           supabase
             .from('events')
@@ -179,11 +190,13 @@ function Explore() {
           console.error('Error fetching joined events:', joinedError);
         }
 
-        // Create Set of joined event IDs for O(1) lookup
         const joinedSet = new Set(joinedIds || []);
         setJoinedEventIds(joinedSet);
 
-        // Map snake_case to camelCase for EventCard component
+        /**
+         * Normalization: Postgres uses snake_case; EventCard expects mixed camelCase plus display-only `time` string.
+         * Spreading `...event` preserves raw fields for modals that need full row data.
+         */
         const mappedEvents = eventsData.map((event) => {
           // Format time - combine start_time and end_time if both exist
           let timeDisplay = event.start_time || '';
@@ -256,7 +269,6 @@ function Explore() {
 
     fetchData();
     
-    // Cleanup function
     return () => {
       isMounted = false;
     };
@@ -311,7 +323,10 @@ function Explore() {
     setOpenFilter('');
   };
 
-  // Close dropdown when clicking outside
+  /**
+   * Side effect: closes filter dropdowns on outside click. Depends on `openFilter`; listener removed on cleanup
+   * so we do not leak document handlers when the dropdown closes or the component unmounts.
+   */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest('.filter-dropdown')) {
@@ -327,7 +342,7 @@ function Explore() {
     }
   }, [openFilter]);
 
-  // FilterDropdown component - Neo-Brutalist Style
+  /** Inline dropdown UI for legacy filter chips (wired to `filters` state). */
   const FilterDropdown = ({ label, filterName, options }) => {
     const isOpen = openFilter === filterName;
     const selectedValue = filters[filterName];
@@ -363,7 +378,10 @@ function Explore() {
     );
   };
 
-  // Filter events based on active category AND date filter
+  /**
+   * Pure client filter: category uses fuzzy keyword matching against `event.category` because DB values
+   * are not guaranteed to match UI labels 1:1. Date filter uses `isDateInRange` on `startDate`.
+   */
   const filteredEvents = events.filter((event) => {
     // Check 1: Category filter (maps new UI labels to stored event categories)
     const categoryMatch = (() => {
