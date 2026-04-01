@@ -1,51 +1,10 @@
-import { useState, useEffect } from 'react';
-import { MapPin, ChevronDown } from 'lucide-react';
-import GiantReceipt from './GiantReceipt';
-
-// Mock data for live activity (clearly labeled)
-const MOCK_LIVE_DATA = {
-  eventsTonight: 23,
-  peopleBrowsing: 187,
-  trendingCategory: 'Live Music'
-};
-
-function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) {
-  const [currentCity] = useState('Charleston');
-  const [showCityDropdown, setShowCityDropdown] = useState(false);
-  const [countUpValues, setCountUpValues] = useState({
-    events: 0,
-    people: 0
-  });
-
-  // Count-up animation for live stats
-  useEffect(() => {
-    const duration = 1500;
-    const steps = 30;
-    const interval = duration / steps;
-    
-    const eventsStep = MOCK_LIVE_DATA.eventsTonight / steps;
-    const peopleStep = MOCK_LIVE_DATA.peopleBrowsing / steps;
-
-    let currentStep = 0;
-    const timer = setInterval(() => {
-      currentStep++;
-      setCountUpValues({
-        events: Math.min(Math.floor(eventsStep * currentStep), MOCK_LIVE_DATA.eventsTonight),
-        people: Math.min(Math.floor(peopleStep * currentStep), MOCK_LIVE_DATA.peopleBrowsing)
-      });
-
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setCountUpValues({
-          events: MOCK_LIVE_DATA.eventsTonight,
-          people: MOCK_LIVE_DATA.peopleBrowsing
-        });
-      }
-    }, interval);
-
-    return () => clearInterval(timer);
-  }, []);
-
+function HeroSection() {
+  const handlePrimaryAction = () => {
+    const destination = document.querySelector('main');
+    if (destination) {
+      destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <section className="bg-white relative overflow-hidden border-b-4 border-black hero-graph-paper">
@@ -59,67 +18,36 @@ function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) 
       />
       
       {/* Content Container - Constrained Width */}
-      <div className="max-w-7xl mx-auto px-6 pt-32 pb-20 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-        {/* Left Column: Typography & Social Proof */}
-        <div className="space-y-6">
-          {/* Location Badge */}
-          <div className="mb-2">
-            <div className="relative inline-block">
-              <button
-                onClick={() => setShowCityDropdown(!showCityDropdown)}
-                className="bg-black text-white px-3 py-1.5 text-xs font-black uppercase border-2 border-black hover:bg-white hover:text-black transition-colors flex items-center gap-2"
-              >
-                <MapPin className="w-3 h-3" />
-                <span>{currentCity} IS BUZZING TONIGHT</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${showCityDropdown ? 'rotate-180' : ''}`} />
-              </button>
-              {showCityDropdown && (
-                <div className="absolute top-full left-0 mt-2 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] py-2 min-w-[180px] z-20">
-                  <div className="px-4 py-2 text-xs font-mono uppercase text-black border-b-2 border-black">
-                    Coming soon to more cities
-                  </div>
-                  <div className="px-4 py-2 text-sm font-mono text-black">
-                    Charleston (Current)
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
+      <div className="max-w-4xl mx-auto px-6 pt-28 pb-20 relative z-10">
+        <div className="flex flex-col items-center text-center gap-8">
           {/* Headline */}
-          <h1 className="text-7xl md:text-8xl font-black text-black leading-none tracking-tighter uppercase animate-fade-in">
+          <h1 className="text-6xl sm:text-7xl md:text-8xl font-black text-black leading-none tracking-tighter uppercase animate-fade-in">
             THE CITY IS OPEN
           </h1>
-          
-          {/* Dynamic Subheadline */}
-          <p className="text-lg md:text-xl font-mono text-black max-w-lg leading-tight animate-fade-in-delay">
-            Live events, scenes, and underground plans happening near you — updated in real time.
+
+          {/* Sub-headline / Social Proof */}
+          <p className="text-base sm:text-lg md:text-xl font-mono text-black max-w-3xl leading-tight animate-fade-in-delay">
+            Join hundreds of Charleston students discovering the best underground shows, campus club meetups, and local nightlife.
           </p>
-          
-          {/* System Alert Cards */}
-          <div className="flex flex-wrap items-center gap-4 mt-6 animate-fade-in-delay-2">
-            <div className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <span className="text-xl">🔥</span>
-              <span className="text-sm font-black text-black uppercase">
-                <span className="tabular-nums font-mono">{countUpValues.events}</span> EVENTS TONIGHT
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-2 px-4 py-3 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <span className="text-xl">👀</span>
-              <span className="text-sm font-black text-black uppercase">
-                <span className="tabular-nums font-mono">{countUpValues.people}</span> PEOPLE BROWSING
-              </span>
-            </div>
+
+          {/* Primary + Secondary CTA */}
+          <div className="w-full flex flex-col items-center gap-4 animate-fade-in-delay-2">
+            <button
+              type="button"
+              onClick={handlePrimaryAction}
+              className="w-[85%] sm:w-auto sm:min-w-[420px] max-w-xl bg-[#ff4fa3] text-black border-4 border-black px-6 py-5 text-lg sm:text-xl md:text-2xl font-black uppercase tracking-wide shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:outline-none focus:ring-4 focus:ring-[#ffe500]"
+            >
+              SEE WHAT&apos;S ON TONIGHT ➔
+            </button>
+
+            <a
+              href="/board"
+              className="text-sm sm:text-base font-bold uppercase underline underline-offset-4 text-black hover:text-[#ff4fa3] transition-colors"
+            >
+              Organizing something? Post your event here.
+            </a>
           </div>
         </div>
-
-        {/* Right Column: Giant Receipt */}
-        <div className="relative w-full flex items-center justify-center">
-          <GiantReceipt />
-        </div>
-      </div>
       </div>
 
       {/* Custom animations via style tag */}
@@ -145,22 +73,6 @@ function HeroSection({ selectedCategories, onCategoryToggle, onCategoryClick }) 
         
         .animate-fade-in-delay-2 {
           animation: fade-in 0.6s ease-out 0.2s both;
-        }
-        
-        @keyframes pulse-slow {
-          0%, 100% {
-            opacity: 0.4;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 0.6;
-            transform: scale(1.05);
-          }
-
-        }
-        
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
         }
       `}</style>
     </section>
